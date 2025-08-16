@@ -121,7 +121,9 @@ class WebSearchTool:
                 include_domains=include_domains or [],  # Convert None to empty list
                 exclude_domains=exclude_domains or [],  # Convert None to empty list
             )
-            return format_results(response)
+            format_response = format_results(response)
+            self._logger.info(f"web_search format_response: {format_response}")
+            return format_response
         except InvalidAPIKeyError: 
             raise ValueError("Invalid Tavily API key")
         except UsageLimitExceededError:
