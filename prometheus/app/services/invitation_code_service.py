@@ -3,8 +3,8 @@ import logging
 import uuid
 from typing import Sequence
 
-from sqlmodel import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from prometheus.app.entity.invitation_code import InvitationCode
 from prometheus.app.services.base_service import BaseService

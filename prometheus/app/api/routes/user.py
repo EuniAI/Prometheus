@@ -43,12 +43,16 @@ async def list_users(request: Request) -> Response[Sequence[User]]:
     response_model=Response,
 )
 @requireLogin
-async def set_github_token(request: Request, set_github_token_request: SetGithubTokenRequest) -> Response:
+async def set_github_token(
+    request: Request, set_github_token_request: SetGithubTokenRequest
+) -> Response:
     """
     Set GitHub token for the user.
     """
     user_service: UserService = request.app.state.service["user_service"]
 
     # Update the user's GitHub token
-    await user_service.set_github_token(request.state.user_id, set_github_token_request.github_token)
+    await user_service.set_github_token(
+        request.state.user_id, set_github_token_request.github_token
+    )
     return Response()

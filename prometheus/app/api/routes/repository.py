@@ -79,7 +79,9 @@ async def upload_github_repository(
 
     # Check if the number of repositories exceeds the limit
     if settings.ENABLE_AUTHENTICATION:
-        user_repositories = await repository_service.get_repositories_by_user_id(request.state.user_id)
+        user_repositories = await repository_service.get_repositories_by_user_id(
+            request.state.user_id
+        )
         if len(user_repositories) >= settings.DEFAULT_USER_REPOSITORY_LIMIT:
             raise ServerException(
                 code=400,

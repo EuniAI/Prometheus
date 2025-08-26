@@ -133,7 +133,9 @@ class RepositoryService(BaseService):
         async with AsyncSession(self.engine) as session:
             return await session.get(Repository, repository_id)
 
-    async def get_repository_by_url_and_commit_id(self, url: str, commit_id: str) -> Optional[Repository]:
+    async def get_repository_by_url_and_commit_id(
+        self, url: str, commit_id: str
+    ) -> Optional[Repository]:
         """
         Retrieves a repository by its URL and commit ID.
 
