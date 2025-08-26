@@ -57,6 +57,7 @@ def postgres_container_fixture():
         password=POSTGRES_PASSWORD,
         dbname=POSTGRES_DB,
         port=5432,
+        driver="asyncpg",
     ).with_name(f"postgres_container_{uuid.uuid4().hex[:12]}")
     with container as postgres_container:
         yield postgres_container

@@ -2,6 +2,7 @@ from pathlib import Path
 from unittest.mock import create_autospec, patch
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from prometheus.app.entity.repository import Repository
 from prometheus.app.services.database_service import DatabaseService
@@ -22,11 +23,11 @@ def mock_kg_service():
 
 
 @pytest.fixture
-def mock_database_service(postgres_container_fixture):  # noqa: F811
+async def mock_database_service(postgres_container_fixture):  # noqa: F811
     service = DatabaseService(postgres_container_fixture.get_connection_url())
-    service.start()
+    await service.start()
     yield service
-    service.close()
+    await service.close()
 
 
 @pytest.fixture
@@ -168,9 +169,9 @@ def test_get_repository_returns_git_repo_instance(service):
     assert result == mock_git_repo_instance
 
 
-def test_create_new_repository(service):
+async def test_create_new_repository(service):
     # Exercise
-    service.create_new_repository(
+    await service.create_new_repository(
         url="https://github.com/test/repo",
         commit_id="abc123",
         playground_path="/tmp/repositories/repo",
@@ -178,9 +179,19 @@ def test_create_new_repository(service):
         kg_root_node_id=0,
     )
 
+    # Verify the object is persisted in the database
+    async with AsyncSession(service.engine) as session:
+        db_obj = await session.get(Repository, 1)
+        assert db_obj is not None
+        assert db_obj.url == "https://github.com/test/repo"
+        assert db_obj.commit_id == "abc123"
+        assert db_obj.playground_path == "/tmp/repositories/repo"
+        assert db_obj.user_id is None
+        assert db_obj.kg_root_node_id == 0
 
-def test_get_all_repositories(service):
+
+async def test_get_all_repositories(service):
     # Exercise
-    repos = service.get_all_repositories()
+    repos = await service.get_all_repositories()
     # Verify
     assert len(repos) == 1

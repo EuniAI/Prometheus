@@ -1,5 +1,6 @@
 import datetime
 from unittest import mock
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import FastAPI, Request
@@ -33,13 +34,17 @@ def mock_service():
 
 def test_create_invitation_code(mock_service):
     # Mock the return value of create_invitation_code
-    mock_service["invitation_code_service"].create_invitation_code.return_value = InvitationCode(
-        id=1,
-        code="testcode",
-        is_used=False,
-        expiration_time=datetime.datetime(year=2025, month=1, day=1, hour=0, minute=0, second=0),
+    mock_service["invitation_code_service"].create_invitation_code = AsyncMock(
+        return_value=InvitationCode(
+            id=1,
+            code="testcode",
+            is_used=False,
+            expiration_time=datetime.datetime(
+                year=2025, month=1, day=1, hour=0, minute=0, second=0
+            ),
+        )
     )
-    mock_service["user_service"].is_admin.return_value = True
+    mock_service["user_service"].is_admin = AsyncMock(return_value=True)
 
     # Test the creation endpoint
     response = client.post("invitation-code/create/")
@@ -58,17 +63,19 @@ def test_create_invitation_code(mock_service):
 
 def test_list(mock_service):
     # Mock user as admin and return a list of invitation codes
-    mock_service["invitation_code_service"].list_invitation_codes.return_value = [
-        InvitationCode(
-            id=1,
-            code="testcode",
-            is_used=False,
-            expiration_time=datetime.datetime(
-                year=2025, month=1, day=1, hour=0, minute=0, second=0
-            ),
-        )
-    ]
-    mock_service["user_service"].is_admin.return_value = True
+    mock_service["invitation_code_service"].list_invitation_codes = AsyncMock(
+        return_value=[
+            InvitationCode(
+                id=1,
+                code="testcode",
+                is_used=False,
+                expiration_time=datetime.datetime(
+                    year=2025, month=1, day=1, hour=0, minute=0, second=0
+                ),
+            )
+        ]
+    )
+    mock_service["user_service"].is_admin = AsyncMock(return_value=True)
 
     # Test the list endpoint
     response = client.get("invitation-code/list/")
