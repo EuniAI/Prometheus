@@ -215,7 +215,14 @@ Verify Neo4J at: [http://localhost:7474](http://localhost:7474)
 
 ## 📄 License
 
-Licensed under the [Apache License 2.0](LICENSE).
+This project is dual-licensed:
+- **Community Edition**: Licensed under the [GNU General Public License v3.0 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html).  
+  You are free to use, modify, and redistribute this code, provided that any derivative works are also released under the GPLv3.  
+  This ensures the project remains open and contributions benefit the community.
+
+- **Commercial Edition**: For organizations that wish to use this software in **proprietary, closed-source, or commercial settings**,  
+  a separate commercial license is available. Please contact **EUNI.AI Team** to discuss licensing terms.
+
 
 ---
 
