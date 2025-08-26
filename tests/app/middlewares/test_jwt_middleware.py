@@ -31,7 +31,11 @@ def app():
     @app.get("/protected")
     def protected(request: Request):
         # Return back the user_id the middleware stores on request.state
-        return {"ok": True, "route": "protected", "user_id": getattr(request.state, "user_id", None)}
+        return {
+            "ok": True,
+            "route": "protected",
+            "user_id": getattr(request.state, "user_id", None),
+        }
 
     @app.get("/me")
     def me(request: Request):
@@ -122,6 +126,7 @@ def test_options_request_passes_through(client, monkeypatch):
     OPTIONS preflight should be allowed through without requiring a valid token.
     The middleware explicitly bypasses OPTIONS before checking Authorization.
     """
+
     # Even if decode_token would fail, OPTIONS should not trigger it.
     def boom(_self, _: str):
         raise AssertionError("decode_token should not be called for OPTIONS")
