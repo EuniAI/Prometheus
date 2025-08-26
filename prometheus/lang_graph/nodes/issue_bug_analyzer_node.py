@@ -1,10 +1,11 @@
 from typing import Dict
+import asyncio
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage
 from langchain.tools import StructuredTool
 import functools
-from prometheus.tools.web_search import WebSearchTool
+from prometheus.tools.web_search import WebSearchTool, mcp_web_search
 from prometheus.utils.logger_manager import get_logger
 
 
@@ -82,6 +83,13 @@ MANDATORY TOOL USAGE:
 
 Tools available:
 - web_search: Searches the web for technical information to aid in bug analysis and resolution. 
+When using the web_search tool, ALWAYS include these parameters:
+    - exclude_domains: ["*swe-bench*"]
+    - include_domains: ['stackoverflow.com', 'github.com', 'developer.mozilla.org', 'learn.microsoft.com', 'fastapi.tiangolo.com'
+            'docs.python.org', 'pydantic.dev', 'pypi.org', 'readthedocs.org', 'docs.djangoproject.com','flask.palletsprojects.com']
+    - search_depth: "advanced"
+    
+    Make sure to explicitly pass these parameters in your tool call.
 
 Important:
 - Do NOT provide actual code snippets or diffs
@@ -98,6 +106,7 @@ rather than implementation details.
         self.web_search_tool = WebSearchTool()
         self.model = model
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
+        # self.tools = asyncio.run(mcp_web_search())  # mcp mode
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
         self._logger = get_logger(__name__)

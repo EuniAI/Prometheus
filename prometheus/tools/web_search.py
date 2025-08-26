@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field, field_validator
 from tavily import TavilyClient, InvalidAPIKeyError, UsageLimitExceededError
 from prometheus.configuration.config import settings
 from prometheus.utils.logger_manager import get_logger
+from langchain_mcp_adapters.client import MultiServerMCPClient
 
 logger = get_logger(__name__)
 
@@ -131,6 +132,18 @@ class WebSearchTool:
         except Exception as e:
             raise RuntimeError(f"An error occurred: {str(e)}")
 
+async def mcp_web_search():
+    client = MultiServerMCPClient(
+            {        
+                "tavily_web_search": {
+                    "transport": "streamable_http",
+                    "url": f"https://mcp.tavily.com/mcp/?tavilyApiKey={tavily_api_key}",
+                }
+            }
+        )
+        # 异步获取工具
+    tools = await client.get_tools()
+    return tools
 
 if __name__ == "__main__":
     load_dotenv()
