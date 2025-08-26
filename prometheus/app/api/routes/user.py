@@ -21,17 +21,17 @@ router = APIRouter()
     response_model=Response[Sequence[UserResponse]],
 )
 @requireLogin
-def list_users(request: Request) -> Response[Sequence[User]]:
+async def list_users(request: Request) -> Response[Sequence[User]]:
     """
     List all users in the database.
     """
     # Check if the user is an admin
     user_service: UserService = request.app.state.service["user_service"]
-    if not user_service.is_admin(request.state.user_id):
+    if not await user_service.is_admin(request.state.user_id):
         raise ServerException(code=403, message="Only admins can list users")
 
     # List all users
-    users = user_service.list_users()
+    users = await user_service.list_users()
     return Response(data=[UserResponse.model_validate(user) for user in users])
 
 
@@ -43,12 +43,16 @@ def list_users(request: Request) -> Response[Sequence[User]]:
     response_model=Response,
 )
 @requireLogin
-def set_github_token(request: Request, set_github_token_request: SetGithubTokenRequest) -> Response:
+async def set_github_token(
+    request: Request, set_github_token_request: SetGithubTokenRequest
+) -> Response:
     """
     Set GitHub token for the user.
     """
     user_service: UserService = request.app.state.service["user_service"]
 
     # Update the user's GitHub token
-    user_service.set_github_token(request.state.user_id, set_github_token_request.github_token)
+    await user_service.set_github_token(
+        request.state.user_id, set_github_token_request.github_token
+    )
     return Response()

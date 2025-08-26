@@ -35,7 +35,7 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
     ]
 
     # Fetch the repository by ID
-    repository = repository_service.get_repository_by_id(issue.repository_id)
+    repository = await repository_service.get_repository_by_id(issue.repository_id)
     # Ensure the repository exists
     if not repository:
         raise ServerException(code=404, message="Repository not found")
@@ -46,7 +46,7 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
     # Check issue credit
     user_issue_credit = None
     if settings.ENABLE_AUTHENTICATION:
-        user_issue_credit = user_service.get_issue_credit(request.state.user_id)
+        user_issue_credit = await user_service.get_issue_credit(request.state.user_id)
         if user_issue_credit <= 0:
             raise ServerException(
                 code=403,
@@ -123,7 +123,7 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
 
     # Deduct issue credit after successful processing
     if settings.ENABLE_AUTHENTICATION:
-        user_service.update_issue_credit(request.state.user_id, user_issue_credit - 1)
+        await user_service.update_issue_credit(request.state.user_id, user_issue_credit - 1)
 
     # Return the response
     return Response(

@@ -5,7 +5,8 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from prometheus.app.entity.repository import Repository
 from prometheus.app.services.base_service import BaseService
@@ -82,7 +83,7 @@ class RepositoryService(BaseService):
             git_repo.checkout_commit(commit_id)
         return git_repo.get_working_directory()
 
-    def create_new_repository(
+    async def create_new_repository(
         self,
         url: str,
         commit_id: Optional[str],
@@ -103,7 +104,7 @@ class RepositoryService(BaseService):
         Returns:
             The ID of the newly created repository in the database.
         """
-        with Session(self.engine) as session:
+        async with AsyncSession(self.engine) as session:
             repository = Repository(
                 url=url,
                 commit_id=commit_id,
@@ -115,11 +116,11 @@ class RepositoryService(BaseService):
                 kg_chunk_overlap=self.kg_service.chunk_overlap,
             )
             session.add(repository)
-            session.commit()
-            session.refresh(repository)
+            await session.commit()
+            await session.refresh(repository)
         return repository.id
 
-    def get_repository_by_id(self, repository_id: int) -> Optional[Repository]:
+    async def get_repository_by_id(self, repository_id: int) -> Optional[Repository]:
         """
         Retrieves a repository by its ID.
 
@@ -129,11 +130,12 @@ class RepositoryService(BaseService):
         Returns:
             The Repository instance if found, otherwise None.
         """
-        with Session(self.engine) as session:
-            statement = select(Repository).where(Repository.id == repository_id)
-            return session.exec(statement).first()
+        async with AsyncSession(self.engine) as session:
+            return await session.get(Repository, repository_id)
 
-    def get_repository_by_url_and_commit_id(self, url: str, commit_id: str) -> Optional[Repository]:
+    async def get_repository_by_url_and_commit_id(
+        self, url: str, commit_id: str
+    ) -> Optional[Repository]:
         """
         Retrieves a repository by its URL and commit ID.
 
@@ -144,13 +146,14 @@ class RepositoryService(BaseService):
         Returns:
             The Repository instance if found, otherwise None.
         """
-        with Session(self.engine) as session:
+        async with AsyncSession(self.engine) as session:
             statement = select(Repository).where(
                 Repository.url == url, Repository.commit_id == commit_id
             )
-            return session.exec(statement).first()
+            result = await session.execute(statement)
+            return result.scalars().first()
 
-    def get_repository_by_url_commit_id_and_user_id(
+    async def get_repository_by_url_commit_id_and_user_id(
         self, url: str, commit_id: str, user_id: int
     ) -> Optional[Repository]:
         """
@@ -164,15 +167,16 @@ class RepositoryService(BaseService):
         Returns:
             The Repository instance if found, otherwise None.
         """
-        with Session(self.engine) as session:
+        async with AsyncSession(self.engine) as session:
             statement = select(Repository).where(
                 Repository.url == url,
                 Repository.commit_id == commit_id,
                 Repository.user_id == user_id,
             )
-            return session.exec(statement).first()
+            result = await session.execute(statement)
+            return result.scalars().first()
 
-    def update_repository_status(self, repository_id: int, is_working: bool):
+    async def update_repository_status(self, repository_id: int, is_working: bool):
         """
         Updates the working status of a repository.
 
@@ -180,12 +184,12 @@ class RepositoryService(BaseService):
             repository_id: The ID of the repository to update.
             is_working: The new working status to set for the repository.
         """
-        with Session(self.engine) as session:
-            repository = session.get(Repository, repository_id)
+        async with AsyncSession(self.engine) as session:
+            repository = await session.get(Repository, repository_id)
             if repository:
                 repository.is_working = is_working
                 session.add(repository)
-                session.commit()
+                await session.commit()
 
     def clean_repository(self, repository: Repository):
         path = Path(repository.playground_path)
@@ -193,36 +197,38 @@ class RepositoryService(BaseService):
             shutil.rmtree(repository.playground_path)
             path.parent.rmdir()
 
-    def delete_repository(self, repository: Repository):
+    async def delete_repository(self, repository: Repository):
         """
         deletes a repository from the database.
 
         Args:
             repository: The repository instance to mark as cleaned.
         """
-        with Session(self.engine) as session:
-            obj = session.get(Repository, repository.id)
+        async with AsyncSession(self.engine) as session:
+            obj = await session.get(Repository, repository.id)
             if obj:
-                session.delete(obj)
-                session.commit()
+                await session.delete(obj)
+                await session.commit()
 
     def get_repository(self, local_path) -> GitRepository:
         git_repo = GitRepository()
         git_repo.from_local_repository(Path(local_path))
         return git_repo
 
-    def get_repositories_by_user_id(self, user_id):
+    async def get_repositories_by_user_id(self, user_id):
         """
         Retrieves all repositories associated with a specific user ID.
         """
-        with Session(self.engine) as session:
+        async with AsyncSession(self.engine) as session:
             statement = select(Repository).where(Repository.user_id == user_id)
-            return session.exec(statement).all()
+            result = await session.execute(statement)
+            return result.scalars().all()
 
-    def get_all_repositories(self):
+    async def get_all_repositories(self):
         """
         Retrieves all repositories in the database.
         """
-        with Session(self.engine) as session:
+        async with AsyncSession(self.engine) as session:
             statement = select(Repository)
-            return session.exec(statement).all()
+            result = await session.execute(statement)
+            return result.scalars().all()

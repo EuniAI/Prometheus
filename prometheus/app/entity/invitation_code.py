@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
-from sqlmodel import Field, SQLModel
+from sqlalchemy import TIMESTAMP
+from sqlmodel import Column, Field, SQLModel
 
 from prometheus.configuration.config import settings
 
@@ -16,4 +17,5 @@ class InvitationCode(SQLModel, table=True):
     expiration_time: datetime = Field(
         default=datetime.now(timezone.utc) + timedelta(days=settings.INVITATION_CODE_EXPIRE_TIME),
         description="Expiration time of the invitation code",
+        sa_column=Column(TIMESTAMP(timezone=True)),
     )

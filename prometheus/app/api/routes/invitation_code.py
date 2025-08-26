@@ -19,18 +19,18 @@ router = APIRouter()
     response_model=Response[InvitationCode],
 )
 @requireLogin
-def create_invitation_code(request: Request) -> Response[InvitationCode]:
+async def create_invitation_code(request: Request) -> Response[InvitationCode]:
     """
     Create a new invitation code.
     """
     # Check if the user is an admin
     user_service: UserService = request.app.state.service["user_service"]
-    if not user_service.is_admin(request.state.user_id):
+    if not await user_service.is_admin(request.state.user_id):
         raise ServerException(code=403, message="Only admins can create invitation codes")
 
     # Create a new invitation code
     invitation_code_service = request.app.state.service["invitation_code_service"]
-    invitation_code = invitation_code_service.create_invitation_code()
+    invitation_code = await invitation_code_service.create_invitation_code()
     return Response(data=invitation_code)
 
 
@@ -42,16 +42,16 @@ def create_invitation_code(request: Request) -> Response[InvitationCode]:
     response_model=Response[Sequence[InvitationCode]],
 )
 @requireLogin
-def list_invitation_codes(request: Request) -> Response[Sequence[InvitationCode]]:
+async def list_invitation_codes(request: Request) -> Response[Sequence[InvitationCode]]:
     """
     List all invitation codes.
     """
     # Check if the user is an admin
     user_service: UserService = request.app.state.service["user_service"]
-    if not user_service.is_admin(request.state.user_id):
+    if not await user_service.is_admin(request.state.user_id):
         raise ServerException(code=403, message="Only admins can list invitation codes")
 
     # List all invitation codes
     invitation_code_service = request.app.state.service["invitation_code_service"]
-    invitation_codes = invitation_code_service.list_invitation_codes()
+    invitation_codes = await invitation_code_service.list_invitation_codes()
     return Response(data=invitation_codes)

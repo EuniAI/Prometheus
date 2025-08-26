@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import FastAPI
@@ -23,16 +24,18 @@ def mock_service():
 
 
 def test_answer_issue(mock_service):
-    mock_service["repository_service"].get_repository_by_id.return_value = Repository(
-        id=1,
-        url="https://github.com/fake/repo.git",
-        commit_id=None,
-        playground_path="/path/to/playground",
-        kg_root_node_id=0,
-        user_id=None,
-        kg_max_ast_depth=100,
-        kg_chunk_size=1000,
-        kg_chunk_overlap=100,
+    mock_service["repository_service"].get_repository_by_id = AsyncMock(
+        return_value=Repository(
+            id=1,
+            url="https://github.com/fake/repo.git",
+            commit_id=None,
+            playground_path="/path/to/playground",
+            kg_root_node_id=0,
+            user_id=None,
+            kg_max_ast_depth=100,
+            kg_chunk_size=1000,
+            kg_chunk_overlap=100,
+        )
     )
     mock_service["issue_service"].answer_issue.return_value = (
         "test patch",  # patch
@@ -70,7 +73,7 @@ def test_answer_issue(mock_service):
 
 
 def test_answer_issue_no_repository(mock_service):
-    mock_service["repository_service"].get_repository_by_id.return_value = None
+    mock_service["repository_service"].get_repository_by_id = AsyncMock(return_value=None)
 
     response = client.post(
         "/issue/answer/",
@@ -85,16 +88,18 @@ def test_answer_issue_no_repository(mock_service):
 
 
 def test_answer_issue_invalid_container_config(mock_service):
-    mock_service["repository_service"].get_repository_by_id.return_value = Repository(
-        id=1,
-        url="https://github.com/fake/repo.git",
-        commit_id=None,
-        playground_path="/path/to/playground",
-        kg_root_node_id=0,
-        user_id=None,
-        kg_max_ast_depth=100,
-        kg_chunk_size=1000,
-        kg_chunk_overlap=100,
+    mock_service["repository_service"].get_repository_by_id = AsyncMock(
+        return_value=Repository(
+            id=1,
+            url="https://github.com/fake/repo.git",
+            commit_id=None,
+            playground_path="/path/to/playground",
+            kg_root_node_id=0,
+            user_id=None,
+            kg_max_ast_depth=100,
+            kg_chunk_size=1000,
+            kg_chunk_overlap=100,
+        )
     )
 
     response = client.post(
@@ -112,16 +117,18 @@ def test_answer_issue_invalid_container_config(mock_service):
 
 
 def test_answer_issue_with_container(mock_service):
-    mock_service["repository_service"].get_repository_by_id.return_value = Repository(
-        id=1,
-        url="https://github.com/fake/repo.git",
-        commit_id=None,
-        playground_path="/path/to/playground",
-        kg_root_node_id=0,
-        user_id=None,
-        kg_max_ast_depth=100,
-        kg_chunk_size=1000,
-        kg_chunk_overlap=100,
+    mock_service["repository_service"].get_repository_by_id = AsyncMock(
+        return_value=Repository(
+            id=1,
+            url="https://github.com/fake/repo.git",
+            commit_id=None,
+            playground_path="/path/to/playground",
+            kg_root_node_id=0,
+            user_id=None,
+            kg_max_ast_depth=100,
+            kg_chunk_size=1000,
+            kg_chunk_overlap=100,
+        )
     )
 
     mock_service["issue_service"].answer_issue.return_value = (
