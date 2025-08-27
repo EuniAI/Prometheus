@@ -7,7 +7,6 @@ from typing import Mapping, Optional, Sequence
 
 from prometheus.app.services.base_service import BaseService
 from prometheus.app.services.llm_service import LLMService
-from prometheus.app.services.neo4j_service import Neo4jService
 from prometheus.docker.general_container import GeneralContainer
 from prometheus.docker.user_defined_container import UserDefinedContainer
 from prometheus.git.git_repository import GitRepository
@@ -19,16 +18,14 @@ from prometheus.lang_graph.graphs.issue_state import IssueType
 class IssueService(BaseService):
     def __init__(
         self,
-        neo4j_service: Neo4jService,
         llm_service: LLMService,
-        max_token_per_neo4j_result: int,
         working_directory: str,
         logging_level: str,
     ):
-        self.neo4j_service = neo4j_service
         self.llm_service = llm_service
-        self.max_token_per_neo4j_result = max_token_per_neo4j_result
         self.working_directory = working_directory
+
+        # Create a directory for answer issue logs
         self.answer_issue_log_dir = Path(self.working_directory) / "answer_issue_logs"
         self.answer_issue_log_dir.mkdir(parents=True, exist_ok=True)
         self.logging_level = logging_level
@@ -113,8 +110,6 @@ class IssueService(BaseService):
             base_model=self.llm_service.base_model,
             kg=knowledge_graph,
             git_repo=repository,
-            neo4j_driver=self.neo4j_service.neo4j_driver,
-            max_token_per_neo4j_result=self.max_token_per_neo4j_result,
             container=container,
             build_commands=build_commands,
             test_commands=test_commands,

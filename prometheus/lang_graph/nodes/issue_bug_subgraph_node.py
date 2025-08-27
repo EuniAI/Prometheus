@@ -2,7 +2,6 @@ import logging
 import threading
 from typing import Optional, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.errors import GraphRecursionError
 
@@ -25,8 +24,6 @@ class IssueBugSubgraphNode:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
         build_commands: Optional[Sequence[str]] = None,
         test_commands: Optional[Sequence[str]] = None,
     ):
@@ -40,8 +37,6 @@ class IssueBugSubgraphNode:
             container=container,
             kg=kg,
             git_repo=git_repo,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
             build_commands=build_commands,
             test_commands=test_commands,
         )

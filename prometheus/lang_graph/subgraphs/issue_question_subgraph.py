@@ -1,6 +1,5 @@
 from typing import Mapping, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.constants import END
 from langgraph.graph import StateGraph
@@ -27,8 +26,6 @@ class IssueQuestionSubgraph:
         base_model: BaseChatModel,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
     ):
         # Step 1: Retrieve relevant context based on the issue details
         issue_question_context_message_node = IssueQuestionContextMessageNode()
@@ -36,8 +33,6 @@ class IssueQuestionSubgraph:
             model=base_model,
             kg=kg,
             local_path=git_repo.playground_path,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
             query_key_name="question_query",
             context_key_name="question_context",
         )

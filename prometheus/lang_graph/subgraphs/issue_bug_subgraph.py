@@ -1,6 +1,5 @@
 from typing import Mapping, Optional, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph import END, StateGraph
 
@@ -29,8 +28,6 @@ class IssueBugSubgraph:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
         build_commands: Optional[Sequence[str]] = None,
         test_commands: Optional[Sequence[str]] = None,
     ):
@@ -41,8 +38,6 @@ class IssueBugSubgraph:
             container=container,
             kg=kg,
             git_repo=git_repo,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
             test_commands=test_commands,
         )
         # Construct bug regression tests subgraph node
@@ -52,8 +47,6 @@ class IssueBugSubgraph:
             container=container,
             kg=kg,
             git_repo=git_repo,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
         )
 
         # Construct issue bug verified subgraph nodes
@@ -63,8 +56,6 @@ class IssueBugSubgraph:
             container=container,
             kg=kg,
             git_repo=git_repo,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
             build_commands=build_commands,
             test_commands=test_commands,
         )
@@ -75,8 +66,6 @@ class IssueBugSubgraph:
             kg=kg,
             git_repo=git_repo,
             container=container,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
         )
         # Construct issue bug responder node
         issue_bug_responder_node = IssueBugResponderNode(base_model)
