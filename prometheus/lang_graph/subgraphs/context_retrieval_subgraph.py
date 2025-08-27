@@ -56,6 +56,7 @@ class ContextRetrievalSubgraph:
         context_provider_node = ContextProviderNode(
             model,
             kg,
+            local_path,
         )
 
         # Step 3: Add tool node to handle tool-based retrieval invocation dynamically

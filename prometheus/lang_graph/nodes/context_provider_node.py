@@ -15,7 +15,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
-from prometheus.tools import graph_traversal
+from prometheus.tools import file_operation, graph_traversal
 
 
 class ContextProviderNode:
@@ -88,6 +88,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         self,
         model: BaseChatModel,
         kg: KnowledgeGraph,
+        local_path: str,
     ):
         """Initializes the ContextProviderNode with model, knowledge graph, and database connection.
 
@@ -104,6 +105,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         """
         ast_node_types_str = ", ".join(kg.get_all_ast_node_types())
         self.kg = kg
+        self.root_path = local_path
         self.system_prompt = SystemMessage(
             self.SYS_PROMPT.format(file_tree=kg.get_file_tree(), ast_node_types=ast_node_types_str)
         )
@@ -261,18 +263,18 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # === FILE PREVIEW & READING TOOLS ===
 
         # Tool: Preview contents of file by relative path
-        preview_file_content_with_relative_path_fn = functools.partial(
-            graph_traversal.preview_file_content_with_relative_path,
+        read_file_fn = functools.partial(
+            file_operation.read_file_with_knowledge_graph_data,
+            root_path=self.root_path,
             kg=self.kg,
         )
-        preview_file_content_with_relative_path_tool = StructuredTool.from_function(
-            func=preview_file_content_with_relative_path_fn,
-            name=graph_traversal.preview_file_content_with_relative_path.__name__,
-            description=graph_traversal.PREVIEW_FILE_CONTENT_WITH_RELATIVE_PATH_DESCRIPTION,
-            args_schema=graph_traversal.PreviewFileContentWithRelativePathInput,
-            response_format="content_and_artifact",
+        read_file_tool = StructuredTool.from_function(
+            func=read_file_fn,
+            name=file_operation.read_file.__name__,
+            description=file_operation.READ_FILE_DESCRIPTION,
+            args_schema=file_operation.ReadFileInput,
         )
-        tools.append(preview_file_content_with_relative_path_tool)
+        tools.append(read_file_tool)
 
         # Tool: Read entire code file by relative path
         read_code_with_relative_path_fn = functools.partial(

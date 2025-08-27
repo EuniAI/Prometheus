@@ -164,39 +164,6 @@ async def test_get_next_text_node_with_node_id(knowledge_graph_fixture):
 
 
 @pytest.mark.slow
-async def test_preview_file_content_with_relative_path(knowledge_graph_fixture):  # noqa: F811
-    relative_path = str(
-        test_project_paths.PYTHON_FILE.relative_to(test_project_paths.TEST_PROJECT_PATH).as_posix()
-    )
-    result = graph_traversal.preview_file_content_with_relative_path(
-        relative_path, knowledge_graph_fixture
-    )
-
-    result_data = result[1]
-    assert len(result_data) > 0
-    for result_row in result_data:
-        assert "preview" in result_row
-        assert 'print("Hello world!")' in result_row["preview"].get("text", "")
-        assert "FileNode" in result_row
-        assert result_row["FileNode"].get("relative_path", "") == relative_path
-
-    relative_path = str(
-        test_project_paths.MD_FILE.relative_to(test_project_paths.TEST_PROJECT_PATH).as_posix()
-    )
-    result = graph_traversal.preview_file_content_with_relative_path(
-        relative_path, knowledge_graph_fixture
-    )
-
-    result_data = result[1]
-    assert len(result_data) > 0
-    for result_row in result_data:
-        assert "preview" in result_row
-        assert "Text under header A" in result_row["preview"].get("text", "")
-        assert "FileNode" in result_row
-        assert result_row["FileNode"].get("relative_path", "") == relative_path
-
-
-@pytest.mark.slow
 async def test_read_code_with_relative_path(knowledge_graph_fixture):  # noqa: F811
     relative_path = str(
         test_project_paths.C_FILE.relative_to(test_project_paths.TEST_PROJECT_PATH).as_posix()

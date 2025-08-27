@@ -22,6 +22,7 @@ async def test_context_provider_node_basic_query(knowledge_graph_fixture):
     node = ContextProviderNode(
         model=fake_llm,
         kg=knowledge_graph_fixture,
+        local_path=test_project_paths.TEST_PROJECT_PATH,
     )
 
     test_messages = [
