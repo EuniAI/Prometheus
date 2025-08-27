@@ -6,6 +6,7 @@ node graphs where a connection is needed but no processing is required.
 """
 
 from prometheus.utils.logger_manager import get_logger
+import threading
 from typing import Dict
 
 
@@ -19,7 +20,7 @@ class NoopNode:
     """
 
     def __init__(self):
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def __call__(self, state: Dict) -> None:
         """Routes the workflow without performing any operations.

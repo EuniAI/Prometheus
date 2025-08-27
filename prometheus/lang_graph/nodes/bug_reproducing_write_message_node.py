@@ -1,3 +1,5 @@
+import logging
+import threading
 
 from langchain_core.messages import HumanMessage
 
@@ -24,7 +26,7 @@ Now think about what went wrong and generate the complete self-contained test ca
 """
 
     def __init__(self):
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def format_human_message(self, state: BugReproductionState):
         if "reproduced_bug_failure_log" in state and state["reproduced_bug_failure_log"]:

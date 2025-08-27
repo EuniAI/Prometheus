@@ -73,9 +73,19 @@ governed by a state machine to ensure code quality through automated reviews, bu
    ```
 
 2. #### Copy the `example.env` file to `.env` and update it with your API keys and other required configurations:
+
    ```bash
    mv example.env .env
    ```
+
+   > You need to provide a secure `JWT_SECRET_KEY` in the `.env` file.
+   > You can generate a strong key by running the following command:
+
+   ```bash
+   python -m prometheus.script.generate_jwt_token
+   ```
+
+   This will print a secure token you can copy and paste into your `.env` file
 
 3. #### Create the working directory to store logs and cloned repositories:
 
@@ -101,21 +111,15 @@ governed by a state machine to ensure code quality through automated reviews, bu
       ```
 
 5. #### Access Prometheus:
-    - Service: [http://localhost:9002](http://localhost:9002)
+    - Service: [http://localhost:9002/v1.2](http://localhost:9002/v1.2)
     - OpenAPI Docs: [http://localhost:9002/docs](http://localhost:9002/docs)
 
 6. #### Upload Your Codebase:
 
    You can upload a GitHub repository to Prometheus using the following API endpoint:
 
-   - **Endpoint:** `GET /repository/github/`
-   - **Query Parameter:** `https_url` (the HTTPS URL of your GitHub repository)
-
-   **Example using `curl`:**
-
-   ```bash
-   curl -X GET "http://localhost:9002/repository/github/?https_url=https://github.com/your/repo.git"
-   ```
+   - **Endpoint:** `POST /repository/upload/`
+     - **Request Body:** JSON object matching the `UploadRepositoryRequest` schema (see [API Documents](http://127.0.0.1:9002/docs#/repository/repository-upload_github_repository))
 
    This will clone the specified repository (defaulting to the latest commit on the main branch) into Prometheus.
 
@@ -124,7 +128,7 @@ governed by a state machine to ensure code quality through automated reviews, bu
    You can ask Prometheus to analyze and answer a specific issue in your codebase using the `/issue/answer/` API endpoint.
    
    - **Endpoint:** `POST /issue/answer/`
-     - **Request Body:** JSON object matching the `IssueRequest` schema (see [API Documents](http://localhost:9002/docs#/issue/answer_issue_issue_answer__post))
+     - **Request Body:** JSON object matching the `IssueRequest` schema (see [API Documents](http://127.0.0.1:9002/docs#/issue/issue-answer_issue))
      - **Response:** Returns the generated patch, test/build results, and a summary response.
 
 ---
@@ -164,39 +168,6 @@ docker run -d \
 ```
 
 Verify Neo4J at: [http://localhost:7474](http://localhost:7474)
-
----
-
-## ⚙️ Configuration
-
-Set the following variables in your `.env` file:
-
-### 🔹 Neo4j
-
-* `PROMETHEUS_NEO4J_URI`
-* `PROMETHEUS_NEO4J_USERNAME`
-* `PROMETHEUS_NEO4J_PASSWORD`
-
-### 🔹 LLM Models
-
-* `PROMETHEUS_ADVANCED_MODEL`
-* `PROMETHEUS_BASE_MODEL`
-* API Keys:
-
-    * `PROMETHEUS_OPENAI_FORMAT_API_KEY`
-    * `PROMETHEUS_ANTHROPIC_API_KEY`
-    * `PROMETHEUS_GEMINI_API_KEY`
-* Base URL for LLMs:
-
-    * `PROMETHEUS_OPENAI_FORMAT_BASE_URL`
-
-### 🔹 Other Settings
-
-* `PROMETHEUS_WORKING_DIRECTORY`
-* `PROMETHEUS_GITHUB_ACCESS_TOKEN`
-* `PROMETHEUS_KNOWLEDGE_GRAPH_MAX_AST_DEPTH`
-* `PROMETHEUS_NEO4J_BATCH_SIZE`
-* `PROMETHEUS_POSTGRES_URL`
 
 ---
 

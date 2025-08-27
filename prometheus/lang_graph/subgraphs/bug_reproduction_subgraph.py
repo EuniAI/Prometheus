@@ -67,6 +67,7 @@ class BugReproductionSubgraph:
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
             base_model,
             kg,
+            git_repo.playground_path,
             neo4j_driver,
             max_token_per_neo4j_result,
             "bug_reproducing_query",
@@ -75,7 +76,9 @@ class BugReproductionSubgraph:
 
         # Step 3: Write a patch to reproduce the bug
         bug_reproducing_write_message_node = BugReproducingWriteMessageNode()
-        bug_reproducing_write_node = BugReproducingWriteNode(advanced_model, kg)
+        bug_reproducing_write_node = BugReproducingWriteNode(
+            advanced_model, git_repo.playground_path
+        )
         bug_reproducing_write_tools = ToolNode(
             tools=bug_reproducing_write_node.tools,
             name="bug_reproducing_write_tools",
@@ -83,7 +86,7 @@ class BugReproductionSubgraph:
         )
 
         # Step 4: Edit files if necessary (based on tool calls)
-        bug_reproducing_file_node = BugReproducingFileNode(base_model, kg)
+        bug_reproducing_file_node = BugReproducingFileNode(base_model, kg, git_repo.playground_path)
         bug_reproducing_file_tools = ToolNode(
             tools=bug_reproducing_file_node.tools,
             name="bug_reproducing_file_tools",
@@ -179,7 +182,11 @@ class BugReproductionSubgraph:
         workflow.add_edge("bug_reproducing_file_tools", "bug_reproducing_file_node")
 
         # Proceed to execution after code is updated
-        workflow.add_edge("git_diff_node", "update_container_node")
+        workflow.add_conditional_edges(
+            "git_diff_node",
+            lambda state: bool(state["bug_reproducing_patch"]),
+            {True: "update_container_node", False: "bug_reproducing_write_message_node"},
+        )
         workflow.add_edge("update_container_node", "bug_reproducing_execute_node")
 
         # Handle command execution tool usage
@@ -216,7 +223,7 @@ class BugReproductionSubgraph:
         issue_title: str,
         issue_body: str,
         issue_comments: Sequence[Mapping[str, str]],
-        recursion_limit: int = 120,
+        recursion_limit: int = 150,
     ):
         """
         Run the bug reproduction subgraph.
@@ -244,4 +251,5 @@ class BugReproductionSubgraph:
             "reproduced_bug": output_state["reproduced_bug"],
             "reproduced_bug_file": output_state["reproduced_bug_file"],
             "reproduced_bug_commands": output_state["reproduced_bug_commands"],
+            "reproduced_bug_patch": output_state["bug_reproducing_patch"],
         }

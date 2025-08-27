@@ -1,4 +1,6 @@
 import functools
+import logging
+import threading
 
 from langchain.tools import StructuredTool
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -35,18 +37,13 @@ Current project structure:
 {project_structure}
 """
 
-    def __init__(
-        self,
-        model: BaseChatModel,
-        kg: KnowledgeGraph,
-    ):
+    def __init__(self, model: BaseChatModel, kg: KnowledgeGraph, local_path: str):
         self.kg = kg
         self.file_operation_tool = FileOperationTool(str(kg.get_local_path()))
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
-        self._logger = get_logger(__name__)
-        
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def _init_tools(self):
         """Initializes file operation tools."""

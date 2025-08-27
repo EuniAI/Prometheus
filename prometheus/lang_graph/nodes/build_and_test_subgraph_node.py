@@ -1,3 +1,5 @@
+import logging
+import threading
 from typing import Optional, Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -25,7 +27,7 @@ class BuildAndTestSubgraphNode:
             build_commands=build_commands,
             test_commands=test_commands,
         )
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def __call__(self, state: IssueBugState):
         exist_build = None

@@ -6,6 +6,8 @@ fixes. It uses the GitRepository class to access Git operations and generate pat
 output.
 """
 
+import logging
+import threading
 from typing import Dict, Optional
 
 from prometheus.git.git_repository import GitRepository
@@ -32,7 +34,7 @@ class GitDiffNode:
         self.state_patch_name = state_patch_name
         self.state_excluded_files_key = state_excluded_files_key
         self.return_list = return_list
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def __call__(self, state: Dict):
         """Generates a Git diff for the current project state.
@@ -45,7 +47,7 @@ class GitDiffNode:
             project_path key specifying the Git repository location.
 
         Returns:
-          Dictionary that update the state containing:
+          Dictionary that updates the state containing:
           - patch: String containing the Git diff output showing all changes made to the project.
         """
         excluded_files = None
@@ -61,8 +63,11 @@ class GitDiffNode:
                 f"Excluding the following files when generating the patch: {excluded_files}"
             )
         patch = self.git_repo.get_diff(excluded_files)
-        self._logger.info(f"Generated patch:\n{patch}")
+        if patch:
+            self._logger.info(f"Generated patch:\n{patch}")
+            result = [patch] if self.return_list else patch
+        else:
+            self._logger.info("No changes detected, no patch generated.")
+            result = [] if self.return_list else ""
 
-        if self.return_list:
-            patch = [patch]
-        return {self.state_patch_name: patch}
+        return {self.state_patch_name: result}

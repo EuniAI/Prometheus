@@ -1,3 +1,5 @@
+import logging
+import threading
 from typing import Dict
 import asyncio
 
@@ -109,7 +111,7 @@ rather than implementation details.
         # self.tools = asyncio.run(mcp_web_search())  # mcp mode
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def _init_tools(self):
         """Initializes tools for the node."""

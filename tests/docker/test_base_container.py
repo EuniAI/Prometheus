@@ -143,7 +143,7 @@ def test_execute_command(container):
 
     # Verify
     mock_container.exec_run.assert_called_once_with(
-        '/bin/bash -l -c "timeout -k 5 120s test command"', workdir=container.workdir
+        "timeout -k 5 120s /bin/bash -lc test command", workdir=container.workdir
     )
     assert result == "command output"
 

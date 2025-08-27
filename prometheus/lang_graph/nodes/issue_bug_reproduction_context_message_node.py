@@ -1,3 +1,5 @@
+import logging
+import threading
 
 from prometheus.lang_graph.subgraphs.bug_reproduction_state import BugReproductionState
 from prometheus.utils.issue_util import format_issue_info
@@ -108,7 +110,7 @@ Find the THREE most relevant test cases with complete context, ensuring ALL nece
 """
 
     def __init__(self):
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def __call__(self, state: BugReproductionState):
         bug_reproducing_query = self.BUG_REPRODUCING_QUERY.format(

@@ -1,4 +1,6 @@
 import functools
+import logging
+import threading
 
 from langchain.tools import StructuredTool
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -64,7 +66,7 @@ Remember:
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def _init_tools(self):
         tools = []

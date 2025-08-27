@@ -1,3 +1,5 @@
+import logging
+import threading
 from typing import Dict
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -48,7 +50,7 @@ Verification:
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
         self.model = model
 
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def format_human_message(self, state: Dict) -> HumanMessage:
         verification_messages = []

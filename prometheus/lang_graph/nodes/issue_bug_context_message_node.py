@@ -1,3 +1,5 @@
+import logging
+import threading
 from typing import Dict
 
 from prometheus.utils.issue_util import format_issue_info
@@ -19,7 +21,7 @@ Skip any test files
 """
 
     def __init__(self):
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def __call__(self, state: Dict):
         bug_fix_query = self.BUG_FIX_QUERY.format(

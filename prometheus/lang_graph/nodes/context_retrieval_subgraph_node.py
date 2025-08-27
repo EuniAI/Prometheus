@@ -1,3 +1,5 @@
+import logging
+import threading
 from typing import Dict, Sequence
 
 import neo4j
@@ -14,15 +16,17 @@ class ContextRetrievalSubgraphNode:
         self,
         model: BaseChatModel,
         kg: KnowledgeGraph,
+        local_path: str,
         neo4j_driver: neo4j.Driver,
         max_token_per_neo4j_result: int,
         query_key_name: str,
         context_key_name: str,
     ):
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
         self.context_retrieval_subgraph = ContextRetrievalSubgraph(
             model=model,
             kg=kg,
+            local_path=local_path,
             neo4j_driver=neo4j_driver,
             max_token_per_neo4j_result=max_token_per_neo4j_result,
         )

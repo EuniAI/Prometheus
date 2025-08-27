@@ -1,3 +1,5 @@
+import logging
+import threading
 from typing import Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -15,7 +17,8 @@ from prometheus.utils.logger_manager import get_logger
 
 class BugReproducingStructuredOutput(BaseModel):
     reproduced_bug: bool = Field(
-        description="True ONLY if test fails as described in the issue and uses provided examples if any exist"
+        description="True ONLY if test fails as described in the issue and uses provided examples if any exist",
+        default=False,
     )
     reproduced_bug_failure_log: str = Field(
         description="Complete test execution log. If test passes, include explanation that test should fail to demonstrate the bug"
@@ -134,7 +137,7 @@ Log from executing bug reproducing file:
         )
         structured_llm = model.with_structured_output(BugReproducingStructuredOutput)
         self.model = prompt | structured_llm
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def __call__(self, state: BugReproductionState):
         bug_reproducing_log = format_agent_tool_message_history(

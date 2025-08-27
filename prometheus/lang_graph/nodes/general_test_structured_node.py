@@ -6,6 +6,8 @@ execution histories to determine test framework presence, extract test steps, an
 identify any failures.
 """
 
+import logging
+import threading
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
@@ -286,7 +288,7 @@ Output:
         )
         structured_llm = model.with_structured_output(TestStructuredOutput)
         self.model = prompt | structured_llm
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def __call__(self, state: BuildAndTestState):
         """Processes test state to generate structured test analysis.

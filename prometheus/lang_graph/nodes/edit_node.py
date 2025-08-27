@@ -7,13 +7,14 @@ while maintaining code integrity.
 """
 
 import functools
+import logging
+import threading
 from typing import Dict
 
 from langchain.tools import StructuredTool
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage
 
-from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.tools.file_operation import FileOperationTool
 from prometheus.utils.logger_manager import get_logger
 
@@ -51,6 +52,7 @@ The edit_file operation performs an EXACT STRING REPLACEMENT in the file:
 - Only one match of old_content should exist in the file
 - If multiple matches exist, more context is needed
 - If no matches exist, content must be verified
+- Do not write any tests, your change will be tested by reproduction tests and regression tests later
 
 EXAMPLES:
 
@@ -114,14 +116,15 @@ MANDATORY REQUIREMENTS:
 4. When replacing multiple lines, include all lines in old_content
 5. If multiple matches found, include more context
 6. Verify uniqueness of matches before changes
+7. NEVER write tests, your change will be tested by reproduction tests and regression tests later
 """
 
-    def __init__(self, model: BaseChatModel, kg: KnowledgeGraph):
+    def __init__(self, model: BaseChatModel, local_path: str):
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
-        self.file_operation_tool = FileOperationTool(str(kg.get_local_path()))
+        self.file_operation_tool = FileOperationTool(local_path)
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def _init_tools(self):
         """Initializes file operation tools with the given root path.

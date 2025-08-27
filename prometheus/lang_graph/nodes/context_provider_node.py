@@ -6,6 +6,8 @@ with structured tools to systematically search and analyze the codebase Knowledg
 """
 
 import functools
+import logging
+import threading
 from typing import Dict
 
 import neo4j
@@ -80,6 +82,8 @@ The file tree of the codebase:
 {file_tree}
 
 Available AST node types for code structure search: {ast_node_types}
+
+PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
 """
 
     def __init__(
@@ -107,6 +111,7 @@ Available AST node types for code structure search: {ast_node_types}
           max_token_per_result: Maximum number of tokens per retrieved Neo4j result.
         """
         self.neo4j_driver = neo4j_driver
+        self.root_node_id = kg.root_node_id
         self.max_token_per_result = max_token_per_result
         # Initialize GraphTraversalTool with the driver and token limit
         self.graph_traversal_tool = GraphTraversalTool(neo4j_driver, max_token_per_result)
@@ -119,7 +124,7 @@ Available AST node types for code structure search: {ast_node_types}
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
 
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def _init_tools(self):
         """
@@ -136,6 +141,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Used when only the filename (not full path) is known
         find_file_node_with_basename_fn = functools.partial(
             self.graph_traversal_tool.find_file_node_with_basename,
+            root_node_id=self.root_node_id,
         )
         find_file_node_with_basename_tool = StructuredTool.from_function(
             func=find_file_node_with_basename_fn,
@@ -150,6 +156,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Preferred method when the exact file path is known
         find_file_node_with_relative_path_fn = functools.partial(
             self.graph_traversal_tool.find_file_node_with_relative_path
+            root_node_id=self.root_node_id,
         )
         find_file_node_with_relative_path_tool = StructuredTool.from_function(
             func=find_file_node_with_relative_path_fn,
@@ -166,6 +173,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Useful for searching specific snippets or patterns in unknown locations
         find_ast_node_with_text_in_file_with_basename_fn = functools.partial(
             self.graph_traversal_tool.find_ast_node_with_text_in_file_with_basename,
+            root_node_id=self.root_node_id,
         )
         find_ast_node_with_text_in_file_with_basename_tool = StructuredTool.from_function(
             func=find_ast_node_with_text_in_file_with_basename_fn,
@@ -179,6 +187,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Tool: Find AST node by text match in file (by relative path)
         find_ast_node_with_text_in_file_with_relative_path_fn = functools.partial(
             self.graph_traversal_tool.find_ast_node_with_text_in_file_with_relative_path,
+            root_node_id=self.root_node_id,
         )
         find_ast_node_with_text_in_file_with_relative_path_tool = StructuredTool.from_function(
             func=find_ast_node_with_text_in_file_with_relative_path_fn,
@@ -193,6 +202,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Example types: FunctionDef, ClassDef, Assign, etc.
         find_ast_node_with_type_in_file_with_basename_fn = functools.partial(
             self.graph_traversal_tool.find_ast_node_with_type_in_file_with_basename,
+            root_node_id=self.root_node_id,
         )
         find_ast_node_with_type_in_file_with_basename_tool = StructuredTool.from_function(
             func=find_ast_node_with_type_in_file_with_basename_fn,
@@ -206,6 +216,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Tool: Find AST node by type in file (by relative path)
         find_ast_node_with_type_in_file_with_relative_path_fn = functools.partial(
             self.graph_traversal_tool.find_ast_node_with_type_in_file_with_relative_path,
+            root_node_id=self.root_node_id,
         )
         find_ast_node_with_type_in_file_with_relative_path_tool = StructuredTool.from_function(
             func=find_ast_node_with_type_in_file_with_relative_path_fn,
@@ -221,6 +232,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Tool: Find text node globally by keyword
         find_text_node_with_text_fn = functools.partial(
             self.graph_traversal_tool.find_text_node_with_text,
+            root_node_id=self.root_node_id,
         )
         find_text_node_with_text_tool = StructuredTool.from_function(
             func=find_text_node_with_text_fn,
@@ -234,6 +246,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Tool: Find text node by keyword in specific file
         find_text_node_with_text_in_file_fn = functools.partial(
             self.graph_traversal_tool.find_text_node_with_text_in_file,
+            root_node_id=self.root_node_id,
         )
         find_text_node_with_text_in_file_tool = StructuredTool.from_function(
             func=find_text_node_with_text_in_file_fn,
@@ -247,6 +260,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Tool: Fetch the next text node chunk in a chain (used for long docs/comments)
         get_next_text_node_with_node_id_fn = functools.partial(
             self.graph_traversal_tool.get_next_text_node_with_node_id,
+            root_node_id=self.root_node_id,
         )
         get_next_text_node_with_node_id_tool = StructuredTool.from_function(
             func=get_next_text_node_with_node_id_fn,
@@ -262,6 +276,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Tool: Preview contents of file by basename
         preview_file_content_with_basename_fn = functools.partial(
             self.graph_traversal_tool.preview_file_content_with_basename,
+            root_node_id=self.root_node_id,
         )
         preview_file_content_with_basename_tool = StructuredTool.from_function(
             func=preview_file_content_with_basename_fn,
@@ -275,6 +290,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Tool: Preview contents of file by relative path
         preview_file_content_with_relative_path_fn = functools.partial(
             self.graph_traversal_tool.preview_file_content_with_relative_path,
+            root_node_id=self.root_node_id,
         )
         preview_file_content_with_relative_path_tool = StructuredTool.from_function(
             func=preview_file_content_with_relative_path_fn,
@@ -288,6 +304,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Tool: Read entire code file by basename
         read_code_with_basename_fn = functools.partial(
             self.graph_traversal_tool.read_code_with_basename,
+            root_node_id=self.root_node_id,
         )
         read_code_with_basename_tool = StructuredTool.from_function(
             func=read_code_with_basename_fn,
@@ -301,6 +318,7 @@ Available AST node types for code structure search: {ast_node_types}
         # Tool: Read entire code file by relative path
         read_code_with_relative_path_fn = functools.partial(
             self.graph_traversal_tool.read_code_with_relative_path,
+            root_node_id=self.root_node_id,
         )
         read_code_with_relative_path_tool = StructuredTool.from_function(
             func=read_code_with_relative_path_fn,

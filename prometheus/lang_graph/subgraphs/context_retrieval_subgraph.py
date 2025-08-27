@@ -41,6 +41,7 @@ class ContextRetrievalSubgraph:
         self,
         model: BaseChatModel,
         kg: KnowledgeGraph,
+        local_path: str,
         neo4j_driver: neo4j.Driver,
         max_token_per_neo4j_result: int,
     ):
@@ -49,7 +50,7 @@ class ContextRetrievalSubgraph:
 
         Args:
             model (BaseChatModel): The LLM used for context selection and refinement.
-            kg (KnowledgeGraph): The graph-based semantic index for code/docs retrieval.
+            local_path (str): Local path to the codebase for context extraction.
             neo4j_driver (neo4j.Driver): Driver for executing Cypher queries in Neo4j.
             max_token_per_neo4j_result (int): Token limit for responses from graph tools.
         """
@@ -70,7 +71,7 @@ class ContextRetrievalSubgraph:
         )
 
         # Step 4: Extract the Context
-        context_extraction_node = ContextExtractionNode(model, str(kg.get_local_path()))
+        context_extraction_node = ContextExtractionNode(model, local_path)
 
         # Step 5: Reset tool messages to prepare for the next iteration (if needed)
         reset_context_provider_messages_node = ResetMessagesNode("context_provider_messages")
@@ -116,22 +117,20 @@ class ContextRetrievalSubgraph:
         # Compile and store the subgraph
         self.subgraph = workflow.compile()
 
-    def invoke(
-        self, query: str, max_refined_query_loop: int, recursion_limit: int = 300
-    ) -> Dict[str, Sequence[Context]]:
+    def invoke(self, query: str, max_refined_query_loop: int) -> Dict[str, Sequence[Context]]:
         """
         Executes the context retrieval subgraph given an initial query.
 
         Args:
             query (str): The natural language query representing the information need.
             max_refined_query_loop (int): Maximum number of times the system can refine and retry the query.
-            recursion_limit (int, optional): Global recursion limit for LangGraph. Default is 999.
 
         Returns:
             Dict with a single key:
                 - "context" (Sequence[Context]): A list of selected context snippets relevant to the query.
         """
-        config = {"recursion_limit": recursion_limit}
+        # Set the recursion limit based on the maximum number of refined query loops
+        config = {"recursion_limit": (max_refined_query_loop + 1) * 40}
 
         input_state = {
             "query": query,

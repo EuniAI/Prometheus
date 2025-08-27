@@ -1,6 +1,7 @@
 import shutil
 import tarfile
 import tempfile
+import threading
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional, Sequence
@@ -33,7 +34,9 @@ class BaseContainer(ABC):
         Args:
           project_path: Path to the project directory to be containerized.
         """
-        self._logger = get_logger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self._logger = get_logger(
+            f"thread-{threading.get_ident()}.{self.__class__.__module__}.{self.__class__.__name__}"
+        )
         temp_dir = Path(tempfile.mkdtemp())
         temp_project_path = temp_dir / project_path.name
         shutil.copytree(project_path, temp_project_path)
@@ -153,10 +156,10 @@ class BaseContainer(ABC):
 {command} timeout after {self.timeout} seconds
 *******************************************************************************
 """
-        timeout_command = f"timeout -k 5 {self.timeout}s {command}"
-        command = f'/bin/bash -l -c "{timeout_command}"'
+        bash_cmd = ["/bin/bash", "-lc", command]
+        full_cmd = " ".join(["timeout", "-k", "5", f"{self.timeout}s", *bash_cmd])
         self._logger.debug(f"Running command in container: {command}")
-        exec_result = self.container.exec_run(command, workdir=self.workdir)
+        exec_result = self.container.exec_run(full_cmd, workdir=self.workdir)
         exec_result_str = exec_result.output.decode("utf-8")
 
         if exec_result.exit_code in (124, 137):

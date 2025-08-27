@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from prometheus.parser import tree_sitter_parser
 from prometheus.utils import neo4j_util
+from prometheus.utils.neo4j_util import EMPTY_DATA_MESSAGE
 from prometheus.utils.str_util import pre_append_line_numbers
 
 MAX_RESULT = 30

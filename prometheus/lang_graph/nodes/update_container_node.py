@@ -6,6 +6,8 @@ files are properly reflected in the container's filesystem, maintaining consiste
 between the agent's workspace and the container environment.
 """
 
+import logging
+import threading
 from typing import Dict
 
 from prometheus.docker.base_container import BaseContainer
@@ -33,7 +35,7 @@ class UpdateContainerNode:
         """
         self.container = container
         self.git_repo = git_repo
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def __call__(self, _: Dict):
         """Synchronizes the current project state with the container."""

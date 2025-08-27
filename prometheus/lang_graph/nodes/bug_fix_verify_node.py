@@ -1,12 +1,14 @@
 import functools
+import logging
+import threading
 
 from langchain.tools import StructuredTool
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from prometheus.docker.base_container import BaseContainer
-from prometheus.lang_graph.subgraphs.bug_fix_verification_state import BugFixVerficationState
-from prometheus.tools.container_command import ContainerCommandTool
+from prometheus.lang_graph.subgraphs.bug_fix_verification_state import BugFixVerificationState
+from prometheus.tools import container_command
 from prometheus.utils.logger_manager import get_logger
 
 
@@ -54,7 +56,7 @@ Reproducing bug commands:
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
-        self._logger = get_logger(__name__)
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
     def _init_tools(self):
         tools = []
@@ -70,7 +72,7 @@ Reproducing bug commands:
 
         return tools
 
-    def format_human_message(self, state: BugFixVerficationState) -> HumanMessage:
+    def format_human_message(self, state: BugFixVerificationState) -> HumanMessage:
         return HumanMessage(
             self.HUMAN_PROMPT.format(
                 reproduced_bug_file=state["reproduced_bug_file"],
@@ -78,7 +80,7 @@ Reproducing bug commands:
             )
         )
 
-    def __call__(self, state: BugFixVerficationState):
+    def __call__(self, state: BugFixVerificationState):
         human_message = self.format_human_message(state)
         message_history = [self.system_prompt, human_message] + state["bug_fix_verify_messages"]
 

@@ -8,6 +8,8 @@ from langchain_core.messages import (
 )
 from langchain_core.output_parsers import StrOutputParser
 
+from prometheus.utils.neo4j_util import neo4j_data_for_context_generator
+
 
 def check_remaining_steps(
     state: Dict,
@@ -62,6 +64,15 @@ def extract_last_tool_messages(messages: Sequence[BaseMessage]) -> Sequence[Tool
         if isinstance(message, ToolMessage):
             tool_messages.append(message)
     return tool_messages
+
+
+def transform_tool_messages_to_str(messages: Sequence[ToolMessage]) -> str:
+    result = ""
+    for message in messages:
+        for context in neo4j_data_for_context_generator(message.artifact):
+            result += str(context)
+            result += "\n"
+    return result
 
 
 def get_last_message_content(messages: Sequence[BaseMessage]) -> str:
