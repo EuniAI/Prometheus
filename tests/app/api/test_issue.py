@@ -37,6 +37,10 @@ def test_answer_issue(mock_service):
             kg_chunk_overlap=100,
         )
     )
+    mock_service["knowledge_graph_service"].get_knowledge_graph = AsyncMock(
+        return_value=mock.MagicMock()
+    )
+    mock_service["repository_service"].update_repository_status = AsyncMock(return_value=None)
     mock_service["issue_service"].answer_issue.return_value = (
         "test patch",  # patch
         True,  # passed_reproducing_test
@@ -140,6 +144,10 @@ def test_answer_issue_with_container(mock_service):
         "Issue fixed",
         IssueType.BUG,
     )
+    mock_service["knowledge_graph_service"].get_knowledge_graph = AsyncMock(
+        return_value=mock.MagicMock()
+    )
+    mock_service["repository_service"].update_repository_status = AsyncMock(return_value=None)
 
     test_payload = {
         "repository_id": 1,

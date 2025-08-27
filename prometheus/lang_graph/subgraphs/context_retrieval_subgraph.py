@@ -1,7 +1,6 @@
 import functools
 from typing import Dict, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -42,8 +41,6 @@ class ContextRetrievalSubgraph:
         model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
     ):
         """
         Initializes the context retrieval subgraph.
@@ -51,15 +48,14 @@ class ContextRetrievalSubgraph:
         Args:
             model (BaseChatModel): The LLM used for context selection and refinement.
             local_path (str): Local path to the codebase for context extraction.
-            neo4j_driver (neo4j.Driver): Driver for executing Cypher queries in Neo4j.
-            max_token_per_neo4j_result (int): Token limit for responses from graph tools.
         """
         # Step 1: Generate an initial query from the user's input
         context_query_message_node = ContextQueryMessageNode()
 
         # Step 2: Provide candidate context snippets using knowledge graph tools
         context_provider_node = ContextProviderNode(
-            model, kg, neo4j_driver, max_token_per_neo4j_result
+            model,
+            kg,
         )
 
         # Step 3: Add tool node to handle tool-based retrieval invocation dynamically

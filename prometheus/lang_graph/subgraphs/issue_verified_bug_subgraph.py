@@ -1,7 +1,6 @@
 import functools
 from typing import Mapping, Optional, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -52,8 +51,6 @@ class IssueVerifiedBugSubgraph:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
         build_commands: Optional[Sequence[str]] = None,
         test_commands: Optional[Sequence[str]] = None,
     ):
@@ -67,7 +64,6 @@ class IssueVerifiedBugSubgraph:
             kg (KnowledgeGraph): A knowledge graph used for context-aware retrieval of relevant code entities.
             git_repo (GitRepository): Git interface to apply patches and get diffs.
             neo4j_driver (neo4j.Driver): Neo4j driver for executing graph-based semantic queries.
-            max_token_per_neo4j_result (int): Maximum tokens to limit output from Neo4j query results.
             build_commands (Optional[Sequence[str]]): Commands to build the project inside the container.
             test_commands (Optional[Sequence[str]]): Commands to test the project inside the container.
         """
@@ -78,8 +74,6 @@ class IssueVerifiedBugSubgraph:
             model=base_model,
             kg=kg,
             local_path=git_repo.playground_path,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
             query_key_name="bug_fix_query",
             context_key_name="bug_fix_context",
         )

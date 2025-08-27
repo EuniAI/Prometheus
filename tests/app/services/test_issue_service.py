@@ -4,18 +4,10 @@ import pytest
 
 from prometheus.app.services.issue_service import IssueService
 from prometheus.app.services.llm_service import LLMService
-from prometheus.app.services.neo4j_service import Neo4jService
 from prometheus.app.services.repository_service import RepositoryService
 from prometheus.git.git_repository import GitRepository
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.graphs.issue_state import IssueType
-
-
-@pytest.fixture
-def mock_neo4j_service():
-    service = create_autospec(Neo4jService, instance=True)
-    service.neo4j_driver = Mock(name="mock_neo4j_driver")
-    return service
 
 
 @pytest.fixture
@@ -33,12 +25,9 @@ def mock_repository_service():
 
 
 @pytest.fixture
-def issue_service(mock_neo4j_service, mock_llm_service, mock_repository_service):
+def issue_service(mock_llm_service, mock_repository_service):
     return IssueService(
-        neo4j_service=mock_neo4j_service,
         llm_service=mock_llm_service,
-        repository_service=mock_repository_service,
-        max_token_per_neo4j_result=1000,
         working_directory="/tmp/working_dir/",
         logging_level="DEBUG",
     )
@@ -75,7 +64,6 @@ async def test_answer_issue_with_general_container(issue_service, monkeypatch):
 
     # Exercise
     result = issue_service.answer_issue(
-        repository_id=1,
         repository=repository,
         knowledge_graph=knowledge_graph,
         issue_title="Test Issue",
@@ -98,8 +86,6 @@ async def test_answer_issue_with_general_container(issue_service, monkeypatch):
         base_model=issue_service.llm_service.base_model,
         kg=knowledge_graph,
         git_repo=repository,
-        neo4j_driver=issue_service.neo4j_service.neo4j_driver,
-        max_token_per_neo4j_result=issue_service.max_token_per_neo4j_result,
         container=mock_container,
         build_commands=None,
         test_commands=None,
@@ -138,7 +124,6 @@ async def test_answer_issue_with_user_defined_container(issue_service, monkeypat
 
     # Exercise
     result = issue_service.answer_issue(
-        repository_id=1,
         repository=repository,
         knowledge_graph=knowledge_graph,
         issue_title="Test Issue",

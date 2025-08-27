@@ -1,7 +1,6 @@
 import functools
 from typing import Mapping, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -34,16 +33,12 @@ class IssueNotVerifiedBugSubgraph:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
         container: BaseContainer,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
     ):
         issue_bug_context_message_node = IssueBugContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
             model=base_model,
             kg=kg,
             local_path=git_repo.playground_path,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
             query_key_name="bug_fix_query",
             context_key_name="bug_fix_context",
         )
