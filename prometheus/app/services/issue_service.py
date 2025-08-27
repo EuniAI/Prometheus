@@ -20,14 +20,12 @@ class IssueService(BaseService):
     def __init__(
         self,
         neo4j_service: Neo4jService,
-        repository_service,
         llm_service: LLMService,
         max_token_per_neo4j_result: int,
         working_directory: str,
         logging_level: str,
     ):
         self.neo4j_service = neo4j_service
-        self.repository_service = repository_service
         self.llm_service = llm_service
         self.max_token_per_neo4j_result = max_token_per_neo4j_result
         self.working_directory = working_directory
@@ -39,7 +37,6 @@ class IssueService(BaseService):
         self,
         knowledge_graph: KnowledgeGraph,
         repository: GitRepository,
-        repository_id: int,
         issue_title: str,
         issue_body: str,
         issue_comments: Sequence[Mapping[str, str]],
@@ -62,7 +59,6 @@ class IssueService(BaseService):
         Processes an issue, generates patches if needed, runs optional builds and tests, and returning the results.
 
         Args:
-            repository_id: The ID of the repository to update.
             repository (GitRepository): The Git repository instance.
             knowledge_graph (KnowledgeGraph): The knowledge graph instance.
             issue_title (str): The title of the issue.
@@ -124,8 +120,6 @@ class IssueService(BaseService):
             test_commands=test_commands,
         )
 
-        # Update the repository status to working
-        self.repository_service.update_repository_status(repository_id, is_working=True)
         try:
             # Invoke the issue graph with the provided parameters
             output_state = issue_graph.invoke(
@@ -152,6 +146,5 @@ class IssueService(BaseService):
             logger.error(f"Error in answer_issue: {str(e)}\n{traceback.format_exc()}")
             return None, False, False, False, False, None, None
         finally:
-            self.repository_service.update_repository_status(repository_id, is_working=False)
             logger.removeHandler(file_handler)
             file_handler.close()

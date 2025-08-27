@@ -69,12 +69,15 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
 
     # Load the git repository and knowledge graph
     git_repository = repository_service.get_repository(repository.playground_path)
-    knowledge_graph = knowledge_graph_service.get_knowledge_graph(
+    knowledge_graph = await knowledge_graph_service.get_knowledge_graph(
         repository.kg_root_node_id,
         repository.kg_max_ast_depth,
         repository.kg_chunk_size,
         repository.kg_chunk_overlap,
     )
+
+    # Update the repository status to working
+    await repository_service.update_repository_status(repository.id, is_working=True)
 
     # Process the issue in a separate thread to avoid blocking the event loop
     (
@@ -87,7 +90,6 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
         issue_type,
     ) = await asyncio.to_thread(
         issue_service.answer_issue,
-        repository_id=repository.id,
         repository=git_repository,
         knowledge_graph=knowledge_graph,
         issue_title=issue.issue_title,
@@ -105,6 +107,9 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
         build_commands=issue.build_commands,
         test_commands=issue.test_commands,
     )
+
+    # Update the repository status to not working
+    await repository_service.update_repository_status(repository.id, is_working=False)
 
     # Check if all outputs are in their initial state, indicating a failure
     if (

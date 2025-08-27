@@ -199,7 +199,7 @@ async def delete(repository_id: int, request: Request):
             code=403, message="You do not have permission to delete this repository"
         )
     # Clear the knowledge graph and repository data
-    knowledge_graph_service.clear_kg(repository.kg_root_node_id)
+    await knowledge_graph_service.clear_kg(repository.kg_root_node_id)
     repository_service.clean_repository(repository)
     # Delete the repository from the database
     await repository_service.delete_repository(repository)
