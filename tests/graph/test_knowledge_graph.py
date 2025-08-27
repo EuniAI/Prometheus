@@ -4,7 +4,11 @@ from prometheus.app.services.neo4j_service import Neo4jService
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.neo4j.knowledge_graph_handler import KnowledgeGraphHandler
 from tests.test_utils import test_project_paths
-from tests.test_utils.fixtures import NEO4J_PASSWORD, NEO4J_USERNAME, neo4j_container_with_kg_fixture # noqa: F401
+from tests.test_utils.fixtures import (
+    NEO4J_PASSWORD,
+    NEO4J_USERNAME,
+    neo4j_container_with_kg_fixture,  # noqa: F401
+)
 
 
 @pytest.fixture
