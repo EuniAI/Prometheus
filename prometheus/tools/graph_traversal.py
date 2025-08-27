@@ -228,18 +228,20 @@ class GraphTraversalTool:
     #                          FileNode retrieval                                 #
     ###############################################################################
 
-    def find_file_node_with_basename(self, basename: str) -> tuple[str, Sequence[Mapping[str, Any]]]:
+    def find_file_node_with_basename(self, basename: str, root_node_id: int) -> tuple[str, Sequence[Mapping[str, Any]]]:
         query = f"""
-        MATCH (f:FileNode {{ basename: '{basename}' }})
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode {{ basename: '{basename}' }})
+        WHERE root.node_id = {root_node_id}
         RETURN f AS FileNode
         ORDER BY f.node_id
         LIMIT {MAX_RESULT}
         """
         return neo4j_util.run_neo4j_query(query, self.driver, self.max_token_per_result)
 
-    def find_file_node_with_relative_path(self, relative_path: str) -> tuple[str, Sequence[Mapping[str, Any]]]:
+    def find_file_node_with_relative_path(self, relative_path: str, root_node_id: int) -> tuple[str, Sequence[Mapping[str, Any]]]:
         query = f"""
-        MATCH (f:FileNode {{ relative_path: '{relative_path}' }})
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode {{ relative_path: '{relative_path}' }})
+        WHERE root.node_id = {root_node_id}
         RETURN f AS FileNode
         ORDER BY f.node_id
         LIMIT {MAX_RESULT}
@@ -251,48 +253,48 @@ class GraphTraversalTool:
     ###############################################################################
 
     def find_ast_node_with_text_in_file_with_basename(
-        self, text: str, basename: str
+        self, text: str, basename: str, root_node_id: int
     ) -> tuple[str, Sequence[Mapping[str, Any]]]:
         query = f"""\
-        MATCH (f:FileNode) -[:HAS_FILE*0..]-> (c:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*0..]-> (a:ASTNode)
-        WHERE f.basename = '{basename}' AND a.text CONTAINS '{text}'
-        RETURN c as FileNode, a AS ASTNode
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*0..]-> (a:ASTNode)
+        WHERE root.node_id = {root_node_id} AND f.basename = '{basename}' AND a.text CONTAINS '{text}'
+        RETURN f as FileNode, a AS ASTNode
         ORDER BY SIZE(a.text)
         LIMIT {MAX_RESULT}
       """
         return neo4j_util.run_neo4j_query(query, self.driver, self.max_token_per_result)
 
     def find_ast_node_with_text_in_file_with_relative_path(
-        self, text: str, relative_path: str
+        self, text: str, relative_path: str, root_node_id: int
     ) -> tuple[str, Sequence[Mapping[str, Any]]]:
         query = f"""\
-            MATCH (f:FileNode) -[:HAS_FILE*0..]-> (c:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*0..]-> (a:ASTNode)
-            WHERE f.relative_path = '{relative_path}' AND a.text CONTAINS '{text}'
-            RETURN c as FileNode, a AS ASTNode
+            MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*0..]-> (a:ASTNode)
+            WHERE root.node_id = {root_node_id} AND f.relative_path = '{relative_path}' AND a.text CONTAINS '{text}'
+            RETURN f as FileNode, a AS ASTNode
             ORDER BY SIZE(a.text)
             LIMIT {MAX_RESULT}
         """
         return neo4j_util.run_neo4j_query(query, self.driver, self.max_token_per_result)
 
     def find_ast_node_with_type_in_file_with_basename(
-        self, type: str, basename: str
+        self, type: str, basename: str, root_node_id: int
     ) -> tuple[str, Sequence[Mapping[str, Any]]]:
         query = f"""\
-        MATCH (f:FileNode) -[:HAS_FILE*0..]-> (c:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*0..]-> (a:ASTNode)
-        WHERE f.basename = '{basename}' AND a.type = '{type}'
-        RETURN c as FileNode, a AS ASTNode
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*0..]-> (a:ASTNode)
+        WHERE root.node_id = {root_node_id} AND f.basename = '{basename}' AND a.type = '{type}'
+        RETURN f as FileNode, a AS ASTNode
         ORDER BY SIZE(a.text)
         LIMIT {MAX_RESULT}
       """
         return neo4j_util.run_neo4j_query(query, self.driver, self.max_token_per_result)
 
     def find_ast_node_with_type_in_file_with_relative_path(
-        self, type: str, relative_path: str
+        self, type: str, relative_path: str, root_node_id: int
     ) -> tuple[str, Sequence[Mapping[str, Any]]]:
         query = f"""\
-            MATCH (f:FileNode) -[:HAS_FILE*0..]-> (c:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*0..]-> (a:ASTNode)
-            WHERE f.relative_path = '{relative_path}' AND a.type = '{type}'
-            RETURN c as FileNode, a AS ASTNode
+            MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*0..]-> (a:ASTNode)
+            WHERE root.node_id = {root_node_id} AND f.relative_path = '{relative_path}' AND a.type = '{type}'
+            RETURN f as FileNode, a AS ASTNode
             ORDER BY SIZE(a.text)
             LIMIT {MAX_RESULT}
         """
@@ -303,11 +305,11 @@ class GraphTraversalTool:
     ###############################################################################
 
     def find_text_node_with_text(
-        self, text: str
+        self, text: str, root_node_id: int
     ) -> tuple[str, Sequence[Mapping[str, Any]]]:
         query = f"""\
-        MATCH (f:FileNode) -[:HAS_TEXT]-> (t:TextNode)
-        WHERE t.text CONTAINS '{text}'
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_TEXT]-> (t:TextNode)
+        WHERE root.node_id = {root_node_id} AND t.text CONTAINS '{text}'
         RETURN f as FileNode, t AS TextNode
         ORDER BY t.node_id
         LIMIT {MAX_RESULT}
@@ -315,11 +317,11 @@ class GraphTraversalTool:
         return neo4j_util.run_neo4j_query(query, self.driver, self.max_token_per_result)
 
     def find_text_node_with_text_in_file(
-        self, text: str, basename: str
+        self, text: str, basename: str, root_node_id: int
     ) -> tuple[str, Sequence[Mapping[str, Any]]]:
         query = f"""\
-        MATCH (f:FileNode) -[:HAS_TEXT]-> (t:TextNode)
-        WHERE f.basename = '{basename}' AND t.text CONTAINS '{text}'
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_TEXT]-> (t:TextNode)
+        WHERE root.node_id = {root_node_id} AND f.basename = '{basename}' AND t.text CONTAINS '{text}'
         RETURN f as FileNode, t AS TextNode
         ORDER BY t.node_id
         LIMIT {MAX_RESULT}
@@ -327,10 +329,11 @@ class GraphTraversalTool:
         return neo4j_util.run_neo4j_query(query, self.driver, self.max_token_per_result)
 
     def get_next_text_node_with_node_id(
-        self, node_id: int
+        self, node_id: int, root_node_id: int
     ) -> tuple[str, Sequence[Mapping[str, Any]]]:
         query = f"""\
-        MATCH (f:FileNode) -[:HAS_TEXT]-> (a:TextNode {{ node_id: {node_id} }}) -[:NEXT_CHUNK]-> (b:TextNode)
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_TEXT]-> (a:TextNode {{ node_id: {node_id} }}) -[:NEXT_CHUNK]-> (b:TextNode)
+        WHERE root.node_id = {root_node_id}
         RETURN f as FileNode, b AS TextNode
       """
         return neo4j_util.run_neo4j_query(query, self.driver, self.max_token_per_result)
@@ -340,27 +343,35 @@ class GraphTraversalTool:
     ###############################################################################
 
     def preview_file_content_with_basename(
-        self, basename: str
+        self, basename: str, root_node_id: int
     ) -> tuple[str, Sequence[Mapping[str, Any]]]:
         source_code_query = f"""\
-        MATCH (f:FileNode {{ basename: '{basename}' }}) -[:HAS_AST]-> (a:ASTNode)
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (a:ASTNode)
+        WHERE root.node_id = {root_node_id} AND f.basename = '{basename}'
         WITH f, apoc.text.split(a.text, '\\R') AS lines
         RETURN
-          f AS FileNode,
-          {{
-            text: apoc.text.join(lines[0..1000], '\\n'),
-            start_line: 1,
-            end_line: 1000
-          }} AS preview
+            f AS FileNode,
+            {{
+                text: apoc.text.join(lines[0..1000], '\\n'),
+                start_line: 1,
+                end_line: 1000
+            }} AS preview
         ORDER BY f.node_id
-      """
+        """
 
         text_query = f"""\
-        MATCH (f:FileNode {{ basename: '{basename}' }}) -[:HAS_TEXT]-> (t:TextNode)
-        WHERE NOT EXISTS((:TextNode) -[:NEXT_CHUNK]-> (t))
-        RETURN f as FileNode, t.text AS preview
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_TEXT]-> (t:TextNode)
+        WHERE root.node_id = {root_node_id} AND f.basename = '{basename}' 
+        AND NOT EXISTS((:TextNode) -[:NEXT_CHUNK]-> (t))
+        RETURN
+            f AS FileNode,
+            {{
+                text: t.text,
+                start_line: 1,
+                end_line: 1000
+            }} AS preview
         ORDER BY f.node_id
-      """
+        """
 
         if tree_sitter_parser.supports_file(Path(basename)):
             data = neo4j_util.run_neo4j_query_without_formatting(source_code_query, self.driver)
@@ -377,27 +388,36 @@ class GraphTraversalTool:
         return neo4j_util.format_neo4j_data(data, self.max_token_per_result), data
 
     def preview_file_content_with_relative_path(
-        self, relative_path: str
+        self, relative_path: str, root_node_id: int
     ) -> tuple[str, Sequence[Mapping[str, Any]]]:
         source_code_query = f"""\
-          MATCH (f:FileNode {{ relative_path: '{relative_path}' }}) -[:HAS_AST]-> (a:ASTNode)
-          WITH f, apoc.text.split(a.text, '\\R') AS lines
-          RETURN 
-            f as FileNode,
-            {{
-              text: apoc.text.join(lines[0..1000], '\\n'),
-              start_line: 1,
-              end_line: 1000
-            }} AS preview
-          ORDER BY f.node_id
-      """
+            MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (a:ASTNode)
+            WHERE root.node_id = {root_node_id} AND f.relative_path = '{relative_path}'
+            WITH f, apoc.text.split(a.text, '\\R') AS lines
+            RETURN
+                f AS FileNode,
+                {{
+                    text: apoc.text.join(lines[0..1000], '\\n'),
+                    start_line: 1,
+                    end_line: 1000
+                }} AS preview
+            ORDER BY f.node_id
+            """
 
         text_query = f"""\
-          MATCH (f:FileNode {{ relative_path: '{relative_path}' }}) -[:HAS_TEXT]-> (t:TextNode)
-          WHERE NOT EXISTS((:TextNode) -[:NEXT_CHUNK]-> (t))
-          RETURN f as FileNode, t.text AS preview
-          ORDER BY f.node_id
-      """
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_TEXT]-> (t:TextNode)
+        WHERE root.node_id = {root_node_id} AND f.relative_path = '{relative_path}' 
+        AND NOT EXISTS((:TextNode) -[:NEXT_CHUNK]-> (t))
+        RETURN
+            f AS FileNode,
+            {{
+                text: t.text,
+                start_line: 1,
+                end_line: 1000
+            }} AS preview
+        ORDER BY f.node_id
+        """
+
 
         if tree_sitter_parser.supports_file(Path(relative_path)):
             data = neo4j_util.run_neo4j_query_without_formatting(source_code_query, self.driver)
@@ -418,22 +438,24 @@ class GraphTraversalTool:
         basename: str,
         start_line: int,
         end_line: int,
+        root_node_id: int,
     ) -> tuple[str, Union[Sequence[Mapping[str, Any]], None]]:
         if end_line < start_line:
             return f"end_line {end_line} must be greater than start_line {start_line}", None
 
         source_code_query = f"""\
-        MATCH (f:FileNode {{ basename: '{basename}' }}) -[:HAS_AST]-> (a:ASTNode)
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (a:ASTNode)
+        WHERE root.node_id = {root_node_id} AND f.basename = '{basename}'
         WITH f, apoc.text.split(a.text, '\\R') AS lines
         RETURN
-          f as FileNode,
-          {{
-            text: apoc.text.join(lines[{start_line - 1}..{end_line - 1}], '\\n'),
-            start_line: {start_line},
-            end_line: {end_line}
-          }} AS SelectedLines
+            f as FileNode,
+            {{
+                text: apoc.text.join(lines[{start_line - 1}..{end_line - 1}], '\\n'),
+                start_line: {start_line},
+                end_line: {end_line}
+            }} AS SelectedLines
         ORDER BY f.node_id
-      """
+        """
         data = neo4j_util.run_neo4j_query_without_formatting(source_code_query, self.driver)
         for result in data:
             result["SelectedLines"]["text"] = pre_append_line_numbers(
@@ -446,21 +468,23 @@ class GraphTraversalTool:
         relative_path: str,
         start_line: int,
         end_line: int,
+        root_node_id: int,
     ) -> tuple[str, Union[Sequence[Mapping[str, Any]], None]]:
         if end_line < start_line:
             return f"end_line {end_line} must be greater than start_line {start_line}", None
 
         source_code_query = f"""\
-            MATCH (f:FileNode {{ relative_path: '{relative_path}' }}) -[:HAS_AST]-> (a:ASTNode)
-            WITH f, apoc.text.split(a.text, '\\R') AS lines
-            RETURN
-              f as FileNode,
-              {{
+        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (a:ASTNode)
+        WHERE root.node_id = {root_node_id} AND f.relative_path = '{relative_path}'
+        WITH f, apoc.text.split(a.text, '\\R') AS lines
+        RETURN
+            f as FileNode,
+            {{
                 text: apoc.text.join(lines[{start_line - 1}..{end_line - 1}], '\\n'),
                 start_line: {start_line},
                 end_line: {end_line}
-              }} AS SelectedLines
-            ORDER BY f.node_id
+            }} AS SelectedLines
+        ORDER BY f.node_id
         """
 
         data = neo4j_util.run_neo4j_query_without_formatting(source_code_query, self.driver)

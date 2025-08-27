@@ -155,7 +155,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Tool: Find file node by relative path
         # Preferred method when the exact file path is known
         find_file_node_with_relative_path_fn = functools.partial(
-            self.graph_traversal_tool.find_file_node_with_relative_path
+            self.graph_traversal_tool.find_file_node_with_relative_path,
             root_node_id=self.root_node_id,
         )
         find_file_node_with_relative_path_tool = StructuredTool.from_function(
