@@ -54,6 +54,7 @@ def find_file_node_with_basename(
                     }
                 }
             )
+    results.sort(key=lambda x: x["FileNode"]["node_id"])
     return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
 
@@ -309,6 +310,27 @@ def find_ast_node_with_type_in_file_with_relative_path(
 ###############################################################################
 
 
+def find_file_node_of_a_text_node(
+    text_node: KnowledgeGraphNode, kg: KnowledgeGraph
+) -> KnowledgeGraphNode:
+    """
+    Find a file node that contains the given text node.
+    """
+    next_chunk_reverse_map = {
+        edge.target.node_id: edge.source for edge in kg.get_next_chunk_edges()
+    }
+    has_file_node_map = {edge.target.node_id: edge.source for edge in kg.get_has_text_edges()}
+
+    # Find the root text node
+    current_text_node = text_node
+    while next_chunk_reverse_map.get(current_text_node.node_id, None) is not None:
+        current_text_node = next_chunk_reverse_map[current_text_node.node_id]
+
+    # Now current_text_node is the root text node
+    file_node = has_file_node_map[current_text_node.node_id]
+    return file_node
+
+
 class FindTextNodeWithTextInput(BaseModel):
     text: str = Field("Search TextNode that exactly contains this text.")
 
@@ -324,37 +346,29 @@ You can use this tool to find all text/documentation in codebase that contains t
 def find_text_node_with_text(text: str, kg: KnowledgeGraph) -> Tuple[str, List[Dict[str, Any]]]:
     """Find all TextNodes containing the given text."""
     results = []
+    # Find text nodes that contain the given text
+    text_nodes_with_text = [node for node in kg.get_text_nodes() if text in node.node.text]
 
-    # Get HAS_TEXT edges to find which text nodes belong to which files
-    has_text_edges = kg.get_has_text_edges()
-
-    for edge in has_text_edges:
-        root_text_node = edge.target
-        stack = [root_text_node]
-
-        while stack:
-            current_node = stack.pop()
-            if text in current_node.node.text:
-                results.append(
-                    {
-                        "FileNode": {
-                            "node_id": edge.source.node_id,
-                            "basename": edge.source.node.basename,
-                            "relative_path": edge.source.node.relative_path,
-                        },
-                        "TextNode": {
-                            "node_id": current_node.node_id,
-                            "text": current_node.node.text,
-                            "metadata": current_node.node.metadata,
-                        },
-                    }
-                )
-            # Get next chunk nodes
-            stack += [
-                e.target
-                for e in kg.get_next_chunk_edges()
-                if e.source.node_id == current_node.node_id
-            ]
+    # If no text nodes found, return early
+    if not text_nodes_with_text:
+        return format_knowledge_graph_data([]), []
+    for text_node in text_nodes_with_text:
+        # Find the file node that contains this text node
+        file_node = find_file_node_of_a_text_node(text_node, kg)
+        results.append(
+            {
+                "FileNode": {
+                    "node_id": file_node.node_id,
+                    "basename": file_node.node.basename,
+                    "relative_path": file_node.node.relative_path,
+                },
+                "TextNode": {
+                    "node_id": text_node.node_id,
+                    "text": text_node.node.text,
+                    "metadata": text_node.node.metadata,
+                },
+            }
+        )
 
     # Sort by node_id
     results.sort(key=lambda x: x["TextNode"]["node_id"])
@@ -381,40 +395,33 @@ def find_text_node_with_text_in_file(
 ) -> Tuple[str, List[Dict[str, Any]]]:
     """Find all TextNodes containing the given text in files with the given basename."""
     results = []
+    # Find text nodes that contain the given text
+    text_nodes_with_text = [node for node in kg.get_text_nodes() if text in node.node.text]
 
-    # Get HAS_TEXT edges to find which text nodes belong to which files
-    has_text_edges = kg.get_has_text_edges()
+    # If no text nodes found, return early
+    if not text_nodes_with_text:
+        return format_knowledge_graph_data([]), []
 
-    for edge in has_text_edges:
-        root_text_node = edge.target
-        if edge.source.node.basename != basename:
-            continue
+    for text_node in text_nodes_with_text:
+        # Now current_text_node is the root text node
+        file_node = find_file_node_of_a_text_node(text_node, kg)
 
-        stack = [root_text_node]
-
-        while stack:
-            current_node = stack.pop()
-            if text in current_node.node.text:
-                results.append(
-                    {
-                        "FileNode": {
-                            "node_id": edge.source.node_id,
-                            "basename": edge.source.node.basename,
-                            "relative_path": edge.source.node.relative_path,
-                        },
-                        "TextNode": {
-                            "node_id": current_node.node_id,
-                            "text": current_node.node.text,
-                            "metadata": current_node.node.metadata,
-                        },
-                    }
-                )
-            # Get next chunk nodes
-            stack += [
-                e.target
-                for e in kg.get_next_chunk_edges()
-                if e.source.node_id == current_node.node_id
-            ]
+        # If the file node matches the given basename, add to results
+        if file_node.node.basename == basename:
+            results.append(
+                {
+                    "FileNode": {
+                        "node_id": file_node.node_id,
+                        "basename": file_node.node.basename,
+                        "relative_path": file_node.node.relative_path,
+                    },
+                    "TextNode": {
+                        "node_id": text_node.node_id,
+                        "text": text_node.node.text,
+                        "metadata": text_node.node.metadata,
+                    },
+                }
+            )
 
     # Sort by node_id
     results.sort(key=lambda x: x["TextNode"]["node_id"])
@@ -438,41 +445,43 @@ def get_next_text_node_with_node_id(
 
     results = []
 
-    # Get HAS_TEXT edges to find which text nodes belong to which files
-    has_text_edges = kg.get_has_text_edges()
-    next_chunk_edges_map = {edge.source.node_id: edge.target for edge in kg.get_next_chunk_edges()}
+    # Find the current text node
+    current_text_node = None
+    for node in kg.get_text_nodes():
+        if node.node_id == node_id:
+            current_text_node = node
+            break
 
-    for edge in has_text_edges:
-        root_text_node = edge.target
-        stack = [root_text_node]
+    # If the current text node does not exist, return empty result
+    if not current_text_node:
+        return format_knowledge_graph_data([]), []
 
-        while stack:
-            current_node = stack.pop()
-            if current_node.node_id == node_id:
-                next_text_node = next_chunk_edges_map.get(current_node.node_id, None)
-                if next_text_node:
-                    results.append(
-                        {
-                            "FileNode": {
-                                "node_id": edge.source.node_id,
-                                "basename": edge.source.node.basename,
-                                "relative_path": edge.source.node.relative_path,
-                            },
-                            "TextNode": {
-                                "node_id": next_text_node.node_id,
-                                "text": next_text_node.node.text,
-                                "metadata": next_text_node.node.metadata,
-                            },
-                        }
-                    )
-                break
+    # Get next chunk map
+    next_chunk_map = {edge.source.node_id: edge.target for edge in kg.get_next_chunk_edges()}
 
-            # Get next chunk nodes
-            stack += [
-                e for e in kg.get_next_chunk_edges() if e.source.node_id == current_node.node_id
-            ]
+    # Get the next text node
+    next_text_node = next_chunk_map.get(current_text_node.node_id, None)
 
-    # Sort by node_id
+    # if the next text node does not exist, return empty result
+    if not next_text_node:
+        return format_knowledge_graph_data([]), []
+
+    # Find the file node that contains this text node
+    file_node = find_file_node_of_a_text_node(next_text_node, kg)
+    results.append(
+        {
+            "FileNode": {
+                "node_id": file_node.node_id,
+                "basename": file_node.node.basename,
+                "relative_path": file_node.node.relative_path,
+            },
+            "TextNode": {
+                "node_id": next_text_node.node_id,
+                "text": next_text_node.node.text,
+                "metadata": next_text_node.node.metadata,
+            },
+        }
+    )
     return format_knowledge_graph_data(results), results
 
 
