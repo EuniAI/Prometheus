@@ -116,7 +116,7 @@ def test_delete(mock_service):
             kg_chunk_overlap=100,
         )
     )
-    mock_service["knowledge_graph_service"].clear_kg.return_value = None
+    mock_service["knowledge_graph_service"].clear_kg = AsyncMock(return_value=None)
     mock_service["repository_service"].clean_repository.return_value = None
     mock_service["repository_service"].delete_repository = AsyncMock(return_value=None)
     response = client.delete(

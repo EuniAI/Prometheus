@@ -37,7 +37,6 @@ def issue_service(mock_neo4j_service, mock_llm_service, mock_repository_service)
     return IssueService(
         neo4j_service=mock_neo4j_service,
         llm_service=mock_llm_service,
-        repository_service=mock_repository_service,
         max_token_per_neo4j_result=1000,
         working_directory="/tmp/working_dir/",
         logging_level="DEBUG",
@@ -75,7 +74,6 @@ async def test_answer_issue_with_general_container(issue_service, monkeypatch):
 
     # Exercise
     result = issue_service.answer_issue(
-        repository_id=1,
         repository=repository,
         knowledge_graph=knowledge_graph,
         issue_title="Test Issue",
@@ -138,7 +136,6 @@ async def test_answer_issue_with_user_defined_container(issue_service, monkeypat
 
     # Exercise
     result = issue_service.answer_issue(
-        repository_id=1,
         repository=repository,
         knowledge_graph=knowledge_graph,
         issue_title="Test Issue",
