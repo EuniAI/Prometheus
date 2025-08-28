@@ -112,6 +112,9 @@ def find_ast_node_with_text_in_file(
     # Get PARENT_OF edges to traverse AST tree
     parent_of_edges = kg.get_parent_of_edges()
 
+    # Get root AstNode id list
+    root_ast_node_ids = set([node.node_id for node in file_to_ast_map.values()])
+
     for file_node in target_files_nodes:
         # Start with root AST node for this file
         root_ast = file_to_ast_map[file_node.node_id]
@@ -121,8 +124,9 @@ def find_ast_node_with_text_in_file(
         while stack:
             current_node = stack.pop()
 
-            # Check if current node contains the text
-            if text in current_node.node.text:
+            # Check if the current node contains the text
+            # Don't include the root AST node itself
+            if text in current_node.node.text and current_node.node_id not in root_ast_node_ids:
                 results.append(
                     {
                         "FileNode": {
@@ -219,6 +223,9 @@ def find_ast_node_with_type_in_file(
     # Get PARENT_OF edges to traverse AST tree
     parent_of_edges = kg.get_parent_of_edges()
 
+    # Get root AstNode id list
+    root_ast_node_ids = set([node.node_id for node in file_to_ast_map.values()])
+
     for file_node in target_files_nodes:
         # Start with root AST node for this file
         root_ast = file_to_ast_map[file_node.node_id]
@@ -229,7 +236,8 @@ def find_ast_node_with_type_in_file(
             current_node = stack.pop()
 
             # Check if current node contains the text
-            if current_node.node.type == type:
+            # Don't include the root AST node itself
+            if current_node.node.type == type and current_node.node_id not in root_ast_node_ids:
                 results.append(
                     {
                         "FileNode": {
