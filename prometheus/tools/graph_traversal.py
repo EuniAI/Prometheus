@@ -109,8 +109,8 @@ def find_ast_node_with_text_in_file(
         if edge.source.node_id in [n.node_id for n in target_files_nodes]
     }
 
-    # Get PARENT_OF edges to traverse AST tree
-    parent_of_edges = kg.get_parent_of_edges()
+    # Construct parent to children map for AST traversal
+    parent_to_children = kg.get_parent_to_children_map()
 
     # Get root AstNode id list
     root_ast_node_ids = set([node.node_id for node in file_to_ast_map.values()])
@@ -145,11 +145,7 @@ def find_ast_node_with_text_in_file(
                 )
 
             # Add children to stack
-            stack += [
-                edge.target
-                for edge in parent_of_edges
-                if edge.source.node_id == current_node.node_id
-            ]
+            stack += parent_to_children.get(current_node.node_id, [])
 
     # Sort by text length (smaller first)
     results.sort(key=lambda x: len(x["ASTNode"]["text"]))
@@ -220,8 +216,8 @@ def find_ast_node_with_type_in_file(
         if edge.source.node_id in [n.node_id for n in target_files_nodes]
     }
 
-    # Get PARENT_OF edges to traverse AST tree
-    parent_of_edges = kg.get_parent_of_edges()
+    # Construct parent to children map for AST traversal
+    parent_to_children = kg.get_parent_to_children_map()
 
     # Get root AstNode id list
     root_ast_node_ids = set([node.node_id for node in file_to_ast_map.values()])
@@ -256,11 +252,7 @@ def find_ast_node_with_type_in_file(
                 )
 
             # Add children to stack
-            stack += [
-                edge.target
-                for edge in parent_of_edges
-                if edge.source.node_id == current_node.node_id
-            ]
+            stack += parent_to_children.get(current_node.node_id, [])
 
     # Sort by text length (smaller first)
     results.sort(key=lambda x: len(x["ASTNode"]["text"]))
