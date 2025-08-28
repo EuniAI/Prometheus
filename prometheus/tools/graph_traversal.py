@@ -158,12 +158,11 @@ class FindASTNodeWithTextInFileWithBasenameInput(BaseModel):
 
 
 FIND_AST_NODE_WITH_TEXT_IN_FILE_WITH_BASENAME_DESCRIPTION = """\
-Find all ASTNode in the graph that exactly contains this text in any source file under 
-a file/directory with this basename. For reliable results, search for longer, distinct text 
-sequences rather than short common words or fragments. The contains is same as python's check 
-`'foo' in text`, ie. it is case sensitive and is looking for exact matches. For best results, 
-use unique text segments of at least several words. The basename can be either a file (like 
-'bar.py', 'baz.java') or a directory (like 'src' or 'test')."""
+Find all ASTNode in the graph that exactly contains this text in any source file with this basename.
+For reliable results, search for longer, distinct text sequences rather than short common words or fragments.
+The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is looking for exact matches.
+For best results, use unique text segments of at least several words. The basename can be either a file (like 
+'bar.py', 'baz.java')."""
 
 
 def find_ast_node_with_text_in_file_with_basename(
@@ -183,12 +182,11 @@ class FindASTNodeWithTextInFileWithRelativePathInput(BaseModel):
 
 
 FIND_AST_NODE_WITH_TEXT_IN_FILE_WITH_RELATIVE_PATH_DESCRIPTION = """\
-Find all ASTNode in the graph that exactly contains this text in any source file under 
-a file/directory with this relative path. For reliable results, search for longer, distinct text 
-sequences rather than short common words or fragments. The contains is same as python's check `'foo' in text`, 
-ie. it is case sensitive and is looking for exact matches. Therefore the search text should 
-be exact as well. The relative path should be the path from the root of codebase 
-(like 'src/core/parser.py' or 'test/unit')."""
+Find all ASTNode in the graph that exactly contains this text in any source file with this relative path.
+For reliable results, search for longer, distinct text sequences rather than short common words or fragments.
+ The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is looking for exact matches.
+Therefore the search text should be exact as well. The relative path should be the path from the root of codebase 
+(like 'src/core/parser.py')."""
 
 
 def find_ast_node_with_text_in_file_with_relative_path(
@@ -265,10 +263,8 @@ class FindASTNodeWithTypeInFileWithBasenameInput(BaseModel):
 
 
 FIND_AST_NODE_WITH_TYPE_IN_FILE_WITH_BASENAME_DESCRIPTION = """\
-Find all ASTNode in the graph that has this tree-sitter node type in any source file under
-a file/directory with this basename. This tool is useful for searching class/function/method
-under a file/directory. The basename can be either a file (like 'bar.py', 
-'baz.java') or a directory (like 'core' or 'test')."""
+Find all ASTNode in the graph that has this tree-sitter node type in any source file with this basename.
+This tool is useful for searching class/function/method under files."""
 
 
 def find_ast_node_with_type_in_file_with_basename(
@@ -288,10 +284,8 @@ class FindASTNodeWithTypeInFileWithRelativePathInput(BaseModel):
 
 
 FIND_AST_NODE_WITH_TYPE_IN_FILE_WITH_RELATIVE_PATH_DESCRIPTION = """\
-Find all ASTNode in the graph that has this tree-sitter node type in any source file under
-a file/directory with this relative path. This tool is useful for searching class/function/method
-under a file/directory. The relative path should be the path from the root 
-of codebase (like 'src/core/parser.py' or 'test/unit')."""
+Find all ASTNode in the graph that has this tree-sitter node type in any source file with this relative path.
+This tool is useful for searching class/function/method under a file."""
 
 
 def find_ast_node_with_type_in_file_with_relative_path(
@@ -385,7 +379,7 @@ Find all TextNode in the graph that exactly contains this text in a file with th
 The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is
 looking for exact matches. Therefore the search text should be exact as well.
 The basename must include the extension, like 'bar.py', 'baz.java' or 'foo'
-(in this case foo is a directory or a file without extension).
+(in this case foo is a file without extension).
 
 You can use this tool to find text/documentation in a specific file that contains this text."""
 

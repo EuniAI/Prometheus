@@ -157,10 +157,10 @@ class BaseContainer(ABC):
 {command} timeout after {self.timeout} seconds
 *******************************************************************************
 """
-        bash_cmd = ["/bin/bash", "-lc", command]
-        full_cmd = " ".join(["timeout", "-k", "5", f"{self.timeout}s", *bash_cmd])
+        timeout_command = f"timeout -k 5 {self.timeout}s {command}"
+        command = f'/bin/bash -l -c "{timeout_command}"'
         self._logger.debug(f"Running command in container: {command}")
-        exec_result = self.container.exec_run(full_cmd, workdir=self.workdir)
+        exec_result = self.container.exec_run(command, workdir=self.workdir)
         exec_result_str = exec_result.output.decode("utf-8")
 
         if exec_result.exit_code in (124, 137):
