@@ -1,22 +1,28 @@
 import pytest
 from langchain_core.messages import AIMessage, ToolMessage
 
+from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.nodes.context_provider_node import ContextProviderNode
-from tests.test_utils.fixtures import neo4j_container_with_kg_fixture  # noqa: F401
+from tests.test_utils import test_project_paths
 from tests.test_utils.util import FakeListChatWithToolsModel
 
 
+@pytest.fixture(scope="function")
+async def knowledge_graph_fixture():
+    kg = KnowledgeGraph(1000, 100, 10, 0)
+    await kg.build_graph(test_project_paths.TEST_PROJECT_PATH)
+    return kg
+
+
 @pytest.mark.slow
-async def test_context_provider_node_basic_query(neo4j_container_with_kg_fixture):  # noqa: F811
+async def test_context_provider_node_basic_query(knowledge_graph_fixture):
     """Test basic query handling with the ContextProviderNode."""
-    neo4j_container, kg = neo4j_container_with_kg_fixture
     fake_response = "Fake response"
     fake_llm = FakeListChatWithToolsModel(responses=[fake_response])
     node = ContextProviderNode(
         model=fake_llm,
-        kg=kg,
-        neo4j_driver=neo4j_container.get_driver(),
-        max_token_per_result=1000,
+        kg=knowledge_graph_fixture,
+        local_path=test_project_paths.TEST_PROJECT_PATH,
     )
 
     test_messages = [

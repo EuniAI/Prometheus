@@ -18,7 +18,8 @@ class RunRegressionTestsStructureOutput(BaseModel):
         description="If the test failed, contains the complete test FAILURE log. Otherwise empty string"
     )
     total_tests_run: int = Field(
-        description="Total number of tests run, including both passed and failed tests"
+        description="Total number of tests run, including both passed and failed tests, or 0 if no tests were run",
+        default=0,
     )
 
 
@@ -31,13 +32,14 @@ Your task is to:
    - Test summary showing "passed" or "PASSED"
    - Warning is ok
    - No "FAILURES" section
-2. If a test fails, capture the complete failure output
+2. If a test fails, capture the complete failure output. Otherwise empty string for failure log
 3. Return the exact test identifiers that passed
+4. Count the total number of tests run. Only count tests that were actually executed! If tests were unable to run due to an error, do not count them!
 
 Return:
 - passed_regression_tests: List of test identifier of regression tests that passed (e.g., class name and method name)
 - regression_test_fail_log: empty string if all tests pass, exact complete test output if a test fails
-- total_tests_run: Total number of tests run, including both passed and failed tests
+- total_tests_run: Total number of tests run, including both passed and failed tests. If you can't find any test run, return 0
 
 Example 1:
 ```
@@ -67,7 +69,7 @@ Example 1 Output:
         "test_file_operation.py::test_edit_file",
         "test_file_operation.py::test_create_file_already_exists"
     ],
-    "reproducing_test_fail_log": "" # ONLY output the log exact and complete test FAILURE log when test failure. Otherwise empty string,
+    "reproducing_test_fail_log": "",
     "total_tests_run": 7
 }}
 
@@ -76,6 +78,8 @@ Important:
 - A single failing test means the test is not passing
 - Include complete test output in failure log
 - Do Not output any log when where is no test executed. ONLY output the log exact and complete test FAILURE log when test failure!
+- Do not forget to return the total number of tests run! If tests were unable to run due to an error, do not count them!
+- If you can't find any test run, return 0 for total number of tests run!
 """
     HUMAN_PROMPT = """
 We have run the selected regression tests on the codebase.
@@ -83,12 +87,15 @@ The following regression tests were selected to run:
 --- BEGIN SELECTED REGRESSION TESTS ---
 {selected_regression_tests}
 --- END SELECTED REGRESSION TESTS ---
+
 Run Regression Tests Logs:
 --- BEGIN LOG ---
 {run_regression_tests_messages}
 --- END LOG ---
+
 Please analyze the logs and determine which regression tests passed!. You should return the exact test identifier 
 that we give to you.
+Don't forget to return the total number of tests run!
 """
 
     def __init__(self, model: BaseChatModel):

@@ -16,7 +16,8 @@ from prometheus.utils.lang_graph_util import (
 
 class BugReproducingStructuredOutput(BaseModel):
     reproduced_bug: bool = Field(
-        description="True ONLY if test fails as described in the issue and uses provided examples if any exist"
+        description="True ONLY if test fails as described in the issue and uses provided examples if any exist",
+        default=False,
     )
     reproduced_bug_failure_log: str = Field(
         description="Complete test execution log. If test passes, include explanation that test should fail to demonstrate the bug"

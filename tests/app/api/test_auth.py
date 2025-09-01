@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import FastAPI
@@ -21,7 +22,7 @@ def mock_service():
 
 
 def test_login(mock_service):
-    mock_service["user_service"].login.return_value = "your_access_token"
+    mock_service["user_service"].login = AsyncMock(return_value="your_access_token")
     response = client.post(
         "/auth/login",
         json={
@@ -36,3 +37,21 @@ def test_login(mock_service):
         "message": "success",
         "data": {"access_token": "your_access_token"},
     }
+
+
+def test_register(mock_service):
+    mock_service["invitation_code_service"].check_invitation_code = AsyncMock(return_value=True)
+    mock_service["user_service"].create_user = AsyncMock(return_value=None)
+    mock_service["invitation_code_service"].mark_code_as_used = AsyncMock(return_value=None)
+
+    response = client.post(
+        "/auth/register",
+        json={
+            "username": "testuser",
+            "email": "test@gmail.com",
+            "password": "passwordpassword",
+            "invitation_code": "f23ee204-ff33-401d-8291-1f128d0db08a",
+        },
+    )
+    assert response.status_code == 200
+    assert response.json() == {"code": 200, "message": "User registered successfully", "data": None}

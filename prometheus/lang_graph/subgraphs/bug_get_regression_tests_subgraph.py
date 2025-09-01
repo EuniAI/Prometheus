@@ -1,6 +1,5 @@
 from typing import Mapping, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.constants import END
 from langgraph.graph import StateGraph
@@ -36,8 +35,6 @@ class BugGetRegressionTestsSubgraph:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
     ):
         """
         Initialize the run regression tests pipeline with all necessary parts.
@@ -48,8 +45,6 @@ class BugGetRegressionTestsSubgraph:
             container: Docker-based sandbox for running code.
             kg: Codebase knowledge graph used for context retrieval.
             git_repo: Git repository interface for codebase manipulation.
-            neo4j_driver: Neo4j driver used for graph traversal.
-            max_token_per_neo4j_result: Truncation budget per retrieved context chunk.
         """
 
         # Step 1: Generate initial system messages based on issue data
@@ -60,8 +55,6 @@ class BugGetRegressionTestsSubgraph:
             base_model,
             kg,
             git_repo.playground_path,
-            neo4j_driver,
-            max_token_per_neo4j_result,
             "select_regression_query",
             "select_regression_context",
         )
@@ -132,7 +125,7 @@ class BugGetRegressionTestsSubgraph:
             "issue_title": issue_title,
             "issue_body": issue_body,
             "issue_comments": issue_comments,
-            "max_refined_query_loop": 3,
+            "max_refined_query_loop": 2,
             "number_of_selected_regression_tests": number_of_selected_regression_tests,
         }
 

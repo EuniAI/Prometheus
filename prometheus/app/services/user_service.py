@@ -1,9 +1,10 @@
 import logging
-from typing import Optional
+from typing import Optional, Sequence
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from sqlmodel import Session, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import or_, select
 
 from prometheus.app.entity.user import User
 from prometheus.app.services.base_service import BaseService
@@ -20,7 +21,7 @@ class UserService(BaseService):
         self.ph = PasswordHasher()
         self.jwt_utils = JWTUtils()
 
-    def create_user(
+    async def create_user(
         self,
         username: str,
         email: str,
@@ -42,13 +43,13 @@ class UserService(BaseService):
         Returns:
             User: The created superuser instance.
         """
-        with Session(self.engine) as session:
+        async with AsyncSession(self.engine) as session:
             statement = select(User).where(User.username == username)
-            if session.exec(statement).first():
-                raise ValueError(f"Username '{username}' already exists")
+            if (await session.execute(statement)).scalar_one_or_none():
+                raise ServerException(400, f"Username '{username}' already exists")
             statement = select(User).where(User.email == email)
-            if session.exec(statement).first():
-                raise ValueError(f"Email '{email}' already exists")
+            if (await session.execute(statement)).scalar_one_or_none():
+                raise ServerException(400, f"Email '{email}' already exists")
 
             hashed_password = self.ph.hash(password)
 
@@ -61,10 +62,10 @@ class UserService(BaseService):
                 is_superuser=is_superuser,
             )
             session.add(user)
-            session.commit()
-            session.refresh(user)
+            await session.commit()
+            await session.refresh(user)
 
-    def login(self, username: str, email: str, password: str) -> str:
+    async def login(self, username: str, email: str, password: str) -> str:
         """
         Log in a user by verifying their credentials and return an access token.
 
@@ -73,9 +74,9 @@ class UserService(BaseService):
             email (str): Email address of the user.
             password (str): Plaintext password.
         """
-        with Session(self.engine) as session:
+        async with AsyncSession(self.engine) as session:
             statement = select(User).where(or_(User.username == username, User.email == email))
-            user = session.exec(statement).first()
+            user = (await session.execute(statement)).scalar_one_or_none()
 
             if not user:
                 raise ServerException(code=400, message="Invalid username or email")
@@ -90,7 +91,7 @@ class UserService(BaseService):
             return token
 
     # Create a superuser and commit it to the database
-    def create_superuser(
+    async def create_superuser(
         self,
         username: str,
         email: str,
@@ -102,12 +103,12 @@ class UserService(BaseService):
 
         This method creates a superuser with the provided credentials and commits it to the database.
         """
-        self.create_user(
+        await self.create_user(
             username, email, password, github_token, is_superuser=True, issue_credit=999999
         )
         self._logger.info(f"Superuser '{username}' created successfully.")
 
-    def get_user_by_id(self, user_id: int) -> Optional[User]:
+    async def get_user_by_id(self, user_id: int) -> Optional[User]:
         """
         Retrieve a user by their ID.
 
@@ -117,11 +118,11 @@ class UserService(BaseService):
         Returns:
             User: The user instance if found, otherwise None.
         """
-        with Session(self.engine) as session:
+        async with AsyncSession(self.engine) as session:
             statement = select(User).where(User.id == user_id)
-            return session.exec(statement).first()
+            return (await session.execute(statement)).scalar_one_or_none()
 
-    def get_issue_credit(self, user_id: int) -> int:
+    async def get_issue_credit(self, user_id: int) -> int:
         """
         Retrieve the issue credit of a user by their ID.
 
@@ -131,12 +132,12 @@ class UserService(BaseService):
         Returns:
             int: The issue credit of the user.
         """
-        with Session(self.engine) as session:
+        async with AsyncSession(self.engine) as session:
             statement = select(User.issue_credit).where(User.id == user_id)
-            result = session.exec(statement).first()
-            return result
+            result = (await session.execute(statement)).scalar_one_or_none()
+            return int(result) if result else 0
 
-    def update_issue_credit(self, user_id: int, new_issue_credit) -> None:
+    async def update_issue_credit(self, user_id: int, new_issue_credit) -> None:
         """
         Update the issue credit of a user by their ID.
 
@@ -144,9 +145,41 @@ class UserService(BaseService):
             user_id (int): The ID of the user.
             new_issue_credit (int): The new issue credit.
         """
-        with Session(self.engine) as session:
+        async with AsyncSession(self.engine) as session:
             statement = select(User).where(User.id == user_id)
-            user = session.exec(statement).first()
-            user.issue_credit = new_issue_credit
-            session.add(user)
-            session.commit()
+            user = (await session.execute(statement)).scalar_one_or_none()
+            if user:
+                user.issue_credit = new_issue_credit
+                session.add(user)
+                await session.commit()
+
+    async def is_admin(self, user_id):
+        """
+        Check if a user is an admin (superuser) by their ID.
+        """
+        async with AsyncSession(self.engine) as session:
+            statement = select(User).where(User.id == user_id)
+            user = (await session.execute(statement)).scalar_one_or_none()
+            return user.is_superuser if user else False
+
+    async def list_users(self) -> Sequence[User]:
+        """
+        List all users in the database.
+        """
+        async with AsyncSession(self.engine) as session:
+            statement = select(User)
+            users = (await session.execute(statement)).scalars().all()
+            return users
+
+    async def set_github_token(self, user_id: int, github_token: str):
+        """
+        Set GitHub token for a user by their ID.
+        """
+        async with AsyncSession(self.engine) as session:
+            statement = select(User).where(User.id == user_id)
+            user = (await session.execute(statement)).scalar_one_or_none()
+            if user:
+                user.github_token = github_token
+                session.add(user)
+                await session.commit()
+                await session.refresh(user)

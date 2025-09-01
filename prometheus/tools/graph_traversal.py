@@ -1,24 +1,22 @@
 from pathlib import Path
-from typing import Any, Mapping, Sequence, Union
+from typing import Any, Dict, List, Tuple, Union
 
-from neo4j import GraphDatabase
 from pydantic import BaseModel, Field
 
+from prometheus.graph.graph_types import KnowledgeGraphNode
+from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.parser import tree_sitter_parser
-from prometheus.utils import neo4j_util
-from prometheus.utils.neo4j_util import EMPTY_DATA_MESSAGE
+from prometheus.utils.knowledge_graph_utils import format_knowledge_graph_data
 from prometheus.utils.str_util import pre_append_line_numbers
 
-MAX_RESULT = 30
-
+MAX_RESULT = 5
 
 """
-Tools for retrieving nodes from the Neo4j graph database.
+Tools for retrieving nodes from the KnowledgeGraph.
 These tools allow you to search for FileNode, ASTNode, and TextNode based on various attributes
 like basename, relative path, text content, and node type.
 
-A content and an artifact will be returned.
-The content is a string representation of the node(s) found, and the artifact is a list of dictionaries
+Returns a list of dictionaries containing the found nodes and their attributes.
 """
 
 
@@ -41,16 +39,23 @@ attributes related to the file/dir."""
 
 
 def find_file_node_with_basename(
-    basename: str, driver: GraphDatabase.driver, max_token_per_result: int, root_node_id: int
-) -> tuple[str, Sequence[Mapping[str, Any]]]:
-    query = f"""
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode {{ basename: '{basename}' }})
-    WHERE root.node_id = {root_node_id}
-    RETURN f AS FileNode
-    ORDER BY f.node_id
-    LIMIT {MAX_RESULT}
-    """
-    return neo4j_util.run_neo4j_query(query, driver, max_token_per_result)
+    basename: str, kg: KnowledgeGraph
+) -> Tuple[str, List[Dict[str, Any]]]:
+    """Find all FileNodes with the given basename."""
+    results = []
+    for kg_node in kg.get_file_nodes():
+        if kg_node.node.basename == basename:
+            results.append(
+                {
+                    "FileNode": {
+                        "node_id": kg_node.node_id,
+                        "basename": kg_node.node.basename,
+                        "relative_path": kg_node.node.relative_path,
+                    }
+                }
+            )
+    results.sort(key=lambda x: x["FileNode"]["node_id"])
+    return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
 
 class FindFileNodeWithRelativePathInput(BaseModel):
@@ -67,21 +72,84 @@ attributes related to the file/dir."""
 
 
 def find_file_node_with_relative_path(
-    relative_path: str, driver: GraphDatabase.driver, max_token_per_result: int, root_node_id: int
-) -> tuple[str, Sequence[Mapping[str, Any]]]:
-    query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode {{ relative_path: '{relative_path}' }})
-    WHERE root.node_id = {root_node_id}
-    RETURN f AS FileNode
-    ORDER BY f.node_id
-    LIMIT {MAX_RESULT}
-  """
-    return neo4j_util.run_neo4j_query(query, driver, max_token_per_result)
+    relative_path: str, kg: KnowledgeGraph
+) -> Tuple[str, List[Dict[str, Any]]]:
+    """Find all FileNodes with the given relative path."""
+    results = []
+    for kg_node in kg.get_file_nodes():
+        if kg_node.node.relative_path == relative_path:
+            results.append(
+                {
+                    "FileNode": {
+                        "node_id": kg_node.node_id,
+                        "basename": kg_node.node.basename,
+                        "relative_path": kg_node.node.relative_path,
+                    }
+                }
+            )
+    return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
 
 ###############################################################################
 #                          ASTNode retrieval                                  #
 ###############################################################################
+
+
+def find_ast_node_with_text_in_file(
+    text: str, target_files_nodes: List[KnowledgeGraphNode], kg: KnowledgeGraph
+) -> Tuple[str, List[Dict[str, Any]]]:
+    """Find all ASTNodes containing the given text in files with the given basename."""
+    results = []
+
+    # Get HAS_AST edges to find which AST nodes belong to these files
+    has_ast_edges = kg.get_has_ast_edges()
+    file_to_ast_map = {
+        edge.source.node_id: edge.target
+        for edge in has_ast_edges
+        if edge.source.node_id in [n.node_id for n in target_files_nodes]
+    }
+
+    # Construct parent to children map for AST traversal
+    parent_to_children = kg.get_parent_to_children_map()
+
+    # Get root AstNode id list
+    root_ast_node_ids = set([node.node_id for node in file_to_ast_map.values()])
+
+    for file_node in target_files_nodes:
+        # Start with root AST node for this file
+        root_ast = file_to_ast_map[file_node.node_id]
+
+        # Add all descendant AST nodes
+        stack = [root_ast]
+        while stack:
+            current_node = stack.pop()
+
+            # Check if the current node contains the text
+            # Don't include the root AST node itself
+            if text in current_node.node.text and current_node.node_id not in root_ast_node_ids:
+                results.append(
+                    {
+                        "FileNode": {
+                            "node_id": file_node.node_id,
+                            "basename": file_node.node.basename,
+                            "relative_path": file_node.node.relative_path,
+                        },
+                        "ASTNode": {
+                            "node_id": current_node.node_id,
+                            "type": current_node.node.type,
+                            "start_line": current_node.node.start_line,
+                            "end_line": current_node.node.end_line,
+                            "text": current_node.node.text,
+                        },
+                    }
+                )
+
+            # Add children to stack
+            stack += parent_to_children.get(current_node.node_id, [])
+
+    # Sort by text length (smaller first)
+    results.sort(key=lambda x: len(x["ASTNode"]["text"]))
+    return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
 
 class FindASTNodeWithTextInFileWithBasenameInput(BaseModel):
@@ -90,29 +158,22 @@ class FindASTNodeWithTextInFileWithBasenameInput(BaseModel):
 
 
 FIND_AST_NODE_WITH_TEXT_IN_FILE_WITH_BASENAME_DESCRIPTION = """\
-Find all ASTNode in the graph that exactly contains this text in any source file under 
-a file/directory with this basename. For reliable results, search for longer, distinct text 
-sequences rather than short common words or fragments. The contains is same as python's check 
-`'foo' in text`, ie. it is case sensitive and is looking for exact matches. For best results, 
-use unique text segments of at least several words. The basename can be either a file (like 
-'bar.py', 'baz.java') or a directory (like 'src' or 'test')."""
+Find all ASTNode in the graph that exactly contains this text in any source file with this basename.
+For reliable results, search for longer, distinct text sequences rather than short common words or fragments.
+The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is looking for exact matches.
+For best results, use unique text segments of at least several words. The basename can be either a file (like 
+'bar.py', 'baz.java')."""
 
 
 def find_ast_node_with_text_in_file_with_basename(
-    text: str,
-    basename: str,
-    driver: GraphDatabase.driver,
-    max_token_per_result: int,
-    root_node_id: int,
-) -> tuple[str, Sequence[Mapping[str, Any]]]:
-    query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*]-> (a:ASTNode)
-    WHERE root.node_id = {root_node_id} AND f.basename = '{basename}' AND a.text CONTAINS '{text}'
-    RETURN f AS FileNode, a AS ASTNode
-    ORDER BY SIZE(a.text)
-    LIMIT {MAX_RESULT}
-    """
-    return neo4j_util.run_neo4j_query(query, driver, max_token_per_result)
+    text: str, basename: str, kg: KnowledgeGraph
+) -> Tuple[str, List[Dict[str, Any]]]:
+    """Find all ASTNodes containing the given text in files with the given basename."""
+    # Get file nodes with the given basename
+    target_files_nodes: List[KnowledgeGraphNode] = [
+        node for node in kg.get_file_nodes() if node.node.basename == basename
+    ]
+    return find_ast_node_with_text_in_file(text, target_files_nodes, kg)
 
 
 class FindASTNodeWithTextInFileWithRelativePathInput(BaseModel):
@@ -121,29 +182,79 @@ class FindASTNodeWithTextInFileWithRelativePathInput(BaseModel):
 
 
 FIND_AST_NODE_WITH_TEXT_IN_FILE_WITH_RELATIVE_PATH_DESCRIPTION = """\
-Find all ASTNode in the graph that exactly contains this text in any source file under 
-a file/directory with this relative path. For reliable results, search for longer, distinct text 
-sequences rather than short common words or fragments. The contains is same as python's check `'foo' in text`, 
-ie. it is case sensitive and is looking for exact matches. Therefore the search text should 
-be exact as well. The relative path should be the path from the root of codebase 
-(like 'src/core/parser.py' or 'test/unit')."""
+Find all ASTNode in the graph that exactly contains this text in any source file with this relative path.
+For reliable results, search for longer, distinct text sequences rather than short common words or fragments.
+ The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is looking for exact matches.
+Therefore the search text should be exact as well. The relative path should be the path from the root of codebase 
+(like 'src/core/parser.py')."""
 
 
 def find_ast_node_with_text_in_file_with_relative_path(
-    text: str,
-    relative_path: str,
-    driver: GraphDatabase.driver,
-    max_token_per_result: int,
-    root_node_id: int,
-) -> tuple[str, Sequence[Mapping[str, Any]]]:
-    query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*]-> (a:ASTNode)
-    WHERE root.node_id = {root_node_id} AND f.relative_path = '{relative_path}' AND a.text CONTAINS '{text}'
-    RETURN f AS FileNode, a AS ASTNode
-    ORDER BY SIZE(a.text)
-    LIMIT {MAX_RESULT}
-    """
-    return neo4j_util.run_neo4j_query(query, driver, max_token_per_result)
+    text: str, relative_path: str, kg: KnowledgeGraph
+) -> Tuple[str, List[Dict[str, Any]]]:
+    """Find all ASTNodes containing the given text in files with the given relative path."""
+    # Get file nodes with the given basename
+    target_files_nodes: List[KnowledgeGraphNode] = [
+        node for node in kg.get_file_nodes() if node.node.relative_path == relative_path
+    ]
+    return find_ast_node_with_text_in_file(text, target_files_nodes, kg)
+
+
+def find_ast_node_with_type_in_file(
+    type: str, target_files_nodes: List[KnowledgeGraphNode], kg: KnowledgeGraph
+) -> Tuple[str, List[Dict[str, Any]]]:
+    """Find all ASTNodes containing the given text in files with the given basename."""
+    results = []
+
+    # Get HAS_AST edges to find which AST nodes belong to these files
+    has_ast_edges = kg.get_has_ast_edges()
+    file_to_ast_map = {
+        edge.source.node_id: edge.target
+        for edge in has_ast_edges
+        if edge.source.node_id in [n.node_id for n in target_files_nodes]
+    }
+
+    # Construct parent to children map for AST traversal
+    parent_to_children = kg.get_parent_to_children_map()
+
+    # Get root AstNode id list
+    root_ast_node_ids = set([node.node_id for node in file_to_ast_map.values()])
+
+    for file_node in target_files_nodes:
+        # Start with root AST node for this file
+        root_ast = file_to_ast_map[file_node.node_id]
+
+        # Add all descendant AST nodes
+        stack = [root_ast]
+        while stack:
+            current_node = stack.pop()
+
+            # Check if current node contains the text
+            # Don't include the root AST node itself
+            if current_node.node.type == type and current_node.node_id not in root_ast_node_ids:
+                results.append(
+                    {
+                        "FileNode": {
+                            "node_id": file_node.node_id,
+                            "basename": file_node.node.basename,
+                            "relative_path": file_node.node.relative_path,
+                        },
+                        "ASTNode": {
+                            "node_id": current_node.node_id,
+                            "type": current_node.node.type,
+                            "start_line": current_node.node.start_line,
+                            "end_line": current_node.node.end_line,
+                            "text": current_node.node.text,
+                        },
+                    }
+                )
+
+            # Add children to stack
+            stack += parent_to_children.get(current_node.node_id, [])
+
+    # Sort by text length (smaller first)
+    results.sort(key=lambda x: len(x["ASTNode"]["text"]))
+    return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
 
 class FindASTNodeWithTypeInFileWithBasenameInput(BaseModel):
@@ -152,27 +263,19 @@ class FindASTNodeWithTypeInFileWithBasenameInput(BaseModel):
 
 
 FIND_AST_NODE_WITH_TYPE_IN_FILE_WITH_BASENAME_DESCRIPTION = """\
-Find all ASTNode in the graph that has this tree-sitter node type in any source file under
-a file/directory with this basename. This tool is useful for searching class/function/method
-under a file/directory. The basename can be either a file (like 'bar.py', 
-'baz.java') or a directory (like 'core' or 'test')."""
+Find all ASTNode in the graph that has this tree-sitter node type in any source file with this basename.
+This tool is useful for searching class/function/method under files."""
 
 
 def find_ast_node_with_type_in_file_with_basename(
-    type: str,
-    basename: str,
-    driver: GraphDatabase.driver,
-    max_token_per_result: int,
-    root_node_id: int,
-) -> tuple[str, Sequence[Mapping[str, Any]]]:
-    query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*]-> (a:ASTNode)
-    WHERE root.node_id = {root_node_id} AND f.basename = '{basename}' AND a.type = '{type}'
-    RETURN f AS FileNode, a AS ASTNode
-    ORDER BY SIZE(a.text)
-    LIMIT {MAX_RESULT}
-    """
-    return neo4j_util.run_neo4j_query(query, driver, max_token_per_result)
+    type: str, basename: str, kg: KnowledgeGraph
+) -> Tuple[str, List[Dict[str, Any]]]:
+    """Find all ASTNodes with the given type in files with the given basename."""
+    # Get file nodes with the given basename
+    target_files_nodes: List[KnowledgeGraphNode] = [
+        node for node in kg.get_file_nodes() if node.node.basename == basename
+    ]
+    return find_ast_node_with_type_in_file(type, target_files_nodes, kg)
 
 
 class FindASTNodeWithTypeInFileWithRelativePathInput(BaseModel):
@@ -181,32 +284,45 @@ class FindASTNodeWithTypeInFileWithRelativePathInput(BaseModel):
 
 
 FIND_AST_NODE_WITH_TYPE_IN_FILE_WITH_RELATIVE_PATH_DESCRIPTION = """\
-Find all ASTNode in the graph that has this tree-sitter node type in any source file under
-a file/directory with this relative path. This tool is useful for searching class/function/method
-under a file/directory. The relative path should be the path from the root 
-of codebase (like 'src/core/parser.py' or 'test/unit')."""
+Find all ASTNode in the graph that has this tree-sitter node type in any source file with this relative path.
+This tool is useful for searching class/function/method under a file."""
 
 
 def find_ast_node_with_type_in_file_with_relative_path(
-    type: str,
-    relative_path: str,
-    driver: GraphDatabase.driver,
-    max_token_per_result: int,
-    root_node_id: int,
-) -> tuple[str, Sequence[Mapping[str, Any]]]:
-    query = f"""\
-        MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (:ASTNode) -[:PARENT_OF*]-> (a:ASTNode)
-        WHERE root.node_id = {root_node_id} AND f.relative_path = '{relative_path}' AND a.type = '{type}'
-        RETURN f AS FileNode, a AS ASTNode
-        ORDER BY SIZE(a.text)
-        LIMIT {MAX_RESULT}
-        """
-    return neo4j_util.run_neo4j_query(query, driver, max_token_per_result)
+    type: str, relative_path: str, kg: KnowledgeGraph
+) -> Tuple[str, List[Dict[str, Any]]]:
+    """Find all ASTNodes with the given type in files with the given relative path."""
+    # Get file nodes with the given basename
+    target_files_nodes: List[KnowledgeGraphNode] = [
+        node for node in kg.get_file_nodes() if node.node.relative_path == relative_path
+    ]
+    return find_ast_node_with_type_in_file(type, target_files_nodes, kg)
 
 
 ###############################################################################
 #                          TextNode retrieval                                 #
 ###############################################################################
+
+
+def find_file_node_of_a_text_node(
+    text_node: KnowledgeGraphNode, kg: KnowledgeGraph
+) -> KnowledgeGraphNode:
+    """
+    Find a file node that contains the given text node.
+    """
+    next_chunk_reverse_map = {
+        edge.target.node_id: edge.source for edge in kg.get_next_chunk_edges()
+    }
+    has_file_node_map = {edge.target.node_id: edge.source for edge in kg.get_has_text_edges()}
+
+    # Find the root text node
+    current_text_node = text_node
+    while next_chunk_reverse_map.get(current_text_node.node_id, None) is not None:
+        current_text_node = next_chunk_reverse_map[current_text_node.node_id]
+
+    # Now current_text_node is the root text node
+    file_node = has_file_node_map[current_text_node.node_id]
+    return file_node
 
 
 class FindTextNodeWithTextInput(BaseModel):
@@ -221,17 +337,36 @@ looking for exact matches. Therefore the search text should be exact as well.
 You can use this tool to find all text/documentation in codebase that contains this text."""
 
 
-def find_text_node_with_text(
-    text: str, driver: GraphDatabase.driver, max_token_per_result: int, root_node_id: int
-) -> tuple[str, Sequence[Mapping[str, Any]]]:
-    query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_TEXT]-> (t:TextNode)
-    WHERE root.node_id = {root_node_id} AND t.text CONTAINS '{text}'
-    RETURN f AS FileNode, t AS TextNode
-    ORDER BY t.node_id
-    LIMIT {MAX_RESULT}
-    """
-    return neo4j_util.run_neo4j_query(query, driver, max_token_per_result)
+def find_text_node_with_text(text: str, kg: KnowledgeGraph) -> Tuple[str, List[Dict[str, Any]]]:
+    """Find all TextNodes containing the given text."""
+    results = []
+    # Find text nodes that contain the given text
+    text_nodes_with_text = [node for node in kg.get_text_nodes() if text in node.node.text]
+
+    # If no text nodes found, return early
+    if not text_nodes_with_text:
+        return format_knowledge_graph_data([]), []
+    for text_node in text_nodes_with_text:
+        # Find the file node that contains this text node
+        file_node = find_file_node_of_a_text_node(text_node, kg)
+        results.append(
+            {
+                "FileNode": {
+                    "node_id": file_node.node_id,
+                    "basename": file_node.node.basename,
+                    "relative_path": file_node.node.relative_path,
+                },
+                "TextNode": {
+                    "node_id": text_node.node_id,
+                    "text": text_node.node.text,
+                    "metadata": text_node.node.metadata,
+                },
+            }
+        )
+
+    # Sort by node_id
+    results.sort(key=lambda x: x["TextNode"]["node_id"])
+    return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
 
 class FindTextNodeWithTextInFileInput(BaseModel):
@@ -244,26 +379,47 @@ Find all TextNode in the graph that exactly contains this text in a file with th
 The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is
 looking for exact matches. Therefore the search text should be exact as well.
 The basename must include the extension, like 'bar.py', 'baz.java' or 'foo'
-(in this case foo is a directory or a file without extension).
+(in this case foo is a file without extension).
 
 You can use this tool to find text/documentation in a specific file that contains this text."""
 
 
 def find_text_node_with_text_in_file(
-    text: str,
-    basename: str,
-    driver: GraphDatabase.driver,
-    max_token_per_result: int,
-    root_node_id: int,
-) -> tuple[str, Sequence[Mapping[str, Any]]]:
-    query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_TEXT]-> (t:TextNode)
-    WHERE root.node_id = {root_node_id} AND f.basename = '{basename}' AND t.text CONTAINS '{text}'
-    RETURN f AS FileNode, t AS TextNode
-    ORDER BY t.node_id
-    LIMIT {MAX_RESULT}
-    """
-    return neo4j_util.run_neo4j_query(query, driver, max_token_per_result)
+    text: str, basename: str, kg: KnowledgeGraph
+) -> Tuple[str, List[Dict[str, Any]]]:
+    """Find all TextNodes containing the given text in files with the given basename."""
+    results = []
+    # Find text nodes that contain the given text
+    text_nodes_with_text = [node for node in kg.get_text_nodes() if text in node.node.text]
+
+    # If no text nodes found, return early
+    if not text_nodes_with_text:
+        return format_knowledge_graph_data([]), []
+
+    for text_node in text_nodes_with_text:
+        # Now current_text_node is the root text node
+        file_node = find_file_node_of_a_text_node(text_node, kg)
+
+        # If the file node matches the given basename, add to results
+        if file_node.node.basename == basename:
+            results.append(
+                {
+                    "FileNode": {
+                        "node_id": file_node.node_id,
+                        "basename": file_node.node.basename,
+                        "relative_path": file_node.node.relative_path,
+                    },
+                    "TextNode": {
+                        "node_id": text_node.node_id,
+                        "text": text_node.node.text,
+                        "metadata": text_node.node.metadata,
+                    },
+                }
+            )
+
+    # Sort by node_id
+    results.sort(key=lambda x: x["TextNode"]["node_id"])
+    return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
 
 class GetNextTextNodeWithNodeIdInput(BaseModel):
@@ -277,199 +433,55 @@ You can use this tool to read the next section of text that you are interested i
 
 
 def get_next_text_node_with_node_id(
-    node_id: int, driver: GraphDatabase.driver, max_token_per_result: int, root_node_id: int
-) -> tuple[str, Sequence[Mapping[str, Any]]]:
-    query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_TEXT]-> (a:TextNode {{ node_id: {node_id} }}) -[:NEXT_CHUNK]-> (b:TextNode)
-    WHERE root.node_id = {root_node_id}
-    RETURN f AS FileNode, b AS TextNode
-    """
-    return neo4j_util.run_neo4j_query(query, driver, max_token_per_result)
+    node_id: int, kg: KnowledgeGraph
+) -> Tuple[str, List[Dict[str, Any]]]:
+    """Get the next TextNode for the given node_id."""
+
+    results = []
+
+    # Find the current text node
+    current_text_node = None
+    for node in kg.get_text_nodes():
+        if node.node_id == node_id:
+            current_text_node = node
+            break
+
+    # If the current text node does not exist, return empty result
+    if not current_text_node:
+        return format_knowledge_graph_data([]), []
+
+    # Get next chunk map
+    next_chunk_map = {edge.source.node_id: edge.target for edge in kg.get_next_chunk_edges()}
+
+    # Get the next text node
+    next_text_node = next_chunk_map.get(current_text_node.node_id, None)
+
+    # if the next text node does not exist, return empty result
+    if not next_text_node:
+        return format_knowledge_graph_data([]), []
+
+    # Find the file node that contains this text node
+    file_node = find_file_node_of_a_text_node(next_text_node, kg)
+    results.append(
+        {
+            "FileNode": {
+                "node_id": file_node.node_id,
+                "basename": file_node.node.basename,
+                "relative_path": file_node.node.relative_path,
+            },
+            "TextNode": {
+                "node_id": next_text_node.node_id,
+                "text": next_text_node.node.text,
+                "metadata": next_text_node.node.metadata,
+            },
+        }
+    )
+    return format_knowledge_graph_data(results), results
 
 
 ###############################################################################
 #                                 Other                                       #
 ###############################################################################
-
-
-class PreviewFileContentWithBasenameInput(BaseModel):
-    basename: str = Field("The basename of FileNode to preview.")
-
-
-PREVIEW_FILE_CONTENT_WITH_BASENAME_DESCRIPTION = """\
-Preview the content of a file with this basename. The basename must include
-the extension, like 'bar.py', 'baz.java' or 'foo' (in this case foo is a
-directory or a file without extension).
-
-You can use this tool to preview the content of a specific file to see what it contains
-in the first 1000 lines or the first section. If the file is interesting, use other tools
-to look at the file."""
-
-
-def preview_file_content_with_basename(
-    basename: str, driver: GraphDatabase.driver, max_token_per_result: int, root_node_id: int
-) -> tuple[str, Sequence[Mapping[str, Any]]]:
-    source_code_query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (a:ASTNode)
-    WHERE root.node_id = {root_node_id} AND f.basename = '{basename}'
-    WITH f, apoc.text.split(a.text, '\\R') AS lines
-    RETURN
-        f AS FileNode,
-        {{
-            text: apoc.text.join(lines[0..1000], '\\n'),
-            start_line: 1,
-            end_line: 1000
-        }} AS preview
-    ORDER BY f.node_id
-      """
-
-    text_query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_TEXT]-> (t:TextNode)
-    WHERE root.node_id = {root_node_id} AND f.basename = '{basename}' 
-      AND NOT EXISTS((:TextNode) -[:NEXT_CHUNK]-> (t))
-    RETURN
-        f AS FileNode,
-        {{
-            text: t.text,
-            start_line: 1,
-            end_line: 1000
-        }} AS preview
-    ORDER BY f.node_id
-    """
-
-    if tree_sitter_parser.supports_file(Path(basename)):
-        data = neo4j_util.run_neo4j_query_without_formatting(source_code_query, driver)
-    else:
-        data = neo4j_util.run_neo4j_query_without_formatting(text_query, driver)
-    if not data:
-        return EMPTY_DATA_MESSAGE, data
-    for result in data:
-        if isinstance(result["preview"], dict):
-            result["preview"]["text"] = pre_append_line_numbers(
-                result["preview"]["text"], result["preview"]["start_line"]
-            )
-            result["preview"]["end_line"] = (
-                result["preview"]["start_line"] + len(result["preview"]["text"].splitlines()) - 1
-            )
-    return neo4j_util.format_neo4j_data(data, max_token_per_result), data
-
-
-class PreviewFileContentWithRelativePathInput(BaseModel):
-    relative_path: str = Field("The relative path of FileNode to preview.")
-
-
-PREVIEW_FILE_CONTENT_WITH_RELATIVE_PATH_DESCRIPTION = """\
-Preview the content of a file with this relative path from the root of codebase. 
-The relative path must include the extension and full path from root, like 'src/core/parser.py', 
-'test/unit/test_parser.java' or 'docs/README.md'.
-
-You can use this tool to preview the content of a specific file to see what it contains
-in the first 1000 lines or the first section. If the file is interesting, use other tools
-to look at the file."""
-
-
-def preview_file_content_with_relative_path(
-    relative_path: str, driver: GraphDatabase.driver, max_token_per_result: int, root_node_id: int
-) -> tuple[str, Sequence[Mapping[str, Any]]]:
-    source_code_query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (a:ASTNode)
-    WHERE root.node_id = {root_node_id} AND f.relative_path = '{relative_path}'
-    WITH f, apoc.text.split(a.text, '\\R') AS lines
-    RETURN
-        f AS FileNode,
-        {{
-            text: apoc.text.join(lines[0..1000], '\\n'),
-            start_line: 1,
-            end_line: 1000
-        }} AS preview
-    ORDER BY f.node_id
-    """
-
-    text_query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_TEXT]-> (t:TextNode)
-    WHERE root.node_id = {root_node_id} AND f.relative_path = '{relative_path}' 
-      AND NOT EXISTS((:TextNode) -[:NEXT_CHUNK]-> (t))
-    RETURN
-        f AS FileNode,
-        {{
-            text: t.text,
-            start_line: 1,
-            end_line: 1000
-        }} AS preview
-    ORDER BY f.node_id
-    """
-
-    if tree_sitter_parser.supports_file(Path(relative_path)):
-        data = neo4j_util.run_neo4j_query_without_formatting(source_code_query, driver)
-    else:
-        data = neo4j_util.run_neo4j_query_without_formatting(text_query, driver)
-    if not data:
-        return EMPTY_DATA_MESSAGE, data
-    for result in data:
-        if isinstance(result["preview"], dict):
-            result["preview"]["text"] = pre_append_line_numbers(
-                result["preview"]["text"], result["preview"]["start_line"]
-            )
-            result["preview"]["end_line"] = (
-                result["preview"]["start_line"] + len(result["preview"]["text"].splitlines()) - 1
-            )
-    return neo4j_util.format_neo4j_data(data, max_token_per_result), data
-
-
-class ReadCodeWithBasenameInput(BaseModel):
-    basename: str = Field("The basename of FileNode to read.")
-    start_line: int = Field("The starting line number, 1-indexed and inclusive.")
-    end_line: int = Field("The ending line number, 1-indexed and exclusive.")
-
-
-READ_CODE_WITH_BASENAME_DESCRIPTION = """\
-Read a specific section of a source code file's content by specifying its basename and line range. 
-The basename must include the extension, like 'bar.py' or 'baz.java'
-
-This tool ONLY works with source code files (not text files or documentation). It is designed 
-to read large sections of code at once - you should request substantial chunks (hundreds of lines) 
-rather than making multiple small requests of 10-20 lines each, which would be inefficient.
-
-Line numbers are 1-indexed, where start_line is inclusive and end_line is exclusive. 
-
-This tool is useful for examining specific sections of source code files when you know 
-the exact line range you want to analyze. The function will return an error message if 
-end_line is less than start_line.
-"""
-
-
-def read_code_with_basename(
-    basename: str,
-    start_line: int,
-    end_line: int,
-    driver: GraphDatabase.driver,
-    max_token_per_result: int,
-    root_node_id: int,
-) -> tuple[str, Union[Sequence[Mapping[str, Any]], None]]:
-    if end_line < start_line:
-        return f"end_line {end_line} must be greater than start_line {start_line}", None
-
-    source_code_query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (a:ASTNode)
-    WHERE root.node_id = {root_node_id} AND f.basename = '{basename}'
-    WITH f, apoc.text.split(a.text, '\\R') AS lines
-    RETURN
-        f as FileNode,
-        {{
-            text: apoc.text.join(lines[{start_line - 1}..{end_line - 1}], '\\n'),
-            start_line: {start_line},
-            end_line: {end_line}
-        }} AS SelectedLines
-    ORDER BY f.node_id
-    """
-    data = neo4j_util.run_neo4j_query_without_formatting(source_code_query, driver)
-    if not data:
-        return EMPTY_DATA_MESSAGE, data
-    for result in data:
-        result["SelectedLines"]["text"] = pre_append_line_numbers(
-            result["SelectedLines"]["text"], result["SelectedLines"]["start_line"]
-        )
-    return neo4j_util.format_neo4j_data(data, max_token_per_result), data
 
 
 class ReadCodeWithRelativePathInput(BaseModel):
@@ -496,36 +508,49 @@ end_line is less than start_line.
 
 
 def read_code_with_relative_path(
-    relative_path: str,
-    start_line: int,
-    end_line: int,
-    driver: GraphDatabase.driver,
-    max_token_per_result: int,
-    root_node_id: int,
-) -> tuple[str, Union[Sequence[Mapping[str, Any]], None]]:
+    relative_path: str, start_line: int, end_line: int, kg: KnowledgeGraph
+) -> Union[Tuple[str, List[Dict[str, Any]]], Tuple[str, None]]:
+    """Read a specific section of a source code file by relative path and line range."""
     if end_line < start_line:
-        return f"end_line {end_line} must be greater than start_line {start_line}", None
+        return f"end_line {end_line} must be greater than start_line {start_line}!", None
 
-    source_code_query = f"""\
-    MATCH (root:FileNode)-[:HAS_FILE*]->(f:FileNode) -[:HAS_AST]-> (a:ASTNode)
-    WHERE root.node_id = {root_node_id} AND f.relative_path = '{relative_path}'
-    WITH f, apoc.text.split(a.text, '\\R') AS lines
-    RETURN
-        f as FileNode,
-        {{
-            text: apoc.text.join(lines[{start_line - 1}..{end_line - 1}], '\\n'),
-            start_line: {start_line},
-            end_line: {end_line}
-        }} AS SelectedLines
-    ORDER BY f.node_id
-    """
+    # Find file nodes with the given relative path
+    target_file = None
+    for node in kg.get_file_nodes():
+        if node.node.relative_path == relative_path:
+            target_file = node
+            break
 
-    data = neo4j_util.run_neo4j_query_without_formatting(source_code_query, driver)
-    if not data:
-        return EMPTY_DATA_MESSAGE, data
-    for result in data:
-        result["SelectedLines"]["text"] = pre_append_line_numbers(
-            result["SelectedLines"]["text"], result["SelectedLines"]["start_line"]
-        )
+    # Check if the file exists
+    if not target_file:
+        return format_knowledge_graph_data([]), []
 
-    return neo4j_util.format_neo4j_data(data, max_token_per_result), data
+    # Check if it is a source code file
+    if not tree_sitter_parser.supports_file(Path(target_file.node.relative_path)):
+        return f"The file {relative_path} is not a source code file!", None
+
+    # Get the first ast node for this file
+    first_ast_node = [
+        edge.target for edge in kg.get_has_ast_edges() if edge.source.node_id == target_file.node_id
+    ][0]
+    text = first_ast_node.node.text
+    lines = text.split("\n")
+    selected_lines = lines[start_line - 1 : end_line - 1]  # Convert to 0-indexed
+    selected_text = "\n".join(selected_lines)
+    selected_text_with_line_numbers = pre_append_line_numbers(selected_text, start_line)
+
+    result_data = [
+        {
+            "FileNode": {
+                "node_id": target_file.node_id,
+                "basename": target_file.node.basename,
+                "relative_path": target_file.node.relative_path,
+            },
+            "SelectedLines": {
+                "text": selected_text_with_line_numbers,
+                "start_line": start_line,
+                "end_line": end_line,
+            },
+        }
+    ]
+    return format_knowledge_graph_data(result_data), result_data

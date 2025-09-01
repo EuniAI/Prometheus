@@ -10,13 +10,12 @@ import logging
 import threading
 from typing import Dict
 
-import neo4j
 from langchain.tools import StructuredTool
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
-from prometheus.tools import graph_traversal
+from prometheus.tools import file_operation, graph_traversal
 
 
 class ContextProviderNode:
@@ -89,8 +88,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         self,
         model: BaseChatModel,
         kg: KnowledgeGraph,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_result: int,
+        local_path: str,
     ):
         """Initializes the ContextProviderNode with model, knowledge graph, and database connection.
 
@@ -104,16 +102,10 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
             tool binding.
           kg: Knowledge graph instance containing the processed codebase structure.
             Used to obtain the file tree for system prompts.
-          neo4j_driver: Neo4j driver instance for executing graph queries. This
-            driver should be properly configured with authentication and
-            connection details.
-          max_token_per_result: Maximum number of tokens per retrieved Neo4j result.
         """
-        self.neo4j_driver = neo4j_driver
-        self.root_node_id = kg.root_node_id
-        self.max_token_per_result = max_token_per_result
-
         ast_node_types_str = ", ".join(kg.get_all_ast_node_types())
+        self.kg = kg
+        self.root_path = local_path
         self.system_prompt = SystemMessage(
             self.SYS_PROMPT.format(file_tree=kg.get_file_tree(), ast_node_types=ast_node_types_str)
         )
@@ -138,9 +130,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Used when only the filename (not full path) is known
         find_file_node_with_basename_fn = functools.partial(
             graph_traversal.find_file_node_with_basename,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
+            kg=self.kg,
         )
         find_file_node_with_basename_tool = StructuredTool.from_function(
             func=find_file_node_with_basename_fn,
@@ -155,9 +145,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Preferred method when the exact file path is known
         find_file_node_with_relative_path_fn = functools.partial(
             graph_traversal.find_file_node_with_relative_path,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
+            kg=self.kg,
         )
         find_file_node_with_relative_path_tool = StructuredTool.from_function(
             func=find_file_node_with_relative_path_fn,
@@ -174,9 +162,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Useful for searching specific snippets or patterns in unknown locations
         find_ast_node_with_text_in_file_with_basename_fn = functools.partial(
             graph_traversal.find_ast_node_with_text_in_file_with_basename,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
+            kg=self.kg,
         )
         find_ast_node_with_text_in_file_with_basename_tool = StructuredTool.from_function(
             func=find_ast_node_with_text_in_file_with_basename_fn,
@@ -190,9 +176,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Tool: Find AST node by text match in file (by relative path)
         find_ast_node_with_text_in_file_with_relative_path_fn = functools.partial(
             graph_traversal.find_ast_node_with_text_in_file_with_relative_path,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
+            kg=self.kg,
         )
         find_ast_node_with_text_in_file_with_relative_path_tool = StructuredTool.from_function(
             func=find_ast_node_with_text_in_file_with_relative_path_fn,
@@ -207,9 +191,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Example types: FunctionDef, ClassDef, Assign, etc.
         find_ast_node_with_type_in_file_with_basename_fn = functools.partial(
             graph_traversal.find_ast_node_with_type_in_file_with_basename,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
+            kg=self.kg,
         )
         find_ast_node_with_type_in_file_with_basename_tool = StructuredTool.from_function(
             func=find_ast_node_with_type_in_file_with_basename_fn,
@@ -223,9 +205,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Tool: Find AST node by type in file (by relative path)
         find_ast_node_with_type_in_file_with_relative_path_fn = functools.partial(
             graph_traversal.find_ast_node_with_type_in_file_with_relative_path,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
+            kg=self.kg,
         )
         find_ast_node_with_type_in_file_with_relative_path_tool = StructuredTool.from_function(
             func=find_ast_node_with_type_in_file_with_relative_path_fn,
@@ -241,9 +221,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Tool: Find text node globally by keyword
         find_text_node_with_text_fn = functools.partial(
             graph_traversal.find_text_node_with_text,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
+            kg=self.kg,
         )
         find_text_node_with_text_tool = StructuredTool.from_function(
             func=find_text_node_with_text_fn,
@@ -257,9 +235,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Tool: Find text node by keyword in specific file
         find_text_node_with_text_in_file_fn = functools.partial(
             graph_traversal.find_text_node_with_text_in_file,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
+            kg=self.kg,
         )
         find_text_node_with_text_in_file_tool = StructuredTool.from_function(
             func=find_text_node_with_text_in_file_fn,
@@ -273,9 +249,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Tool: Fetch the next text node chunk in a chain (used for long docs/comments)
         get_next_text_node_with_node_id_fn = functools.partial(
             graph_traversal.get_next_text_node_with_node_id,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
+            kg=self.kg,
         )
         get_next_text_node_with_node_id_tool = StructuredTool.from_function(
             func=get_next_text_node_with_node_id_fn,
@@ -288,60 +262,24 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
 
         # === FILE PREVIEW & READING TOOLS ===
 
-        # Tool: Preview contents of file by basename
-        preview_file_content_with_basename_fn = functools.partial(
-            graph_traversal.preview_file_content_with_basename,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
-        )
-        preview_file_content_with_basename_tool = StructuredTool.from_function(
-            func=preview_file_content_with_basename_fn,
-            name=graph_traversal.preview_file_content_with_basename.__name__,
-            description=graph_traversal.PREVIEW_FILE_CONTENT_WITH_BASENAME_DESCRIPTION,
-            args_schema=graph_traversal.PreviewFileContentWithBasenameInput,
-            response_format="content_and_artifact",
-        )
-        tools.append(preview_file_content_with_basename_tool)
-
         # Tool: Preview contents of file by relative path
-        preview_file_content_with_relative_path_fn = functools.partial(
-            graph_traversal.preview_file_content_with_relative_path,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
+        read_file_fn = functools.partial(
+            file_operation.read_file_with_knowledge_graph_data,
+            root_path=self.root_path,
+            kg=self.kg,
         )
-        preview_file_content_with_relative_path_tool = StructuredTool.from_function(
-            func=preview_file_content_with_relative_path_fn,
-            name=graph_traversal.preview_file_content_with_relative_path.__name__,
-            description=graph_traversal.PREVIEW_FILE_CONTENT_WITH_RELATIVE_PATH_DESCRIPTION,
-            args_schema=graph_traversal.PreviewFileContentWithRelativePathInput,
-            response_format="content_and_artifact",
+        read_file_tool = StructuredTool.from_function(
+            func=read_file_fn,
+            name=file_operation.read_file.__name__,
+            description=file_operation.READ_FILE_DESCRIPTION,
+            args_schema=file_operation.ReadFileInput,
         )
-        tools.append(preview_file_content_with_relative_path_tool)
-
-        # Tool: Read entire code file by basename
-        read_code_with_basename_fn = functools.partial(
-            graph_traversal.read_code_with_basename,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
-        )
-        read_code_with_basename_tool = StructuredTool.from_function(
-            func=read_code_with_basename_fn,
-            name=graph_traversal.read_code_with_basename.__name__,
-            description=graph_traversal.READ_CODE_WITH_BASENAME_DESCRIPTION,
-            args_schema=graph_traversal.ReadCodeWithBasenameInput,
-            response_format="content_and_artifact",
-        )
-        tools.append(read_code_with_basename_tool)
+        tools.append(read_file_tool)
 
         # Tool: Read entire code file by relative path
         read_code_with_relative_path_fn = functools.partial(
             graph_traversal.read_code_with_relative_path,
-            driver=self.neo4j_driver,
-            max_token_per_result=self.max_token_per_result,
-            root_node_id=self.root_node_id,
+            kg=self.kg,
         )
         read_code_with_relative_path_tool = StructuredTool.from_function(
             func=read_code_with_relative_path_fn,

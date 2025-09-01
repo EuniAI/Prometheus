@@ -51,6 +51,7 @@ The edit_file operation performs an EXACT STRING REPLACEMENT in the file:
 - Only one match of old_content should exist in the file
 - If multiple matches exist, more context is needed
 - If no matches exist, content must be verified
+- Do not write any tests, your change will be tested by reproduction tests and regression tests later
 
 EXAMPLES:
 
@@ -114,6 +115,7 @@ MANDATORY REQUIREMENTS:
 4. When replacing multiple lines, include all lines in old_content
 5. If multiple matches found, include more context
 6. Verify uniqueness of matches before changes
+7. NEVER write tests, your change will be tested by reproduction tests and regression tests later
 """
 
     def __init__(self, model: BaseChatModel, local_path: str):

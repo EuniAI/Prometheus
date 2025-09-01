@@ -2,7 +2,6 @@ import logging
 import threading
 from typing import Optional, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.errors import GraphRecursionError
 
@@ -25,8 +24,6 @@ class IssueVerifiedBugSubgraphNode:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
         build_commands: Optional[Sequence[str]] = None,
         test_commands: Optional[Sequence[str]] = None,
     ):
@@ -40,8 +37,6 @@ class IssueVerifiedBugSubgraphNode:
             container=container,
             kg=kg,
             git_repo=git_repo,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
             build_commands=build_commands,
             test_commands=test_commands,
         )
@@ -59,17 +54,20 @@ class IssueVerifiedBugSubgraphNode:
                 reproduced_bug_file=state["reproduced_bug_file"],
                 reproduced_bug_commands=state["reproduced_bug_commands"],
                 reproduced_bug_patch=state["reproduced_bug_patch"],
-                selected_regression_tests=state["selected_regression_tests"],
+                selected_regression_tests=state["selected_regression_tests"]
+                if state["run_regression_test"]
+                else None,
             )
         except GraphRecursionError:
             self._logger.info("Recursion limit reached")
-            self.git_repo.reset_repository()
             return {
                 "edit_patch": None,
                 "passed_reproducing_test": False,
                 "passed_build": False,
                 "passed_existing_test": False,
             }
+        finally:
+            self.git_repo.reset_repository()
         # if all the tests passed
         passed_reproducing_test = not bool(output_state["reproducing_test_fail_log"])
         # if the build passed

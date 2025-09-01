@@ -2,7 +2,7 @@
 
 import logging
 
-from neo4j import GraphDatabase
+from neo4j import AsyncGraphDatabase
 
 from prometheus.app.services.base_service import BaseService
 
@@ -10,7 +10,7 @@ from prometheus.app.services.base_service import BaseService
 class Neo4jService(BaseService):
     def __init__(self, neo4j_uri: str, neo4j_username: str, neo4j_password: str):
         self._logger = logging.getLogger("prometheus.app.services.neo4j_service")
-        self.neo4j_driver = GraphDatabase.driver(
+        self.neo4j_driver = AsyncGraphDatabase.driver(
             neo4j_uri,
             auth=(neo4j_username, neo4j_password),
             connection_timeout=1200,
@@ -18,6 +18,6 @@ class Neo4jService(BaseService):
             keep_alive=True,
         )
 
-    def close(self):
-        self.neo4j_driver.close()
+    async def close(self):
+        await self.neo4j_driver.close()
         self._logger.info("Neo4j driver connection closed.")

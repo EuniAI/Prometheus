@@ -421,6 +421,19 @@ class KnowledgeGraph:
     def get_neo4j_parent_of_edges(self) -> Sequence[Neo4jParentOfEdge]:
         return [kg_edge.to_neo4j_edge() for kg_edge in self.get_parent_of_edges()]
 
+    def get_parent_to_children_map(self) -> Mapping[int, Sequence[KnowledgeGraphNode]]:
+        """
+        Returns a mapping from parent AST node IDs to their child AST nodes.
+        """
+        parent_of_edges = self.get_parent_of_edges()
+        parent_to_children = {}
+        for edge in parent_of_edges:
+            parent_id = edge.source.node_id
+            if parent_id not in parent_to_children:
+                parent_to_children[parent_id] = []
+            parent_to_children[parent_id].append(edge.target)
+        return parent_to_children
+
     def __eq__(self, other: "KnowledgeGraph") -> bool:
         if not isinstance(other, KnowledgeGraph):
             return False

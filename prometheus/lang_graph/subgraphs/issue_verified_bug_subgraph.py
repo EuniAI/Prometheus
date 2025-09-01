@@ -1,7 +1,6 @@
 import functools
 from typing import Mapping, Optional, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -20,11 +19,11 @@ from prometheus.lang_graph.nodes.get_pass_regression_test_patch_subgraph_node im
     GetPassRegressionTestPatchSubgraphNode,
 )
 from prometheus.lang_graph.nodes.git_diff_node import GitDiffNode
+from prometheus.lang_graph.nodes.git_reset_node import GitResetNode
 from prometheus.lang_graph.nodes.issue_bug_analyzer_message_node import IssueBugAnalyzerMessageNode
 from prometheus.lang_graph.nodes.issue_bug_analyzer_node import IssueBugAnalyzerNode
 from prometheus.lang_graph.nodes.issue_bug_context_message_node import IssueBugContextMessageNode
 from prometheus.lang_graph.nodes.noop_node import NoopNode
-from prometheus.lang_graph.nodes.update_container_node import UpdateContainerNode
 from prometheus.lang_graph.subgraphs.issue_verified_bug_state import IssueVerifiedBugState
 
 
@@ -52,8 +51,6 @@ class IssueVerifiedBugSubgraph:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
         build_commands: Optional[Sequence[str]] = None,
         test_commands: Optional[Sequence[str]] = None,
     ):
@@ -67,7 +64,6 @@ class IssueVerifiedBugSubgraph:
             kg (KnowledgeGraph): A knowledge graph used for context-aware retrieval of relevant code entities.
             git_repo (GitRepository): Git interface to apply patches and get diffs.
             neo4j_driver (neo4j.Driver): Neo4j driver for executing graph-based semantic queries.
-            max_token_per_neo4j_result (int): Maximum tokens to limit output from Neo4j query results.
             build_commands (Optional[Sequence[str]]): Commands to build the project inside the container.
             test_commands (Optional[Sequence[str]]): Commands to test the project inside the container.
         """
@@ -78,8 +74,6 @@ class IssueVerifiedBugSubgraph:
             model=base_model,
             kg=kg,
             local_path=git_repo.playground_path,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
             query_key_name="bug_fix_query",
             context_key_name="bug_fix_context",
         )
@@ -97,8 +91,9 @@ class IssueVerifiedBugSubgraph:
             messages_key="edit_messages",
         )
 
-        # Phase 4: Apply patch, diff changes, and update the container
+        # Phase 4: Generate the patch and reset the repository
         git_diff_node = GitDiffNode(git_repo, "edit_patch")
+        git_reset_node = GitResetNode(git_repo)
 
         noop_node = NoopNode()
 
@@ -111,8 +106,7 @@ class IssueVerifiedBugSubgraph:
             is_testing_patch_list=False,
         )
 
-        # Phase 6: Update the container and Re-run test case that reproduces the bug
-        update_container_node = UpdateContainerNode(container, git_repo)
+        # Phase 6: Re-run test case that reproduces the bug
         bug_fix_verification_subgraph_node = BugFixVerificationSubgraphNode(
             base_model, container, git_repo
         )
@@ -141,6 +135,7 @@ class IssueVerifiedBugSubgraph:
         workflow.add_node("edit_node", edit_node)
         workflow.add_node("edit_tools", edit_tools)
         workflow.add_node("git_diff_node", git_diff_node)
+        workflow.add_node("git_reset_node", git_reset_node)
         workflow.add_node("noop_node", noop_node)
 
         workflow.add_node(
@@ -148,7 +143,6 @@ class IssueVerifiedBugSubgraph:
             get_pass_regression_test_patch_subgraph_node,
         )
 
-        workflow.add_node("update_container_node", update_container_node)
         workflow.add_node("bug_fix_verification_subgraph_node", bug_fix_verification_subgraph_node)
         workflow.add_node("build_or_test_branch_node", build_or_test_branch_node)
         workflow.add_node("build_and_test_subgraph_node", build_and_test_subgraph_node)
@@ -167,11 +161,12 @@ class IssueVerifiedBugSubgraph:
             functools.partial(tools_condition, messages_key="edit_messages"),
             {"tools": "edit_tools", END: "git_diff_node"},
         )
-
         workflow.add_edge("edit_tools", "edit_node")
-        # Apply the patch if available, otherwise do it again
+
+        # Generate the patch and reset the repository
+        workflow.add_edge("git_diff_node", "git_reset_node")
         workflow.add_conditional_edges(
-            "git_diff_node",
+            "git_reset_node",
             lambda state: bool(state["edit_patch"]),
             {True: "noop_node", False: "issue_bug_analyzer_message_node"},
         )
@@ -181,7 +176,7 @@ class IssueVerifiedBugSubgraph:
             lambda state: state["run_regression_test"],
             {
                 True: "get_pass_regression_test_patch_subgraph_node",
-                False: "update_container_node",
+                False: "bug_fix_verification_subgraph_node",
             },
         )
         workflow.add_conditional_edges(
@@ -192,8 +187,6 @@ class IssueVerifiedBugSubgraph:
                 False: "issue_bug_analyzer_message_node",
             },
         )
-
-        workflow.add_edge("update_container_node", "bug_fix_verification_subgraph_node")
 
         # If test still fails, loop back to reanalyze the bug
         workflow.add_conditional_edges(

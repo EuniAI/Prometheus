@@ -2,7 +2,6 @@ import logging
 import threading
 from typing import Dict
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.errors import GraphRecursionError
 
@@ -22,8 +21,6 @@ class IssueNotVerifiedBugSubgraphNode:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
         container: BaseContainer,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
     ):
         self._logger = logging.getLogger(
             f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.issue_not_verified_bug_subgraph_node"
@@ -34,8 +31,6 @@ class IssueNotVerifiedBugSubgraphNode:
             kg=kg,
             git_repo=git_repo,
             container=container,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
         )
         self.git_repo = git_repo
 
@@ -49,17 +44,20 @@ class IssueNotVerifiedBugSubgraphNode:
                 issue_comments=state["issue_comments"],
                 number_of_candidate_patch=state["number_of_candidate_patch"],
                 run_regression_test=state["run_regression_test"],
-                selected_regression_tests=state["selected_regression_tests"],
+                selected_regression_tests=state["selected_regression_tests"]
+                if state["run_regression_test"]
+                else None,
             )
         except GraphRecursionError:
             self._logger.debug("GraphRecursionError encountered, returning empty patch")
-            self.git_repo.reset_repository()
             return {
                 "edit_patch": None,
                 "passed_reproducing_test": False,
                 "passed_build": False,
                 "passed_existing_test": False,
             }
+        finally:
+            self.git_repo.reset_repository()
 
         self._logger.info(f"final_patch:\n{output_state['final_patch']}")
 

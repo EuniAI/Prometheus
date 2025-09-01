@@ -30,7 +30,6 @@ class Settings(BaseSettings):
     KNOWLEDGE_GRAPH_MAX_AST_DEPTH: int
     KNOWLEDGE_GRAPH_CHUNK_SIZE: int
     KNOWLEDGE_GRAPH_CHUNK_OVERLAP: int
-    MAX_TOKEN_PER_NEO4J_RESULT: int
 
     # LLM models
     ADVANCED_MODEL: str
@@ -56,7 +55,16 @@ class Settings(BaseSettings):
 
     # JWT Configuration
     JWT_SECRET_KEY: str
-    ACCESS_TOKEN_EXPIRE_TIME: int = 7  # days
+    ACCESS_TOKEN_EXPIRE_TIME: int = 30  # days
+
+    # Invitation Code Expire Time
+    INVITATION_CODE_EXPIRE_TIME: int = 14  # days
+
+    # Default normal user issue credit
+    DEFAULT_USER_ISSUE_CREDIT: int = 20
+
+    # Default normal user repository number
+    DEFAULT_USER_REPOSITORY_LIMIT: int = 5
 
 
 settings = Settings()

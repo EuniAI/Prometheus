@@ -8,6 +8,7 @@ from git import Repo
 from testcontainers.neo4j import Neo4jContainer
 from testcontainers.postgres import PostgresContainer
 
+from prometheus.app.services.neo4j_service import Neo4jService
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.neo4j.knowledge_graph_handler import KnowledgeGraphHandler
 from tests.test_utils import test_project_paths
@@ -32,10 +33,11 @@ async def neo4j_container_with_kg_fixture():
         .with_name(f"neo4j_container_with_kg_{uuid.uuid4().hex[:12]}")
     )
     with container as neo4j_container:
-        driver = neo4j_container.get_driver()
-        handler = KnowledgeGraphHandler(driver, 100)
-        handler.write_knowledge_graph(kg)
+        neo4j_service = Neo4jService(container.get_connection_url(), NEO4J_USERNAME, NEO4J_PASSWORD)
+        handler = KnowledgeGraphHandler(neo4j_service.neo4j_driver, 100)
+        await handler.write_knowledge_graph(kg)
         yield neo4j_container, kg
+        await neo4j_service.close()
 
 
 @pytest.fixture(scope="function")
@@ -57,6 +59,7 @@ def postgres_container_fixture():
         password=POSTGRES_PASSWORD,
         dbname=POSTGRES_DB,
         port=5432,
+        driver="asyncpg",
     ).with_name(f"postgres_container_{uuid.uuid4().hex[:12]}")
     with container as postgres_container:
         yield postgres_container

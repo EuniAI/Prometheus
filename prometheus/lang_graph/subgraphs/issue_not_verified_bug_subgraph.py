@@ -1,7 +1,6 @@
 import functools
 from typing import Mapping, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -21,7 +20,7 @@ from prometheus.lang_graph.nodes.git_reset_node import GitResetNode
 from prometheus.lang_graph.nodes.issue_bug_analyzer_message_node import IssueBugAnalyzerMessageNode
 from prometheus.lang_graph.nodes.issue_bug_analyzer_node import IssueBugAnalyzerNode
 from prometheus.lang_graph.nodes.issue_bug_context_message_node import IssueBugContextMessageNode
-from prometheus.lang_graph.nodes.noop_node import NoopNode
+from prometheus.lang_graph.nodes.patch_normalization_node import PatchNormalizationNode
 from prometheus.lang_graph.nodes.reset_messages_node import ResetMessagesNode
 from prometheus.lang_graph.subgraphs.issue_not_verified_bug_state import IssueNotVerifiedBugState
 
@@ -34,18 +33,12 @@ class IssueNotVerifiedBugSubgraph:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
         container: BaseContainer,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
     ):
-        noop_node = NoopNode()
-
         issue_bug_context_message_node = IssueBugContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
             model=base_model,
             kg=kg,
             local_path=git_repo.playground_path,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
             query_key_name="bug_fix_query",
             context_key_name="bug_fix_context",
         )
@@ -66,12 +59,15 @@ class IssueNotVerifiedBugSubgraph:
         reset_issue_bug_analyzer_messages_node = ResetMessagesNode("issue_bug_analyzer_messages")
         reset_edit_messages_node = ResetMessagesNode("edit_messages")
 
+        # Patch Normalization Node
+        patch_normalization_node = PatchNormalizationNode()
+
         # Get pass regression test patch subgraph node
         get_pass_regression_test_patch_subgraph_node = GetPassRegressionTestPatchSubgraphNode(
             model=base_model,
             container=container,
             git_repo=git_repo,
-            testing_patch_key="edit_patches",
+            testing_patch_key="deduplicated_patches",
             is_testing_patch_list=True,
         )
 
@@ -79,7 +75,6 @@ class IssueNotVerifiedBugSubgraph:
         final_patch_selection_node = FinalPatchSelectionNode(advanced_model)
 
         workflow = StateGraph(IssueNotVerifiedBugState)
-        workflow.add_node("noop_node", noop_node)
 
         workflow.add_node("issue_bug_context_message_node", issue_bug_context_message_node)
         workflow.add_node("context_retrieval_subgraph_node", context_retrieval_subgraph_node)
@@ -97,6 +92,8 @@ class IssueNotVerifiedBugSubgraph:
             "reset_issue_bug_analyzer_messages_node", reset_issue_bug_analyzer_messages_node
         )
         workflow.add_node("reset_edit_messages_node", reset_edit_messages_node)
+
+        workflow.add_node("patch_normalization_node", patch_normalization_node)
 
         workflow.add_node(
             "get_pass_regression_test_patch_subgraph_node",
@@ -124,11 +121,11 @@ class IssueNotVerifiedBugSubgraph:
             lambda state: len(state["edit_patches"]) < state["number_of_candidate_patch"],
             {
                 True: "git_reset_node",
-                False: "noop_node",
+                False: "patch_normalization_node",
             },
         )
         workflow.add_conditional_edges(
-            "noop_node",
+            "patch_normalization_node",
             lambda state: state["run_regression_test"],
             {
                 True: "get_pass_regression_test_patch_subgraph_node",

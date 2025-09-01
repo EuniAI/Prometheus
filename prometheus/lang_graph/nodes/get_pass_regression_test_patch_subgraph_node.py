@@ -38,12 +38,25 @@ class GetPassRegressionTestPatchSubgraphNode:
         self._logger.info("Enter get_pass_regression_test_patch_subgraph_node")
         self._logger.debug(f"selected_regression_tests: {state['selected_regression_tests']}")
 
+        testing_patch = (
+            state[self.testing_patch_key]
+            if self.is_testing_patch_list
+            else [state[self.testing_patch_key]]
+        )
+
+        if not state["selected_regression_tests"]:
+            self._logger.info("No regression tests selected, skipping patch testing.")
+            return {
+                "tested_patch_result": [
+                    TestedPatchResult(patch=patch, passed=True, regression_test_failure_log="")
+                    for patch in testing_patch
+                ]
+            }
+
         try:
             output_state = self.subgraph.invoke(
                 selected_regression_tests=state["selected_regression_tests"],
-                patches=state[self.testing_patch_key]
-                if self.is_testing_patch_list
-                else [state[self.testing_patch_key]],
+                patches=testing_patch,
             )
         except GraphRecursionError:
             # If the recursion limit is reached, return a failure result for each patch

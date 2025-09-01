@@ -1,9 +1,24 @@
 import pytest
 
+from prometheus.app.services.neo4j_service import Neo4jService
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.neo4j.knowledge_graph_handler import KnowledgeGraphHandler
 from tests.test_utils import test_project_paths
-from tests.test_utils.fixtures import neo4j_container_with_kg_fixture  # noqa: F401
+from tests.test_utils.fixtures import (
+    NEO4J_PASSWORD,
+    NEO4J_USERNAME,
+    neo4j_container_with_kg_fixture,  # noqa: F401
+)
+
+
+@pytest.fixture
+async def mock_neo4j_service(neo4j_container_with_kg_fixture):  # noqa: F811
+    """Fixture: provide a clean DatabaseService using the Postgres test container."""
+    neo4j_container, kg = neo4j_container_with_kg_fixture
+    service = Neo4jService(neo4j_container.get_connection_url(), NEO4J_USERNAME, NEO4J_PASSWORD)
+    service.start()
+    yield service, kg
+    await service.close()
 
 
 async def test_build_graph():
@@ -69,10 +84,9 @@ test_project
 
 
 @pytest.mark.slow
-async def test_from_neo4j(neo4j_container_with_kg_fixture):  # noqa: F811
-    neo4j_container, kg = neo4j_container_with_kg_fixture
-    driver = neo4j_container.get_driver()
-    handler = KnowledgeGraphHandler(driver, 100)
-    read_kg = handler.read_knowledge_graph(0, 1000, 100, 10)
+async def test_from_neo4j(mock_neo4j_service):
+    service, kg = mock_neo4j_service
+    handler = KnowledgeGraphHandler(service.neo4j_driver, 100)
+    read_kg = await handler.read_knowledge_graph(0, 1000, 100, 10)
 
     assert read_kg == kg

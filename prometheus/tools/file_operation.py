@@ -2,9 +2,12 @@ import logging
 import os
 import shutil
 from pathlib import Path
+from typing import Any, Dict, List, Tuple, Union
 
 from pydantic import BaseModel, Field
 
+from prometheus.graph.knowledge_graph import KnowledgeGraph
+from prometheus.utils.knowledge_graph_utils import format_knowledge_graph_data
 from prometheus.utils.str_util import pre_append_line_numbers
 
 logger = logging.getLogger("prometheus.tools.file_operation")
@@ -33,6 +36,52 @@ def read_file(relative_path: str, root_path: str, n_lines: int = 1000) -> str:
         lines = f.readlines()
 
     return pre_append_line_numbers("".join(lines[:n_lines]), 1)
+
+
+def read_file_with_knowledge_graph_data(
+    relative_path: str, root_path: str, kg: KnowledgeGraph
+) -> Union[Tuple[str, List[Dict[str, Any]]], Tuple[str, None]]:
+    """
+    Read the content of a file and return it along with structured knowledge graph data.
+    Used for context provider node
+    """
+
+    if os.path.isabs(relative_path):
+        return f"relative_path: {relative_path} is a absolute path, not relative path.", None
+
+    file_node = None
+    for file_node_ in kg.get_file_nodes():
+        if file_node_.node.relative_path == relative_path:
+            file_node = file_node_
+            break
+
+    # Check if file node exists in the knowledge graph
+    if not file_node:
+        return f"The file {relative_path} does not exist.", None
+
+    file_path = Path(os.path.join(root_path, file_node.node.relative_path))
+
+    # Read the file content
+    with file_path.open() as f:
+        lines = f.readlines()
+    # Limit to first 1000 lines to avoid context issues
+    selected_text_with_line_numbers = pre_append_line_numbers("".join(lines[:1000]), 1)
+
+    result_data = [
+        {
+            "FileNode": {
+                "node_id": file_node.node_id,
+                "basename": file_node.node.basename,
+                "relative_path": file_node.node.relative_path,
+            },
+            "preview": {
+                "text": selected_text_with_line_numbers,
+                "start_line": 1,
+                "end_line": len(selected_text_with_line_numbers),
+            },
+        }
+    ]
+    return format_knowledge_graph_data(result_data), result_data
 
 
 class ReadFileWithLineNumbersInput(BaseModel):
