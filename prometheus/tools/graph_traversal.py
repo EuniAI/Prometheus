@@ -9,7 +9,7 @@ from prometheus.parser import tree_sitter_parser
 from prometheus.utils.knowledge_graph_utils import format_knowledge_graph_data
 from prometheus.utils.str_util import pre_append_line_numbers
 
-MAX_RESULT = 15
+MAX_RESULT = 5
 
 """
 Tools for retrieving nodes from the KnowledgeGraph.
