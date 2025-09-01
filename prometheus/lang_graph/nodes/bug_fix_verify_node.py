@@ -8,7 +8,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from prometheus.docker.base_container import BaseContainer
 from prometheus.lang_graph.subgraphs.bug_fix_verification_state import BugFixVerificationState
-from prometheus.tools import container_command
+from prometheus.tools.container_command import ContainerCommandTool
 from prometheus.utils.logger_manager import get_logger
 
 

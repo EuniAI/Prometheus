@@ -1,5 +1,4 @@
 import functools
-import logging
 import threading
 
 from langchain.tools import StructuredTool
@@ -8,7 +7,8 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from prometheus.docker.base_container import BaseContainer
 from prometheus.lang_graph.subgraphs.run_regression_tests_state import RunRegressionTestsState
-from prometheus.tools import container_command
+from prometheus.tools.container_command import ContainerCommandTool
+from prometheus.utils.logger_manager import get_logger
 
 
 class RunRegressionTestsNode:
@@ -55,22 +55,21 @@ Selected Regression Tests:
 """
 
     def __init__(self, model: BaseChatModel, container: BaseContainer):
-        self.tools = self._init_tools(container)
+        self.container_command_tool = ContainerCommandTool(container)
+        self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.run_regression_tests_node"
-        )
+        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
-    def _init_tools(self, container: BaseContainer):
+    def _init_tools(self):
         tools = []
 
-        run_command_fn = functools.partial(container_command.run_command, container=container)
+        run_command_fn = functools.partial(self.container_command_tool.run_command)
         run_command_tool = StructuredTool.from_function(
             func=run_command_fn,
-            name=container_command.run_command.__name__,
-            description=container_command.RUN_COMMAND_DESCRIPTION,
-            args_schema=container_command.RunCommandInput,
+            name=self.container_command_tool.run_command.__name__,
+            description=self.container_command_tool.run_command_spec.description,
+            args_schema=self.container_command_tool.run_command_spec.input_schema,
         )
         tools.append(run_command_tool)
 

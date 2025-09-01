@@ -129,17 +129,22 @@ class LoggerManager:
     
     def _log_configuration(self):
         """Log configuration information"""
-        config_attrs = [
-            'LOGGING_LEVEL', 'ADVANCED_MODEL', 'BASE_MODEL', 'NEO4J_BATCH_SIZE',
-            'WORKING_DIRECTORY', 'KNOWLEDGE_GRAPH_MAX_AST_DEPTH', 
-            'KNOWLEDGE_GRAPH_CHUNK_SIZE', 'KNOWLEDGE_GRAPH_CHUNK_OVERLAP',
-            'MAX_TOKEN_PER_NEO4J_RESULT', 'TEMPERATURE', 'MAX_INPUT_TOKENS', 
-            'MAX_OUTPUT_TOKENS'
-        ]
+        # 动态获取settings中所有可用的配置属性
+        config_attrs = [attr for attr in dir(settings) 
+                       if attr.isupper() and not attr.startswith('_')]
         
         for attr in config_attrs:
             value = getattr(settings, attr, 'Not Set')
-            self.root_logger.info(f"{attr}={value}")
+            
+            # 使用通配符匹配敏感配置项（包含KEY、API、PASSWORD的）
+            is_sensitive = any(keyword in attr.upper() for keyword in ['KEY', 'API', 'PASSWORD', "SECRET"])
+            
+            # 如果是敏感配置项，用星号代替
+            if is_sensitive and value and value != 'Not Set':
+                masked_value = '*' * min(len(str(value)), 8)  # 最多显示8个星号
+                self.root_logger.info(f"{attr}={masked_value}")
+            else:
+                self.root_logger.info(f"{attr}={value}")
     
     def get_logger(self, name: str) -> logging.Logger:
         """

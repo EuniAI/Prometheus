@@ -39,7 +39,7 @@ Current project structure:
 
     def __init__(self, model: BaseChatModel, kg: KnowledgeGraph, local_path: str):
         self.kg = kg
-        self.file_operation_tool = FileOperationTool(str(kg.get_local_path()))
+        self.file_operation_tool = FileOperationTool(local_path)
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
         self.system_prompt = SystemMessage(self.SYS_PROMPT)

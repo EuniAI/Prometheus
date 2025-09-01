@@ -20,7 +20,7 @@ class ToolSpec:
     input_schema: type
 
 
-tavily_api_key = settings.get("TAVILY_API_KEY", None)
+tavily_api_key = settings.TAVILY_API_KEY
 if tavily_api_key is None:
     logger.warning("Tavily API key is not set")
     tavily_client = None
