@@ -24,13 +24,17 @@ class RunExistingTestsSubgraphNode:
         self.subgraph = RunExistingTestsSubgraph(
             base_model=model, container=container, git_repo=git_repo
         )
+        self.git_repo = git_repo
         self.testing_patch_key = testing_patch_key
         self.existing_test_fail_log_key = existing_test_fail_log_key
 
     def __call__(self, state: Dict):
         self._logger.info("Enter run_existing_tests_subgraph_node")
 
-        output_state = self.subgraph.invoke(testing_patch=state[self.testing_patch_key])
+        try:
+            output_state = self.subgraph.invoke(testing_patch=state[self.testing_patch_key])
+        finally:
+            self.git_repo.reset_repository()
 
         self._logger.debug(output_state["test_fail_log"])
 
