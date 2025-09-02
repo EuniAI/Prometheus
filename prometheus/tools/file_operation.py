@@ -3,9 +3,11 @@ import shutil
 from pathlib import Path
 from dataclasses import dataclass
 from pydantic import BaseModel, Field
-
+from typing import Any, Dict, List, Tuple, Union
 from prometheus.utils.str_util import pre_append_line_numbers
 from prometheus.utils.logger_manager import get_logger
+from prometheus.graph.knowledge_graph import KnowledgeGraph
+from prometheus.utils.knowledge_graph_utils import format_knowledge_graph_data
 
 logger = get_logger(__name__)
 
@@ -107,14 +109,18 @@ class FileOperationTool:
         input_schema=EditFileInput
     )
     
-    def __init__(self, root_path: str):
+    def __init__(self, root_path: str, kg: KnowledgeGraph):
         """Initialize the file operation tool.
-        
         Args:
             root_path: The root path of the codebase for relative path operations.
+            kg: The knowledge graph for context provider node.
+        Args:
+            root_path: The root path of the codebase for relative path operations.
+            kg: The knowledge graph for context provider node.
         """
         self.root_path = root_path
-    
+        self.kg = kg
+
     def read_file(self, relative_path: str, n_lines: int = 1000) -> str:
         if os.path.isabs(relative_path):
             return f"relative_path: {relative_path} is a abolsute path, not relative path."
@@ -202,6 +208,51 @@ class FileOperationTool:
         file_path.write_text(new_content_full)
 
         return f"Successfully edited {relative_path}."
+
+    def read_file_with_knowledge_graph_data(self, relative_path: str) -> Union[Tuple[str, List[Dict[str, Any]]], Tuple[str, None]]:
+        """
+        Read the content of a file and return it along with structured knowledge graph data.
+        Used for context provider node
+        """
+
+        if os.path.isabs(relative_path):
+            return f"relative_path: {relative_path} is a absolute path, not relative path.", None
+
+        file_node = None
+        for file_node_ in self.kg.get_file_nodes():
+            if file_node_.node.relative_path == relative_path:
+                file_node = file_node_
+                break
+
+        # Check if file node exists in the knowledge graph
+        if not file_node:
+            return f"The file {relative_path} does not exist.", None
+
+        file_path = Path(os.path.join(self.root_path, file_node.node.relative_path))
+
+        # Read the file content
+        with file_path.open() as f:
+            lines = f.readlines()
+        # Limit to first 1000 lines to avoid context issues
+        selected_text_with_line_numbers = pre_append_line_numbers("".join(lines[:1000]), 1)
+
+        result_data = [
+            {
+                "FileNode": {
+                    "node_id": file_node.node_id,
+                    "basename": file_node.node.basename,
+                    "relative_path": file_node.node.relative_path,
+                },
+                "preview": {
+                    "text": selected_text_with_line_numbers,
+                    "start_line": 1,
+                    "end_line": len(selected_text_with_line_numbers),
+                },
+            }
+        ]
+        return format_knowledge_graph_data(result_data), result_data
+
+
 
 
 READ_FILE_DESCRIPTION = """\

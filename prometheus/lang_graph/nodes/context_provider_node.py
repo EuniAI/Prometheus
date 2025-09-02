@@ -16,6 +16,7 @@ from langchain_core.messages import SystemMessage
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.tools.graph_traversal import GraphTraversalTool
+from prometheus.tools.file_operation import FileOperationTool
 from prometheus.utils.logger_manager import get_logger
 
 
@@ -89,6 +90,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         self,
         model: BaseChatModel,
         kg: KnowledgeGraph,
+        local_path: str,
     ):
         """Initializes the ContextProviderNode with model, knowledge graph, and database connection.
 
@@ -103,11 +105,13 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
           kg: Knowledge graph instance containing the processed codebase structure.
             Used to obtain the file tree for system prompts.
         """
-        self.neo4j_driver = neo4j_driver
+        # self.neo4j_driver = neo4j_driver
         self.root_node_id = kg.root_node_id
-        self.max_token_per_result = max_token_per_result
+        self.kg = kg
+        # self.max_token_per_result = max_token_per_result
         # Initialize GraphTraversalTool with the driver and token limit
-        self.graph_traversal_tool = GraphTraversalTool(neo4j_driver, max_token_per_result)
+        self.graph_traversal_tool = GraphTraversalTool(kg)
+        self.file_operation_tool = FileOperationTool(local_path, kg)
 
 
         ast_node_types_str = ", ".join(kg.get_all_ast_node_types())
@@ -134,8 +138,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Tool: Find file node by filename (basename)
         # Used when only the filename (not full path) is known
         find_file_node_with_basename_fn = functools.partial(
-            graph_traversal.find_file_node_with_basename,
-            kg=self.kg,
+            self.graph_traversal_tool.find_file_node_with_basename
         )
         find_file_node_with_basename_tool = StructuredTool.from_function(
             func=find_file_node_with_basename_fn,
@@ -149,8 +152,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Tool: Find file node by relative path
         # Preferred method when the exact file path is known
         find_file_node_with_relative_path_fn = functools.partial(
-            graph_traversal.find_file_node_with_relative_path,
-            kg=self.kg,
+            self.graph_traversal_tool.find_file_node_with_relative_path
         )
         find_file_node_with_relative_path_tool = StructuredTool.from_function(
             func=find_file_node_with_relative_path_fn,
@@ -166,8 +168,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Tool: Find AST node by text match in file (by basename)
         # Useful for searching specific snippets or patterns in unknown locations
         find_ast_node_with_text_in_file_with_basename_fn = functools.partial(
-            graph_traversal.find_ast_node_with_text_in_file_with_basename,
-            kg=self.kg,
+            self.graph_traversal_tool.find_ast_node_with_text_in_file_with_basename
         )
         find_ast_node_with_text_in_file_with_basename_tool = StructuredTool.from_function(
             func=find_ast_node_with_text_in_file_with_basename_fn,
@@ -180,8 +181,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
 
         # Tool: Find AST node by text match in file (by relative path)
         find_ast_node_with_text_in_file_with_relative_path_fn = functools.partial(
-            graph_traversal.find_ast_node_with_text_in_file_with_relative_path,
-            kg=self.kg,
+            self.graph_traversal_tool.find_ast_node_with_text_in_file_with_relative_path
         )
         find_ast_node_with_text_in_file_with_relative_path_tool = StructuredTool.from_function(
             func=find_ast_node_with_text_in_file_with_relative_path_fn,
@@ -195,8 +195,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # Tool: Find AST node by type in file (by basename)
         # Example types: FunctionDef, ClassDef, Assign, etc.
         find_ast_node_with_type_in_file_with_basename_fn = functools.partial(
-            graph_traversal.find_ast_node_with_type_in_file_with_basename,
-            kg=self.kg,
+            self.graph_traversal_tool.find_ast_node_with_type_in_file_with_basename
         )
         find_ast_node_with_type_in_file_with_basename_tool = StructuredTool.from_function(
             func=find_ast_node_with_type_in_file_with_basename_fn,
@@ -209,8 +208,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
 
         # Tool: Find AST node by type in file (by relative path)
         find_ast_node_with_type_in_file_with_relative_path_fn = functools.partial(
-            graph_traversal.find_ast_node_with_type_in_file_with_relative_path,
-            kg=self.kg,
+            self.graph_traversal_tool.find_ast_node_with_type_in_file_with_relative_path
         )
         find_ast_node_with_type_in_file_with_relative_path_tool = StructuredTool.from_function(
             func=find_ast_node_with_type_in_file_with_relative_path_fn,
@@ -225,8 +223,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
 
         # Tool: Find text node globally by keyword
         find_text_node_with_text_fn = functools.partial(
-            graph_traversal.find_text_node_with_text,
-            kg=self.kg,
+            self.graph_traversal_tool.find_text_node_with_text
         )
         find_text_node_with_text_tool = StructuredTool.from_function(
             func=find_text_node_with_text_fn,
@@ -239,8 +236,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
 
         # Tool: Find text node by keyword in specific file
         find_text_node_with_text_in_file_fn = functools.partial(
-            graph_traversal.find_text_node_with_text_in_file,
-            kg=self.kg,
+            self.graph_traversal_tool.find_text_node_with_text_in_file
         )
         find_text_node_with_text_in_file_tool = StructuredTool.from_function(
             func=find_text_node_with_text_in_file_fn,
@@ -253,8 +249,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
 
         # Tool: Fetch the next text node chunk in a chain (used for long docs/comments)
         get_next_text_node_with_node_id_fn = functools.partial(
-            graph_traversal.get_next_text_node_with_node_id,
-            kg=self.kg,
+            self.graph_traversal_tool.get_next_text_node_with_node_id
         )
         get_next_text_node_with_node_id_tool = StructuredTool.from_function(
             func=get_next_text_node_with_node_id_fn,
@@ -268,23 +263,21 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # === FILE PREVIEW & READING TOOLS ===
 
         # Tool: Preview contents of file by relative path
-        preview_file_content_with_relative_path_fn = functools.partial(
-            graph_traversal.preview_file_content_with_relative_path,
-            kg=self.kg,
+        read_file_fn = functools.partial(
+            self.file_operation_tool.read_file_with_knowledge_graph_data
         )
-        preview_file_content_with_relative_path_tool = StructuredTool.from_function(
-            func=preview_file_content_with_relative_path_fn,
-            name=self.graph_traversal_tool.preview_file_content_with_relative_path.__name__,
-            description=self.graph_traversal_tool.preview_file_content_with_relative_path_spec.description,
-            args_schema=self.graph_traversal_tool.preview_file_content_with_relative_path_spec.input_schema,
+        read_file_tool = StructuredTool.from_function(
+            func=read_file_fn,
+            name=self.file_operation_tool.read_file_with_knowledge_graph_data.__name__,
+            description=self.file_operation_tool.read_file_spec.description,
+            args_schema=self.file_operation_tool.read_file_spec.input_schema,
             response_format="content_and_artifact",
         )
-        tools.append(preview_file_content_with_relative_path_tool)
+        tools.append(read_file_tool)
 
         # Tool: Read entire code file by relative path
         read_code_with_relative_path_fn = functools.partial(
-            graph_traversal.read_code_with_relative_path,
-            kg=self.kg,
+            self.graph_traversal_tool.read_code_with_relative_path
         )
         read_code_with_relative_path_tool = StructuredTool.from_function(
             func=read_code_with_relative_path_fn,
