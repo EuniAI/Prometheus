@@ -46,6 +46,10 @@ class IssueBugSubgraphNode:
         self.container.build_docker_image()
         self.container.start_container()
 
+        # Run the build if needed
+        if state["run_build"]:
+            self.container.run_build()
+
         self._logger.info("Enter IssueBugSubgraphNode")
 
         try:
