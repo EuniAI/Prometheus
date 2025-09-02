@@ -99,7 +99,9 @@ class BaseContainer(ABC):
         Creates a tar archive of the new files and copies them into the workdir of the container.
 
         Args:
-          new_project_path: Path to the directory containing new files.
+            project_root_path: Path to the project root directory.
+            updated_files: List of file paths (relative to project_root_path) to update in the container.
+            removed_files: List of file paths (relative to project_root_path) to remove from the container.
         """
         if not project_root_path.is_absolute():
             raise ValueError("project_root_path {project_root_path} must be a absolute path")
@@ -169,13 +171,11 @@ class BaseContainer(ABC):
         self._logger.debug(f"Command output:\n{exec_result_str}")
         return exec_result_str
 
-    def restart_container(self):
-        self._logger.info("Restarting the container")
-        if self.container:
-            self.container.stop(timeout=10)
-            self.container.remove(force=True)
-
-        self.start_container()
+    def reset_repository(self):
+        """Reset the git repository in the container to a clean state."""
+        self._logger.info("Resetting git repository in the container")
+        self.execute_command("git reset --hard")
+        self.execute_command("git clean -fd")
 
     def cleanup(self):
         """Clean up container resources and temporary files.

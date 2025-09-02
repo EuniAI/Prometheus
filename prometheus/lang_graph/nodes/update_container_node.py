@@ -43,7 +43,10 @@ class UpdateContainerNode:
         if self.container.is_running():
             self._logger.info("Copy over all updated files to the container")
             all_files_patch = self.git_repo.get_diff()
-            self.container.restart_container()
+
+            # Reset the container to ensure a clean state before applying updates
+            self.container.reset_repository()
+
             added_files, modified_file, removed_files = get_updated_files(all_files_patch)
             self.container.update_files(
                 self.git_repo.get_working_directory(), added_files + modified_file, removed_files
