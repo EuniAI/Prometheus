@@ -20,6 +20,7 @@ Parameter Description:
 """
 
 import argparse
+import asyncio
 import json
 import sys
 from typing import Dict
@@ -64,7 +65,7 @@ class GitHubIssueDebugger:
         print(f"Retrieving GitHub issue: {repo}#{issue_number}")
 
         # Retrieve basic issue information
-        return get_github_issue(repo, issue_number, self.github_token)
+        return asyncio.run(get_github_issue(repo, issue_number, self.github_token))
 
     def upload_repository_to_prometheus(self, repo: str) -> int:
         """
