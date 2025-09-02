@@ -143,25 +143,28 @@ def test_execute_command(container):
 
     # Verify
     mock_container.exec_run.assert_called_once_with(
-        "timeout -k 5 120s /bin/bash -lc test command", workdir=container.workdir
+        '/bin/bash -l -c "timeout -k 5 120s test command"', workdir=container.workdir
     )
     assert result == "command output"
 
 
-def test_restart_container(container):
-    """Test container restart"""
-    # Setup
-    mock_container = Mock()
-    container.container = mock_container
-    container.start_container = Mock()
+def test_reset_repository(container):
+    """Test container reset repository"""
+    # Setup - Mock the execute_command method of the container itself
+    container.execute_command = Mock(return_value="Command output")
+
+    # Also ensure the container has a valid container attribute (even if it's not used in this method)
+    container.container = Mock()
 
     # Execute
-    container.restart_container()
+    container.reset_repository()
 
-    # Verify
-    mock_container.stop.assert_called_once_with(timeout=10)
-    mock_container.remove.assert_called_once_with(force=True)
-    container.start_container.assert_called_once()
+    # Verify - Check that execute_command was called twice with the correct commands
+    assert container.execute_command.call_count == 2
+
+    # Check the specific calls
+    expected_calls = [call("git reset --hard"), call("git clean -fd")]
+    container.execute_command.assert_has_calls(expected_calls, any_order=False)
 
 
 def test_cleanup(container, mock_docker_client):

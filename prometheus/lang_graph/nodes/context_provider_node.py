@@ -91,6 +91,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
+        local_path: str,
     ):
         """Initializes the ContextProviderNode with model, knowledge graph, and database connection.
 
@@ -116,6 +117,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
 
         ast_node_types_str = ", ".join(kg.get_all_ast_node_types())
         self.kg = kg
+        self.root_path = local_path
         self.system_prompt = SystemMessage(
             self.SYS_PROMPT.format(file_tree=kg.get_file_tree(), ast_node_types=ast_node_types_str)
         )
@@ -273,6 +275,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
             args_schema=self.file_operation_tool.read_file_spec.input_schema,
             response_format="content_and_artifact",
         )
+        tools.append(read_file_tool)
         tools.append(read_file_tool)
 
         # Tool: Read entire code file by relative path

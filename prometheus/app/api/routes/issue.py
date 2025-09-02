@@ -60,6 +60,18 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
                 code=400,
                 message="workdir must be provided for user defined environment",
             )
+
+    # Validate build and test commands if required
+    if issue.run_build and not issue.build_commands:
+        raise ServerException(
+            code=400, message="No build commands available, please provide build commands"
+        )
+
+    if issue.run_existing_test and not issue.test_commands:
+        raise ServerException(
+            code=400, message="No test commands available, please provide test commands"
+        )
+
     # Ensure the repository is not currently being used
     if repository.is_working:
         raise ServerException(

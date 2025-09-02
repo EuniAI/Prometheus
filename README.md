@@ -9,7 +9,6 @@
 <div align="center">
   <a href="https://github.com/Pantheon-temple/Prometheus/graphs/contributors"><img src="https://img.shields.io/github/contributors/Pantheon-temple/Prometheus?style=for-the-badge&color=blue" alt="Contributors"></a>
   <a href="https://github.com/Pantheon-temple/Prometheus/stargazers"><img src="https://img.shields.io/github/stars/Pantheon-temple/Prometheus?style=for-the-badge&color=blue" alt="Stargazers"></a>
-  <a href="https://github.com/Pantheon-temple/Prometheus/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Pantheon-temple/Prometheus?style=for-the-badge&color=blue" alt="APACHE-2.0 License"></a>
   <a href="https://www.arxiv.org/abs/2507.19942"><img src="https://img.shields.io/badge/Paper-arXiv-red?style=for-the-badge&logo=arxiv" alt="Paper"></a>
   <br/>
     <a href="https://github.com/Pantheon-temple/Prometheus/blob/main/CREDITS.md"><img src="https://img.shields.io/badge/Project-Credits-blue?style=for-the-badge&color=FFE165&logo=github&logoColor=white" alt="Credits"></a>
@@ -213,9 +212,36 @@ Verify Neo4J at: [http://localhost:7474](http://localhost:7474)
 
 ---
 
+## 🛠️ Scripts
+- **Generate JWT Token**:  
+  ```bash
+  python -m prometheus.script.generate_jwt_token
+  ```
+- **GitHub Issue Debug Guide**:  
+  A script to help debug GitHub issues using Prometheus.  
+  See the full guide in [docs/GitHub-Issue-Debug-Guide.md](docs/GitHub-Issue-Debug-Guide.md).
+
+- **Create Superuser**:  
+  ```bash
+  python -m prometheus.script.create_superuser --username <username> --email <email> --password <password> --github_token <your_github_token>
+  ```
+- **Test LLM Service**:
+- ```bash
+  python -m prometheus.script.test_llm_service
+  ```
+
+---
+
 ## 📄 License
 
-Licensed under the [Apache License 2.0](LICENSE).
+This project is dual-licensed:
+- **Community Edition**: Licensed under the [GNU General Public License v3.0 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html).  
+  You are free to use, modify, and redistribute this code, provided that any derivative works are also released under the GPLv3.  
+  This ensures the project remains open and contributions benefit the community.
+
+- **Commercial Edition**: For organizations that wish to use this software in **proprietary, closed-source, or commercial settings**,  
+  a separate commercial license is available. Please contact **EUNI.AI Team** to discuss licensing terms.
+
 
 ---
 

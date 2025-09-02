@@ -68,10 +68,16 @@ Your task is to summarize the relevant contexts to a given query and return it i
 
 HUMAN_MESSAGE = """\
 This is the original user query:
+
+--- BEGIN ORIGINAL QUERY ---
 {original_query}
+--- END ORIGINAL QUERY ---
 
 The context or file content that you have seen so far (Some of the context may be IRRELEVANT to the query!!!):
+
+--- BEGIN CONTEXT ---
 {context}
+--- END CONTEXT ---
 
 REMEMBER: Your task is to summarize the relevant contexts to a given query and return it in the specified format!
 """

@@ -56,6 +56,7 @@ class ContextRetrievalSubgraph:
         context_provider_node = ContextProviderNode(
             model,
             kg,
+            local_path,
         )
 
         # Step 3: Add tool node to handle tool-based retrieval invocation dynamically
@@ -126,7 +127,7 @@ class ContextRetrievalSubgraph:
                 - "context" (Sequence[Context]): A list of selected context snippets relevant to the query.
         """
         # Set the recursion limit based on the maximum number of refined query loops
-        config = {"recursion_limit": (max_refined_query_loop + 1) * 40}
+        config = {"recursion_limit": (max_refined_query_loop + 1) * 50}
 
         input_state = {
             "query": query,
