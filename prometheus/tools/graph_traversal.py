@@ -334,6 +334,9 @@ Find all TextNode in the graph that exactly contains this text. The contains is
 same as python's check `'foo' in text`, ie. it is case sensitive and is
 looking for exact matches. Therefore the search text should be exact as well.
 
+Text Node is a chunk of text extracted from a text file, such as comments or documentation.
+Source code files are not split into TextNodes!
+
 You can use this tool to find all text/documentation in codebase that contains this text."""
 
 
@@ -378,8 +381,11 @@ FIND_TEXT_NODE_WITH_TEXT_IN_FILE_DESCRIPTION = """\
 Find all TextNode in the graph that exactly contains this text in a file with this basename.
 The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is
 looking for exact matches. Therefore the search text should be exact as well.
-The basename must include the extension, like 'bar.py', 'baz.java' or 'foo'
+The basename must include the extension, like 'README.md' or 'foo'
 (in this case foo is a file without extension).
+
+Text Node is a chunk of text extracted from a text file, such as comments or documentation.
+Source code files are not split into TextNodes!
 
 You can use this tool to find text/documentation in a specific file that contains this text."""
 
@@ -428,6 +434,9 @@ class GetNextTextNodeWithNodeIdInput(BaseModel):
 
 GET_NEXT_TEXT_NODE_WITH_NODE_ID_DESCRIPTION = """\
 Get the next TextNode of this given node_id.
+
+Text Node is a chunk of text extracted from a text file, such as comments or documentation.
+Source code files are not split into TextNodes!
 
 You can use this tool to read the next section of text that you are interested in."""
 
