@@ -212,6 +212,26 @@ Verify Neo4J at: [http://localhost:7474](http://localhost:7474)
 
 ---
 
+## 🛠️ Scripts
+- **Generate JWT Token**:  
+  ```bash
+  python -m prometheus.script.generate_jwt_token
+  ```
+- **GitHub Issue Debug Guide**:  
+  A script to help debug GitHub issues using Prometheus.  
+  See the full guide in [docs/GitHub-Issue-Debug-Guide.md](docs/GitHub-Issue-Debug-Guide.md).
+
+- **Create Superuser**:  
+  ```bash
+  python -m prometheus.script.create_superuser --username <username> --email <email> --password <password> --github_token <your_github_token>
+  ```
+- **Test LLM Service**:
+- ```bash
+  python -m prometheus.script.test_llm_service
+  ```
+
+---
+
 ## 📄 License
 
 This project is dual-licensed:
