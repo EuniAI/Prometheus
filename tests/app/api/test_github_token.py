@@ -1,7 +1,8 @@
-import pytest
 from unittest.mock import patch
-from fastapi.testclient import TestClient
+
+import pytest
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from prometheus.app.api.routes.github import router
 
@@ -21,33 +22,23 @@ def mock_issue_data():
         "state": "open",
         "html_url": "https://github.com/owner/repo/issues/123",
         "comments": [
-            {
-                "username": "user1",
-                "comment": "First comment"
-            },
-            {
-                "username": "user2",
-                "comment": "Second comment"
-            }
-        ]
+            {"username": "user1", "comment": "First comment"},
+            {"username": "user2", "comment": "Second comment"},
+        ],
     }
 
 
 def test_get_github_issue_success(mock_issue_data):
     """Test successful retrieval of GitHub issue through the API endpoint."""
 
-    with patch('prometheus.app.api.routes.github.get_github_issue') as mock_get_issue:
+    with patch("prometheus.app.api.routes.github.get_github_issue") as mock_get_issue:
         # Configure the mock
         mock_get_issue.return_value = mock_issue_data
 
         # Make the request
         response = client.get(
             "/github/issue/",
-            params={
-                "repo": "owner/repo",
-                "issue_number": 123,
-                "github_token": "test_token"
-            }
+            params={"repo": "owner/repo", "issue_number": 123, "github_token": "test_token"},
         )
 
         # Assert response status

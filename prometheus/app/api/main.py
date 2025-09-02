@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from prometheus.app.api.routes import auth, invitation_code, issue, repository, user, github
+from prometheus.app.api.routes import auth, github, invitation_code, issue, repository, user
 from prometheus.configuration.config import settings
 
 api_router = APIRouter()
