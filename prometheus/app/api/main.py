@@ -1,11 +1,12 @@
 from fastapi import APIRouter
 
-from prometheus.app.api.routes import auth, invitation_code, issue, repository, user
+from prometheus.app.api.routes import auth, invitation_code, issue, repository, user, github
 from prometheus.configuration.config import settings
 
 api_router = APIRouter()
 api_router.include_router(repository.router, prefix="/repository", tags=["repository"])
 api_router.include_router(issue.router, prefix="/issue", tags=["issue"])
+api_router.include_router(github.router, prefix="/github", tags=["github"])
 
 if settings.ENABLE_AUTHENTICATION:
     api_router.include_router(auth.router, prefix="/auth", tags=["auth"])

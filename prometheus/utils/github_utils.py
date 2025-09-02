@@ -3,6 +3,8 @@ from typing import Dict
 
 import httpx
 
+from prometheus.exceptions.github_exception import GithubException
+
 
 async def get_github_issue(repo: str, issue_number: int, github_token: str) -> Dict:
     """
@@ -27,12 +29,12 @@ async def get_github_issue(repo: str, issue_number: int, github_token: str) -> D
         )
 
         if issue_response.status_code != 200:
-            raise Exception(
+            raise GithubException(
                 f"Failed to retrieve issue: {issue_response.status_code} - {issue_response.text}"
             )
 
         if comments_response.status_code != 200:
-            raise Exception(
+            raise GithubException(
                 f"Failed to retrieve comments: {comments_response.status_code} - {comments_response.text}"
             )
 
