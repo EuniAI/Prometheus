@@ -1,40 +1,46 @@
+import asyncio
 from typing import Dict
 
-import requests
+import httpx
+
+from prometheus.exceptions.github_exception import GithubException
 
 
-def get_github_issue(repo: str, issue_number: int, github_token: str) -> Dict:
+async def get_github_issue(repo: str, issue_number: int, github_token: str) -> Dict:
     """
-    Retrieve issue information from GitHub
-
+    Retrieve issue information from GitHub asynchronously using httpx
     Args:
-        repo: Repository name (format: owner/repo)
-        issue_number: Issue number
-        github_token: GitHub token
-
-    Returns:
-        A dictionary containing issue information
+        repo (str): The GitHub repository in the format "owner/repo".
+        issue_number (int): The issue number to retrieve.
+        github_token (str): GitHub personal access token for authentication.
     """
     github_headers = {
         "Authorization": f"token {github_token}",
         "Accept": "application/vnd.github.v3+json",
     }
 
-    # Retrieve basic issue information
-    issue_url = f"https://api.github.com/repos/{repo}/issues/{issue_number}"
-    response = requests.get(issue_url, headers=github_headers)
+    async with httpx.AsyncClient(headers=github_headers) as client:
+        issue_url = f"https://api.github.com/repos/{repo}/issues/{issue_number}"
+        comments_url = f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments"
 
-    if response.status_code != 200:
-        raise Exception(f"Failed to retrieve issue: {response.status_code} - {response.text}")
+        # Send requests concurrently
+        issue_response, comments_response = await asyncio.gather(
+            client.get(issue_url), client.get(comments_url)
+        )
 
-    issue_data = response.json()
+        if issue_response.status_code != 200:
+            raise GithubException(
+                f"Failed to retrieve issue: {issue_response.status_code} - {issue_response.text}"
+            )
 
-    # Retrieve issue comments
-    comments_url = f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments"
-    comments_response = requests.get(comments_url, headers=github_headers)
+        if comments_response.status_code != 200:
+            raise GithubException(
+                f"Failed to retrieve comments: {comments_response.status_code} - {comments_response.text}"
+            )
 
-    comments = []
-    if comments_response.status_code == 200:
+        issue_data = issue_response.json()
+
+        comments = []
         comments_data = comments_response.json()
         comments = [
             {"username": comment["user"]["login"], "comment": comment["body"]}

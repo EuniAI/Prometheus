@@ -29,6 +29,7 @@ dependencies = [
   "psycopg2-binary",
   "asyncpg",
   "pyjwt==2.6.0",
+  "httpx==0.28.1",
 ]
 requires-python = ">= 3.11"
 

@@ -25,11 +25,6 @@ docker-compose up --build
    - `public_repo` (access public repositories)
 4. Generate and save the token.
 
-### 3. Install Python Dependencies
-```bash
-pip install requests
-```
-
 ## Basic Usage
 
 ### Simple Example
