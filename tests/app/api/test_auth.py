@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import FastAPI
@@ -21,7 +22,7 @@ def mock_service():
 
 
 def test_login(mock_service):
-    mock_service["user_service"].login.return_value = "your_access_token"
+    mock_service["user_service"].login = AsyncMock(return_value="your_access_token")
     response = client.post(
         "/auth/login",
         json={
@@ -39,7 +40,10 @@ def test_login(mock_service):
 
 
 def test_register(mock_service):
-    mock_service["invitation_code_service"].check_invitation_code.return_value = True
+    mock_service["invitation_code_service"].check_invitation_code = AsyncMock(return_value=True)
+    mock_service["user_service"].create_user = AsyncMock(return_value=None)
+    mock_service["invitation_code_service"].mark_code_as_used = AsyncMock(return_value=None)
+
     response = client.post(
         "/auth/register",
         json={

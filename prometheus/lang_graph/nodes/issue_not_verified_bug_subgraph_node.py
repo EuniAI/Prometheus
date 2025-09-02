@@ -2,7 +2,6 @@ import logging
 import threading
 from typing import Dict
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.errors import GraphRecursionError
 
@@ -23,8 +22,6 @@ class IssueNotVerifiedBugSubgraphNode:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
         container: BaseContainer,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
     ):
         self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
@@ -34,8 +31,6 @@ class IssueNotVerifiedBugSubgraphNode:
             kg=kg,
             git_repo=git_repo,
             container=container,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
         )
         self.git_repo = git_repo
 

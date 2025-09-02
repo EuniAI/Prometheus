@@ -1,6 +1,5 @@
 from unittest.mock import Mock
 
-import neo4j
 import pytest
 
 from prometheus.docker.base_container import BaseContainer
@@ -31,14 +30,7 @@ def mock_git_repo():
     return git_repo
 
 
-@pytest.fixture
-def mock_neo4j_driver():
-    return Mock(spec=neo4j.Driver)
-
-
-def test_issue_question_subgraph_basic_initialization(
-    mock_container, mock_kg, mock_git_repo, mock_neo4j_driver
-):
+def test_issue_question_subgraph_basic_initialization(mock_container, mock_kg, mock_git_repo):
     """Test that IssueQuestionSubgraph initializes correctly with basic components."""
     # Initialize fake model with empty responses
     fake_advanced_model = FakeListChatWithToolsModel(responses=[])
@@ -50,8 +42,6 @@ def test_issue_question_subgraph_basic_initialization(
         base_model=fake_base_model,
         kg=mock_kg,
         git_repo=mock_git_repo,
-        neo4j_driver=mock_neo4j_driver,
-        max_token_per_neo4j_result=1000,
     )
 
     # Verify the subgraph was created

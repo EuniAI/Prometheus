@@ -1,7 +1,6 @@
 import logging
 import threading
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
@@ -18,16 +17,12 @@ class IssueClassificationSubgraphNode:
         model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
     ):
         self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
         self.issue_classification_subgraph = IssueClassificationSubgraph(
             model=model,
             kg=kg,
             local_path=local_path,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
         )
 
     def __call__(self, state: IssueState):

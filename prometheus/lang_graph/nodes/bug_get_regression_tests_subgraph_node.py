@@ -2,7 +2,6 @@ import logging
 import threading
 from typing import Dict
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.errors import GraphRecursionError
 
@@ -22,8 +21,6 @@ class BugGetRegressionTestsSubgraphNode:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
     ):
         self._logger = logging.getLogger(
             f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.bug_get_regression_tests_subgraph_node"
@@ -34,8 +31,6 @@ class BugGetRegressionTestsSubgraphNode:
             container=container,
             kg=kg,
             git_repo=git_repo,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
         )
 
     def __call__(self, state: Dict):

@@ -1,6 +1,5 @@
 from unittest.mock import Mock
 
-import neo4j
 import pytest
 from langchain_core.language_models.chat_models import BaseChatModel
 
@@ -36,11 +35,6 @@ def mock_git_repo():
 
 
 @pytest.fixture
-def mock_neo4j_driver():
-    return Mock(spec=neo4j.Driver)
-
-
-@pytest.fixture
 def mock_container():
     return Mock(spec=BaseContainer)
 
@@ -50,7 +44,6 @@ def test_issue_graph_basic_initialization(
     mock_base_model,
     mock_kg,
     mock_git_repo,
-    mock_neo4j_driver,
     mock_container,
 ):
     """Test that IssueGraph initializes correctly with basic components."""
@@ -59,8 +52,6 @@ def test_issue_graph_basic_initialization(
         base_model=mock_base_model,
         kg=mock_kg,
         git_repo=mock_git_repo,
-        neo4j_driver=mock_neo4j_driver,
-        max_token_per_neo4j_result=1000,
         container=mock_container,
     )
 

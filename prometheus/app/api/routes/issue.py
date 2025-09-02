@@ -35,7 +35,7 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
     ]
 
     # Fetch the repository by ID
-    repository = repository_service.get_repository_by_id(issue.repository_id)
+    repository = await repository_service.get_repository_by_id(issue.repository_id)
     # Ensure the repository exists
     if not repository:
         raise ServerException(code=404, message="Repository not found")
@@ -46,7 +46,7 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
     # Check issue credit
     user_issue_credit = None
     if settings.ENABLE_AUTHENTICATION:
-        user_issue_credit = user_service.get_issue_credit(request.state.user_id)
+        user_issue_credit = await user_service.get_issue_credit(request.state.user_id)
         if user_issue_credit <= 0:
             raise ServerException(
                 code=403,
@@ -69,12 +69,15 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
 
     # Load the git repository and knowledge graph
     git_repository = repository_service.get_repository(repository.playground_path)
-    knowledge_graph = knowledge_graph_service.get_knowledge_graph(
+    knowledge_graph = await knowledge_graph_service.get_knowledge_graph(
         repository.kg_root_node_id,
         repository.kg_max_ast_depth,
         repository.kg_chunk_size,
         repository.kg_chunk_overlap,
     )
+
+    # Update the repository status to working
+    await repository_service.update_repository_status(repository.id, is_working=True)
 
     # Process the issue in a separate thread to avoid blocking the event loop
     (
@@ -87,7 +90,6 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
         issue_type,
     ) = await asyncio.to_thread(
         issue_service.answer_issue,
-        repository_id=repository.id,
         repository=git_repository,
         knowledge_graph=knowledge_graph,
         issue_title=issue.issue_title,
@@ -106,6 +108,9 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
         test_commands=issue.test_commands,
     )
 
+    # Update the repository status to not working
+    await repository_service.update_repository_status(repository.id, is_working=False)
+
     # Check if all outputs are in their initial state, indicating a failure
     if (
         patch,
@@ -123,7 +128,7 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
 
     # Deduct issue credit after successful processing
     if settings.ENABLE_AUTHENTICATION:
-        user_service.update_issue_credit(request.state.user_id, user_issue_credit - 1)
+        await user_service.update_issue_credit(request.state.user_id, user_issue_credit - 1)
 
     # Return the response
     return Response(

@@ -19,7 +19,7 @@ from prometheus.exceptions.server_exception import ServerException
 router = APIRouter()
 
 
-def get_github_token(request: Request, github_token: str) -> str:
+async def get_github_token(request: Request, github_token: str) -> str:
     """Retrieve GitHub token from the request or user profile."""
     # If the token is provided in the request, use it directly
     if github_token:
@@ -33,7 +33,7 @@ def get_github_token(request: Request, github_token: str) -> str:
         )
     # If the user is authenticated, get the user service and fetch the token
     user_service: UserService = request.app.state.service["user_service"]
-    user = user_service.get_user_by_id(request.state.user_id)
+    user = await user_service.get_user_by_id(request.state.user_id)
     github_token = user.github_token if user else None
 
     # If the token is still not available, raise an exception
@@ -63,13 +63,13 @@ async def upload_github_repository(
 
     # Check if the repository already exists
     if settings.ENABLE_AUTHENTICATION:
-        repository = repository_service.get_repository_by_url_commit_id_and_user_id(
+        repository = await repository_service.get_repository_by_url_commit_id_and_user_id(
             upload_repository_request.https_url,
             upload_repository_request.commit_id,
             request.state.user_id,
         )
     else:
-        repository = repository_service.get_repository_by_url_and_commit_id(
+        repository = await repository_service.get_repository_by_url_and_commit_id(
             upload_repository_request.https_url, commit_id=upload_repository_request.commit_id
         )
 
@@ -79,7 +79,9 @@ async def upload_github_repository(
 
     # Check if the number of repositories exceeds the limit
     if settings.ENABLE_AUTHENTICATION:
-        user_repositories = repository_service.get_repositories_by_user_id(request.state.user_id)
+        user_repositories = await repository_service.get_repositories_by_user_id(
+            request.state.user_id
+        )
         if len(user_repositories) >= settings.DEFAULT_USER_REPOSITORY_LIMIT:
             raise ServerException(
                 code=400,
@@ -87,7 +89,7 @@ async def upload_github_repository(
             )
 
     # Get the GitHub token
-    github_token = get_github_token(request, upload_repository_request.github_token)
+    github_token = await get_github_token(request, upload_repository_request.github_token)
 
     # Clone the repository
     try:
@@ -101,7 +103,7 @@ async def upload_github_repository(
 
     # Build and save the knowledge graph from the cloned repository
     root_node_id = await knowledge_graph_service.build_and_save_knowledge_graph(saved_path)
-    repository_id = repository_service.create_new_repository(
+    repository_id = await repository_service.create_new_repository(
         url=upload_repository_request.https_url,
         commit_id=upload_repository_request.commit_id,
         playground_path=str(saved_path),
@@ -122,8 +124,11 @@ async def upload_github_repository(
 async def create_branch_and_push(
     create_branch_and_push_request: CreateBranchAndPushRequest, request: Request
 ):
+    # Get the repository service
     repository_service: RepositoryService = request.app.state.service["repository_service"]
-    repository = repository_service.get_repository_by_id(
+
+    # Get the repository by ID
+    repository = await repository_service.get_repository_by_id(
         create_branch_and_push_request.repository_id
     )
     if not repository:
@@ -133,6 +138,8 @@ async def create_branch_and_push(
         raise ServerException(
             code=403, message="You do not have permission to modify this repository"
         )
+
+    # Get the Git Repository
     git_repo = repository_service.get_repository(repository.playground_path)
     try:
         await git_repo.create_and_push_branch(
@@ -140,8 +147,8 @@ async def create_branch_and_push(
             commit_message=create_branch_and_push_request.commit_message,
             patch=create_branch_and_push_request.patch,
         )
-    except git.exc.GitCommandError as e:
-        raise e
+    except git.exc.GitCommandError:
+        raise ServerException(code=400, message="Failed to create branch and push changes")
     return Response()
 
 
@@ -153,12 +160,12 @@ async def create_branch_and_push(
     response_model=Response[Sequence[RepositoryResponse]],
 )
 @requireLogin
-def list_repositories(request: Request):
+async def list_repositories(request: Request):
     repository_service: RepositoryService = request.app.state.service["repository_service"]
     if settings.ENABLE_AUTHENTICATION:
-        repositories = repository_service.get_repositories_by_user_id(request.state.user_id)
+        repositories = await repository_service.get_repositories_by_user_id(request.state.user_id)
     else:
-        repositories = repository_service.get_all_repositories()
+        repositories = await repository_service.get_all_repositories()
     return Response(data=[RepositoryResponse.model_validate(repo) for repo in repositories])
 
 
@@ -170,12 +177,14 @@ def list_repositories(request: Request):
     response_model=Response,
 )
 @requireLogin
-def delete(repository_id: int, request: Request, force: bool = False, ):
+async def delete(repository_id: int, request: Request, force: bool = False, ):
     knowledge_graph_service: KnowledgeGraphService = request.app.state.service[
         "knowledge_graph_service"
     ]
     repository_service: RepositoryService = request.app.state.service["repository_service"]
-    repository = repository_service.get_repository_by_id(repository_id)
+
+    # Get the repository by ID
+    repository = await repository_service.get_repository_by_id(repository_id)
     # Check if the repository exists
     if not repository:
         raise ServerException(code=404, message="Repository not found")
@@ -190,8 +199,8 @@ def delete(repository_id: int, request: Request, force: bool = False, ):
             code=403, message="You do not have permission to delete this repository"
         )
     # Clear the knowledge graph and repository data
-    knowledge_graph_service.clear_kg(repository.kg_root_node_id)
+    await knowledge_graph_service.clear_kg(repository.kg_root_node_id)
     repository_service.clean_repository(repository)
     # Delete the repository from the database
-    repository_service.delete_repository(repository)
+    await repository_service.delete_repository(repository)
     return Response()

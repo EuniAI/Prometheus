@@ -1,6 +1,5 @@
 from typing import Mapping, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph import END, StateGraph
 
@@ -19,16 +18,12 @@ class IssueClassificationSubgraph:
         model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
     ):
         issue_classification_context_message_node = IssueClassificationContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
             model=model,
             kg=kg,
             local_path=local_path,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
             query_key_name="issue_classification_query",
             context_key_name="issue_classification_context",
         )

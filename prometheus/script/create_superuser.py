@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import re
 
 from prometheus.app.services.database_service import DatabaseService
@@ -17,14 +18,19 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # Validate email format
     pattern = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
     if not re.match(pattern, args.email):
         raise ValueError("Invalid email format")
 
-    user_service.create_superuser(
-        username=args.username,
-        email=args.email,
-        password=args.password,
-        github_token=args.github_token,
+    # Create the superuser account
+    asyncio.run(
+        user_service.create_superuser(
+            username=args.username,
+            email=args.email,
+            password=args.password,
+            github_token=args.github_token,
+        )
     )
+
     print("Superuser account created!")

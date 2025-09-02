@@ -23,7 +23,15 @@ def mock_service():
 
 
 def test_upload_repository(mock_service):
-    mock_service["repository_service"].clone_github_repo.return_value = "/mock/path"
+    mock_service["repository_service"].clone_github_repo = AsyncMock(return_value="/mock/path")
+    mock_service["repository_service"].get_repository_by_url_and_commit_id = AsyncMock(
+        return_value=None
+    )
+    mock_service["repository_service"].create_new_repository = AsyncMock(return_value=1)
+    mock_service["knowledge_graph_service"].build_and_save_knowledge_graph = AsyncMock(
+        return_value=0
+    )
+
     response = client.post(
         "/repository/upload",
         json={
@@ -32,10 +40,23 @@ def test_upload_repository(mock_service):
         },
     )
     assert response.status_code == 200
+    assert response.json() == {
+        "code": 200,
+        "message": "success",
+        "data": {"repository_id": 1},
+    }
 
 
 def test_upload_repository_at_commit(mock_service):
-    mock_service["repository_service"].clone_github_repo.return_value = "/mock/path"
+    mock_service["repository_service"].clone_github_repo = AsyncMock(return_value="/mock/path")
+    mock_service["repository_service"].get_repository_by_url_and_commit_id = AsyncMock(
+        return_value=None
+    )
+    mock_service["repository_service"].create_new_repository = AsyncMock(return_value=1)
+    mock_service["knowledge_graph_service"].build_and_save_knowledge_graph = AsyncMock(
+        return_value=0
+    )
+
     response = client.post(
         "/repository/upload/",
         json={
@@ -54,6 +75,19 @@ def test_create_branch_and_push(mock_service):
 
     # Let repository_service.get_repository return the mocked git_repo
     mock_service["repository_service"].get_repository.return_value = git_repo_mock
+    mock_service["repository_service"].get_repository_by_id = AsyncMock(
+        return_value=Repository(
+            id=1,
+            url="https://github.com/fake/repo.git",
+            commit_id=None,
+            playground_path="/path/to/playground",
+            kg_root_node_id=0,
+            user_id=None,
+            kg_max_ast_depth=100,
+            kg_chunk_size=1000,
+            kg_chunk_overlap=100,
+        )
+    )
 
     response = client.post(
         "/repository/create-branch-and-push/",
@@ -69,32 +103,8 @@ def test_create_branch_and_push(mock_service):
 
 
 def test_delete(mock_service):
-    mock_service["repository_service"].get_repository_by_id.return_value = Repository(
-        id=1,
-        url="https://github.com/fake/repo.git",
-        commit_id=None,
-        playground_path="/path/to/playground",
-        kg_root_node_id=0,
-        user_id=None,
-        kg_max_ast_depth=100,
-        kg_chunk_size=1000,
-        kg_chunk_overlap=100,
-    )
-    mock_service["knowledge_graph_service"].clear_kg.return_value = None
-    mock_service["repository_service"].clean_repository.return_value = None
-    mock_service["repository_service"].delete_repository.return_value = None
-    response = client.delete(
-        "repository/delete",
-        params={
-            "repository_id": 1,
-        },
-    )
-    assert response.status_code == 200
-
-
-def test_list(mock_service):
-    mock_service["repository_service"].get_all_repositories.return_value = [
-        Repository(
+    mock_service["repository_service"].get_repository_by_id = AsyncMock(
+        return_value=Repository(
             id=1,
             url="https://github.com/fake/repo.git",
             commit_id=None,
@@ -105,7 +115,35 @@ def test_list(mock_service):
             kg_chunk_size=1000,
             kg_chunk_overlap=100,
         )
-    ]
+    )
+    mock_service["knowledge_graph_service"].clear_kg = AsyncMock(return_value=None)
+    mock_service["repository_service"].clean_repository.return_value = None
+    mock_service["repository_service"].delete_repository = AsyncMock(return_value=None)
+    response = client.delete(
+        "repository/delete",
+        params={
+            "repository_id": 1,
+        },
+    )
+    assert response.status_code == 200
+
+
+def test_list(mock_service):
+    mock_service["repository_service"].get_all_repositories = AsyncMock(
+        return_value=[
+            Repository(
+                id=1,
+                url="https://github.com/fake/repo.git",
+                commit_id=None,
+                playground_path="/path/to/playground",
+                kg_root_node_id=0,
+                user_id=None,
+                kg_max_ast_depth=100,
+                kg_chunk_size=1000,
+                kg_chunk_overlap=100,
+            )
+        ]
+    )
     response = client.get("repository/list/")
     assert response.status_code == 200
     assert response.json() == {

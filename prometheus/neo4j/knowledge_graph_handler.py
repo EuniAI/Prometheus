@@ -2,7 +2,7 @@
 
 from typing import Mapping, Sequence
 
-from neo4j import GraphDatabase, ManagedTransaction
+from neo4j import AsyncGraphDatabase, AsyncManagedTransaction
 
 from prometheus.graph.graph_types import (
     KnowledgeGraphNode,
@@ -21,7 +21,7 @@ from prometheus.utils.logger_manager import get_logger
 class KnowledgeGraphHandler:
     """The handler to writing the Knowledge graph to neo4j."""
 
-    def __init__(self, driver: GraphDatabase.driver, batch_size: int):
+    def __init__(self, driver: AsyncGraphDatabase.driver, batch_size: int):
         """
         Args:
           driver: The neo4j driver.
@@ -30,10 +30,9 @@ class KnowledgeGraphHandler:
         self.driver = driver
         self.batch_size = batch_size
         # initialize the database and logger
-        self._init_database()
         self._logger = get_logger(__name__)
 
-    def _init_database(self):
+    async def init_database(self):
         """Initialization of the neo4j database."""
 
         # Create constraints for node_id attributes.
@@ -46,11 +45,13 @@ class KnowledgeGraphHandler:
             "CREATE CONSTRAINT unique_text_node_id IF NOT EXISTS "
             "FOR (n:TextNode) REQUIRE n.node_id IS UNIQUE",
         ]
-        with self.driver.session() as session:
+        async with self.driver.session() as session:
             for query in queries:
-                session.run(query)
+                await session.run(query)
 
-    def _write_file_nodes(self, tx: ManagedTransaction, file_nodes: Sequence[Neo4jFileNode]):
+    async def _write_file_nodes(
+        self, tx: AsyncManagedTransaction, file_nodes: Sequence[Neo4jFileNode]
+    ):
         """Write Neo4jFileNode to neo4j."""
         self._logger.debug(f"Writing {len(file_nodes)} FileNode to neo4j")
         query = """
@@ -59,9 +60,11 @@ class KnowledgeGraphHandler:
     """
         for i in range(0, len(file_nodes), self.batch_size):
             file_nodes_batch = file_nodes[i : i + self.batch_size]
-            tx.run(query, file_nodes=file_nodes_batch)
+            await tx.run(query, file_nodes=file_nodes_batch)
 
-    def _write_ast_nodes(self, tx: ManagedTransaction, ast_nodes: Sequence[Neo4jASTNode]):
+    async def _write_ast_nodes(
+        self, tx: AsyncManagedTransaction, ast_nodes: Sequence[Neo4jASTNode]
+    ):
         """Write Neo4jASTNode to neo4j."""
         self._logger.debug(f"Writing {len(ast_nodes)} ASTNode to neo4j")
         query = """
@@ -70,9 +73,11 @@ class KnowledgeGraphHandler:
     """
         for i in range(0, len(ast_nodes), self.batch_size):
             ast_nodes_batch = ast_nodes[i : i + self.batch_size]
-            tx.run(query, ast_nodes=ast_nodes_batch)
+            await tx.run(query, ast_nodes=ast_nodes_batch)
 
-    def _write_text_nodes(self, tx: ManagedTransaction, text_nodes: Sequence[Neo4jTextNode]):
+    async def _write_text_nodes(
+        self, tx: AsyncManagedTransaction, text_nodes: Sequence[Neo4jTextNode]
+    ):
         """Write Neo4jTextNode to neo4j."""
         self._logger.debug(f"Writing {len(text_nodes)} TextNode to neo4j")
         query = """
@@ -81,10 +86,10 @@ class KnowledgeGraphHandler:
     """
         for i in range(0, len(text_nodes), self.batch_size):
             text_nodes_batch = text_nodes[i : i + self.batch_size]
-            tx.run(query, text_nodes=text_nodes_batch)
+            await tx.run(query, text_nodes=text_nodes_batch)
 
-    def _write_has_file_edges(
-        self, tx: ManagedTransaction, has_file_edges: Sequence[Neo4jHasFileEdge]
+    async def _write_has_file_edges(
+        self, tx: AsyncManagedTransaction, has_file_edges: Sequence[Neo4jHasFileEdge]
     ):
         """Write Neo4jHasFileEdge to neo4j."""
         self._logger.debug(f"Writing {len(has_file_edges)} HasFileEdge to neo4j")
@@ -96,10 +101,10 @@ class KnowledgeGraphHandler:
     """
         for i in range(0, len(has_file_edges), self.batch_size):
             has_file_edges_batch = has_file_edges[i : i + self.batch_size]
-            tx.run(query, edges=has_file_edges_batch)
+            await tx.run(query, edges=has_file_edges_batch)
 
-    def _write_has_ast_edges(
-        self, tx: ManagedTransaction, has_ast_edges: Sequence[Neo4jHasASTEdge]
+    async def _write_has_ast_edges(
+        self, tx: AsyncManagedTransaction, has_ast_edges: Sequence[Neo4jHasASTEdge]
     ):
         """Write Neo4jHasASTEdge to neo4j."""
         self._logger.debug(f"Writing {len(has_ast_edges)} HasASTEdge to neo4j")
@@ -111,10 +116,10 @@ class KnowledgeGraphHandler:
     """
         for i in range(0, len(has_ast_edges), self.batch_size):
             has_ast_edges_batch = has_ast_edges[i : i + self.batch_size]
-            tx.run(query, edges=has_ast_edges_batch)
+            await tx.run(query, edges=has_ast_edges_batch)
 
-    def _write_has_text_edges(
-        self, tx: ManagedTransaction, has_text_edges: Sequence[Neo4jHasTextEdge]
+    async def _write_has_text_edges(
+        self, tx: AsyncManagedTransaction, has_text_edges: Sequence[Neo4jHasTextEdge]
     ):
         """Write Neo4jHasTextEdge to neo4j."""
         self._logger.debug(f"Writing {len(has_text_edges)} HasTextEdges to neo4j")
@@ -126,9 +131,9 @@ class KnowledgeGraphHandler:
     """
         for i in range(0, len(has_text_edges), self.batch_size):
             has_text_edges_batch = has_text_edges[i : i + self.batch_size]
-            tx.run(query, edges=has_text_edges_batch)
+            await tx.run(query, edges=has_text_edges_batch)
 
-    def write_parent_of_edges(self, parent_of_edges):
+    async def write_parent_of_edges(self, parent_of_edges):
         self._logger.debug(f"Writing {len(parent_of_edges)} ParentOfEdge to neo4j")
 
         query = """
@@ -147,11 +152,11 @@ class KnowledgeGraphHandler:
                 }
                 for e in parent_of_edges_batch
             ]
-            with self.driver.session() as session:
-                session.write_transaction(lambda tx: tx.run(query, edges=edge_dicts))
+            async with self.driver.session() as session:
+                await session.write_transaction(lambda tx: tx.run(query, edges=edge_dicts))
 
-    def _write_next_chunk_edges(
-        self, tx: ManagedTransaction, next_chunk_edges: Sequence[Neo4jNextChunkEdge]
+    async def _write_next_chunk_edges(
+        self, tx: AsyncManagedTransaction, next_chunk_edges: Sequence[Neo4jNextChunkEdge]
     ):
         """Write Neo4jNextChunkEdge to neo4j."""
         self._logger.debug(f"Writing {len(next_chunk_edges)} NextChunkEdge to neo4j")
@@ -163,34 +168,36 @@ class KnowledgeGraphHandler:
     """
         for i in range(0, len(next_chunk_edges), self.batch_size):
             next_chunk_edges_batch = next_chunk_edges[i : i + self.batch_size]
-            tx.run(query, edges=next_chunk_edges_batch)
+            await tx.run(query, edges=next_chunk_edges_batch)
 
-    def write_knowledge_graph(self, kg: KnowledgeGraph):
+    async def write_knowledge_graph(self, kg: KnowledgeGraph):
         """Write the knowledge graph to neo4j.
 
         Args:
           kg: The knowledge graph to write to neo4j.
         """
         self._logger.info("Writing knowledge graph to neo4j")
-        with self.driver.session() as session:
-            session.execute_write(self._write_file_nodes, kg.get_neo4j_file_nodes())
-            session.execute_write(self._write_ast_nodes, kg.get_neo4j_ast_nodes())
-            session.execute_write(self._write_text_nodes, kg.get_neo4j_text_nodes())
+        async with self.driver.session() as session:
+            await session.execute_write(self._write_file_nodes, kg.get_neo4j_file_nodes())
+            await session.execute_write(self._write_ast_nodes, kg.get_neo4j_ast_nodes())
+            await session.execute_write(self._write_text_nodes, kg.get_neo4j_text_nodes())
 
-            session.execute_write(self._write_has_ast_edges, kg.get_neo4j_has_ast_edges())
-            session.execute_write(self._write_has_file_edges, kg.get_neo4j_has_file_edges())
-            session.execute_write(self._write_has_text_edges, kg.get_neo4j_has_text_edges())
-            session.execute_write(self._write_next_chunk_edges, kg.get_neo4j_next_chunk_edges())
-        self.write_parent_of_edges(kg.get_parent_of_edges())
+            await session.execute_write(self._write_has_ast_edges, kg.get_neo4j_has_ast_edges())
+            await session.execute_write(self._write_has_file_edges, kg.get_neo4j_has_file_edges())
+            await session.execute_write(self._write_has_text_edges, kg.get_neo4j_has_text_edges())
+            await session.execute_write(
+                self._write_next_chunk_edges, kg.get_neo4j_next_chunk_edges()
+            )
+        await self.write_parent_of_edges(kg.get_parent_of_edges())
 
-    def _read_file_nodes(
-        self, tx: ManagedTransaction, root_node_id: int
+    async def _read_file_nodes(
+        self, tx: AsyncManagedTransaction, root_node_id: int
     ) -> Sequence[KnowledgeGraphNode]:
         """
         Read all FileNode nodes that are reachable from the specified root_node_id (including the root node itself).
 
         Args:
-            tx (ManagedTransaction): An active Neo4j transaction.
+            tx (AsyncManagedTransaction): An active Neo4j transaction.
             root_node_id (int): The node id of the root node.
 
         Returns:
@@ -203,11 +210,12 @@ class KnowledgeGraphHandler:
         MATCH (root:FileNode {node_id: $root_node_id})-[:HAS_FILE*]->(n:FileNode)
         RETURN n.node_id AS node_id, n.basename AS basename, n.relative_path AS relative_path
         """
-        result = tx.run(query, root_node_id=root_node_id)
-        return [KnowledgeGraphNode.from_neo4j_file_node(record.data()) for record in result]
+        result = await tx.run(query, root_node_id=root_node_id)
+        records = await result.data()
+        return [KnowledgeGraphNode.from_neo4j_file_node(record) for record in records]
 
-    def _read_ast_nodes(
-        self, tx: ManagedTransaction, root_node_id: int
+    async def _read_ast_nodes(
+        self, tx: AsyncManagedTransaction, root_node_id: int
     ) -> Sequence[KnowledgeGraphNode]:
         """
         Read all ASTNode nodes related to the file tree rooted at root_node_id:
@@ -215,7 +223,7 @@ class KnowledgeGraphHandler:
           - For each FileNode, get its AST root node via HAS_AST, and all its AST descendants via PARENT_OF*.
 
         Args:
-            tx (ManagedTransaction): An active Neo4j transaction.
+            tx (AsyncManagedTransaction): An active Neo4j transaction.
             root_node_id (int): The node id of the root FileNode.
 
         Returns:
@@ -226,17 +234,18 @@ class KnowledgeGraphHandler:
         OPTIONAL MATCH (root)-[*]->(n:ASTNode)
         RETURN DISTINCT n.node_id AS node_id, n.start_line AS start_line, n.end_line AS end_line, n.type AS type, n.text AS text
         """
-        result = tx.run(query, root_node_id=root_node_id)
-        return [KnowledgeGraphNode.from_neo4j_ast_node(record.data()) for record in result]
+        result = await tx.run(query, root_node_id=root_node_id)
+        records = await result.data()
+        return [KnowledgeGraphNode.from_neo4j_ast_node(record) for record in records]
 
-    def _read_text_nodes(
-        self, tx: ManagedTransaction, root_node_id: int
+    async def _read_text_nodes(
+        self, tx: AsyncManagedTransaction, root_node_id: int
     ) -> Sequence[KnowledgeGraphNode]:
         """
         Read all TextNode nodes that are reachable from the specified root_node_id (regardless of edge type).
 
         Args:
-            tx (ManagedTransaction): An active Neo4j transaction.
+            tx (AsyncManagedTransaction): An active Neo4j transaction.
             root_node_id (int): The node id of the root node.
 
         Returns:
@@ -247,17 +256,18 @@ class KnowledgeGraphHandler:
         OPTIONAL MATCH (root)-[*]->(n:TextNode)
         RETURN DISTINCT n.node_id AS node_id, n.text AS text, n.metadata AS metadata
         """
-        result = tx.run(query, root_node_id=root_node_id)
-        return [KnowledgeGraphNode.from_neo4j_text_node(record.data()) for record in result]
+        result = await tx.run(query, root_node_id=root_node_id)
+        records = await result.data()
+        return [KnowledgeGraphNode.from_neo4j_text_node(record) for record in records]
 
-    def _read_parent_of_edges(
-        self, tx: ManagedTransaction, root_node_id: int
+    async def _read_parent_of_edges(
+        self, tx: AsyncManagedTransaction, root_node_id: int
     ) -> Sequence[Mapping[str, int]]:
         """
         Read all PARENT_OF edges where both source and target ASTNode are reachable from the subtree rooted at root_node_id.
 
         Args:
-            tx (ManagedTransaction): An active Neo4j transaction.
+            tx (AsyncManagedTransaction): An active Neo4j transaction.
             root_node_id (int): The node id of the root FileNode.
 
         Returns:
@@ -275,18 +285,19 @@ class KnowledgeGraphHandler:
         WHERE node2 IN all_ast_nodes
         RETURN node1.node_id AS source_id, node2.node_id AS target_id
         """
-        result = tx.run(query, root_node_id=root_node_id)
-        return [record.data() for record in result]
+        result = await tx.run(query, root_node_id=root_node_id)
+        records = await result.data()
+        return records
 
-    def _read_has_file_edges(
-        self, tx: ManagedTransaction, root_node_id: int
+    async def _read_has_file_edges(
+        self, tx: AsyncManagedTransaction, root_node_id: int
     ) -> Sequence[Mapping[str, int]]:
         """
         Read all HAS_FILE edges that are reachable from the specified root_node_id (i.e., only those
         between FileNodes in the subtree of root_node_id, including root itself).
 
         Args:
-            tx (ManagedTransaction): An active Neo4j transaction.
+            tx (AsyncManagedTransaction): An active Neo4j transaction.
             root_node_id (int): The node id of the root FileNode.
 
         Returns:
@@ -300,17 +311,18 @@ class KnowledgeGraphHandler:
             WHERE dst IN nodes_in_subtree
             RETURN DISTINCT src.node_id AS source_id, dst.node_id AS target_id
             """
-        result = tx.run(query, root_node_id=root_node_id)
-        return [record.data() for record in result]
+        result = await tx.run(query, root_node_id=root_node_id)
+        records = await result.data()
+        return records
 
-    def _read_has_ast_edges(
-        self, tx: ManagedTransaction, root_node_id: int
+    async def _read_has_ast_edges(
+        self, tx: AsyncManagedTransaction, root_node_id: int
     ) -> Sequence[Mapping[str, int]]:
         """
         Read all HAS_AST edges where the source FileNode is in the subtree rooted at root_node_id.
 
         Args:
-            tx (ManagedTransaction): An active Neo4j transaction.
+            tx (AsyncManagedTransaction): An active Neo4j transaction.
             root_node_id (int): The node id of the root FileNode.
 
         Returns:
@@ -327,17 +339,18 @@ class KnowledgeGraphHandler:
         MATCH (file_node)-[:HAS_AST]->(ast:ASTNode)
         RETURN file_node.node_id AS source_id, ast.node_id AS target_id
         """
-        result = tx.run(query, root_node_id=root_node_id)
-        return [record.data() for record in result]
+        result = await tx.run(query, root_node_id=root_node_id)
+        records = await result.data()
+        return records
 
-    def _read_has_text_edges(
-        self, tx: ManagedTransaction, root_node_id: int
+    async def _read_has_text_edges(
+        self, tx: AsyncManagedTransaction, root_node_id: int
     ) -> Sequence[Mapping[str, int]]:
         """
         Read all HAS_TEXT edges where the source FileNode is in the subtree rooted at root_node_id.
 
         Args:
-            tx (ManagedTransaction): An active Neo4j transaction.
+            tx (AsyncManagedTransaction): An active Neo4j transaction.
             root_node_id (int): The node id of the root FileNode.
 
         Returns:
@@ -354,17 +367,18 @@ class KnowledgeGraphHandler:
         MATCH (file_node)-[:HAS_TEXT]->(text:TextNode)
         RETURN file_node.node_id AS source_id, text.node_id AS target_id
         """
-        result = tx.run(query, root_node_id=root_node_id)
-        return [record.data() for record in result]
+        result = await tx.run(query, root_node_id=root_node_id)
+        records = await result.data()
+        return records
 
-    def _read_next_chunk_edges(
-        self, tx: ManagedTransaction, root_node_id: int
+    async def _read_next_chunk_edges(
+        self, tx: AsyncManagedTransaction, root_node_id: int
     ) -> Sequence[Mapping[str, int]]:
         """
         Read all NEXT_CHUNK edges between TextNodes that are reachable from the subtree rooted at root_node_id.
 
         Args:
-            tx (ManagedTransaction): An active Neo4j transaction.
+            tx (AsyncManagedTransaction): An active Neo4j transaction.
             root_node_id (int): The node id of the root FileNode.
 
         Returns:
@@ -382,10 +396,11 @@ class KnowledgeGraphHandler:
         WHERE node2 IN all_text_nodes
         RETURN node1.node_id AS source_id, node2.node_id AS target_id
         """
-        result = tx.run(query, root_node_id=root_node_id)
-        return [record.data() for record in result]
+        result = await tx.run(query, root_node_id=root_node_id)
+        records = await result.data()
+        return records
 
-    def read_knowledge_graph(
+    async def read_knowledge_graph(
         self,
         root_node_id: int,
         max_ast_depth: int,
@@ -394,77 +409,23 @@ class KnowledgeGraphHandler:
     ) -> KnowledgeGraph:
         """Read KnowledgeGraph from neo4j."""
         self._logger.info("Reading knowledge graph from neo4j")
-        with self.driver.session() as session:
+        async with self.driver.session() as session:
             return KnowledgeGraph.from_neo4j(
                 root_node_id,
                 max_ast_depth,
                 chunk_size,
                 chunk_overlap,
-                session.execute_read(self._read_file_nodes, root_node_id=root_node_id),
-                session.execute_read(self._read_ast_nodes, root_node_id=root_node_id),
-                session.execute_read(self._read_text_nodes, root_node_id=root_node_id),
-                session.execute_read(self._read_parent_of_edges, root_node_id=root_node_id),
-                session.execute_read(self._read_has_file_edges, root_node_id=root_node_id),
-                session.execute_read(self._read_has_ast_edges, root_node_id=root_node_id),
-                session.execute_read(self._read_has_text_edges, root_node_id=root_node_id),
-                session.execute_read(self._read_next_chunk_edges, root_node_id=root_node_id),
+                await session.execute_read(self._read_file_nodes, root_node_id=root_node_id),
+                await session.execute_read(self._read_ast_nodes, root_node_id=root_node_id),
+                await session.execute_read(self._read_text_nodes, root_node_id=root_node_id),
+                await session.execute_read(self._read_parent_of_edges, root_node_id=root_node_id),
+                await session.execute_read(self._read_has_file_edges, root_node_id=root_node_id),
+                await session.execute_read(self._read_has_ast_edges, root_node_id=root_node_id),
+                await session.execute_read(self._read_has_text_edges, root_node_id=root_node_id),
+                await session.execute_read(self._read_next_chunk_edges, root_node_id=root_node_id),
             )
 
-    def knowledge_graph_exists(self, root_node_id: int) -> bool:
-        """
-        Check if the knowledge graph with specific root_node_id exists in the Neo4j database.
-
-        Args:
-            root_node_id (int): The node id of the root node.
-
-        Returns:
-            bool: True if the root node exists, False otherwise.
-        """
-        query = "MATCH (n {node_id: $root_node_id}) RETURN count(n) > 0 AS exists"
-        with self.driver.session() as session:
-            result = session.run(query, root_node_id=root_node_id)
-            return result.single()["exists"]
-
-    def count_nodes(self, tx: ManagedTransaction) -> int:
-        """
-        Return the number of nodes in the Neo4j database.
-
-        Args:
-            tx (ManagedTransaction): An active Neo4j transaction.
-
-        Returns:
-            int: The total number of nodes in the database.
-        """
-        query = """
-          MATCH (n)
-          RETURN count(n) as count
-        """
-        result = tx.run(query)
-        return result.single()["count"]
-
-    def verify_empty(self, tx: ManagedTransaction) -> bool:
-        """Verify that the Neo4j database is empty."""
-        return self.count_nodes(tx) == 0
-
-    def clear_all_knowledge_graph(self):
-        """Clear all knowledge graphs from neo4j."""
-        query = """
-      MATCH (n)
-      DETACH DELETE n
-    """
-        self._logger.info("Deleting knowledge graph from neo4j")
-        with self.driver.session() as session:
-            session.run(query)
-
-            max_retries = 3
-            for attempt in range(max_retries):
-                if session.execute_read(self.verify_empty):
-                    break
-
-                self._logger.warning(f"Database not empty after attempt {attempt + 1}, retrying...")
-                session.run(query)
-
-    def get_new_knowledge_graph_root_node_id(self) -> int:
+    async def get_new_knowledge_graph_root_node_id(self) -> int:
         """
         Estimate the next available node id in the Neo4j database.
 
@@ -475,12 +436,13 @@ class KnowledgeGraphHandler:
         MATCH (n)
         WHERE n.node_id IS NOT NULL
         RETURN coalesce(max(n.node_id), -1) AS max_node_id"""
-        with self.driver.session() as session:
-            rec = session.run(query).single()
-            max_node_id = rec["max_node_id"]
+        async with self.driver.session() as session:
+            result = await session.run(query)
+            record = await result.single()
+            max_node_id = record["max_node_id"]
             return int(max_node_id) + 1
 
-    def clear_knowledge_graph(self, root_node_id: int):
+    async def clear_knowledge_graph(self, root_node_id: int):
         """
         Delete the subgraph rooted at root_node_id, including all descendant nodes and their relationships.
 
@@ -492,5 +454,5 @@ class KnowledgeGraphHandler:
         OPTIONAL MATCH (root)-[*]->(descendant)
         DETACH DELETE root, descendant
         """
-        with self.driver.session() as session:
-            session.run(query, root_node_id=root_node_id)
+        async with self.driver.session() as session:
+            await session.run(query, root_node_id=root_node_id)

@@ -18,14 +18,14 @@ router = APIRouter()
     response_description="Returns an access token for authenticated requests",
     response_model=Response[LoginResponse],
 )
-def login(login_request: LoginRequest, request: Request) -> Response[LoginResponse]:
+async def login(login_request: LoginRequest, request: Request) -> Response[LoginResponse]:
     """
     Login to the system using username, email, and password.
     Returns an access token for authenticated requests.
     """
 
     user_service: UserService = request.app.state.service["user_service"]
-    access_token = user_service.login(
+    access_token = await user_service.login(
         username=login_request.username,
         email=login_request.email,
         password=login_request.password,
@@ -40,7 +40,7 @@ def login(login_request: LoginRequest, request: Request) -> Response[LoginRespon
     response_description="Returns a success message upon successful registration",
     response_model=Response,
 )
-def register(request: Request, create_user_request: CreateUserRequest) -> Response:
+async def register(request: Request, create_user_request: CreateUserRequest) -> Response:
     """
     Register a new user with username, email, password and invitation code.
     Returns a success message upon successful registration.
@@ -51,11 +51,11 @@ def register(request: Request, create_user_request: CreateUserRequest) -> Respon
     user_service: UserService = request.app.state.service["user_service"]
 
     # Check if the invitation code is valid
-    if not invitation_code_service.check_invitation_code(create_user_request.invitation_code):
+    if not await invitation_code_service.check_invitation_code(create_user_request.invitation_code):
         raise ServerException(code=400, message="Invalid or expired invitation code")
 
     # Create the user
-    user_service.create_user(
+    await user_service.create_user(
         username=create_user_request.username,
         email=create_user_request.email,
         password=create_user_request.password,
@@ -63,6 +63,6 @@ def register(request: Request, create_user_request: CreateUserRequest) -> Respon
     )
 
     # Mark the invitation code as used
-    invitation_code_service.mark_code_as_used(create_user_request.invitation_code)
+    await invitation_code_service.mark_code_as_used(create_user_request.invitation_code)
 
     return Response(message="User registered successfully")

@@ -49,8 +49,10 @@ async def test_build_and_save_knowledge_graph(knowledge_graph_service, mock_kg_h
     # Mock KnowledgeGraph and its methods
     mock_kg = MagicMock(KnowledgeGraph)
     mock_kg.build_graph = AsyncMock(return_value=None)  # Mock async method to build graph
-    mock_kg_handler.get_new_knowledge_graph_root_node_id.return_value = 123
-    mock_kg_handler.write_knowledge_graph.return_value = None
+    mock_kg_handler.get_new_knowledge_graph_root_node_id = AsyncMock(
+        return_value=123
+    )  # Mock return value
+    mock_kg_handler.write_knowledge_graph = AsyncMock(return_value=None)
 
     # When
     with pytest.raises(Exception):
@@ -66,19 +68,19 @@ async def test_build_and_save_knowledge_graph(knowledge_graph_service, mock_kg_h
         mock_kg_handler.get_new_knowledge_graph_root_node_id.assert_called_once()  # Ensure the root node ID was fetched
 
 
-def test_clear_kg(knowledge_graph_service, mock_kg_handler):
+async def test_clear_kg(knowledge_graph_service, mock_kg_handler):
     """Test the clear_kg method."""
     # Given
     root_node_id = 123  # Mock root node ID
 
     # When
-    knowledge_graph_service.clear_kg(root_node_id)
+    await knowledge_graph_service.clear_kg(root_node_id)
 
     # Then
     mock_kg_handler.clear_knowledge_graph.assert_called_once_with(root_node_id)
 
 
-def test_get_knowledge_graph(knowledge_graph_service, mock_kg_handler):
+async def test_get_knowledge_graph(knowledge_graph_service, mock_kg_handler):
     """Test the get_knowledge_graph method."""
     # Given
     root_node_id = 123  # Mock root node ID
@@ -88,10 +90,10 @@ def test_get_knowledge_graph(knowledge_graph_service, mock_kg_handler):
 
     # Mock KnowledgeGraph
     mock_kg = MagicMock(KnowledgeGraph)
-    mock_kg_handler.read_knowledge_graph.return_value = mock_kg  # Mock return value
+    mock_kg_handler.read_knowledge_graph = AsyncMock(return_value=mock_kg)  # Mock return value
 
     # When
-    result = knowledge_graph_service.get_knowledge_graph(
+    result = await knowledge_graph_service.get_knowledge_graph(
         root_node_id, max_ast_depth, chunk_size, chunk_overlap
     )
 

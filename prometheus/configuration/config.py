@@ -30,7 +30,6 @@ class Settings(BaseSettings):
     KNOWLEDGE_GRAPH_MAX_AST_DEPTH: int
     KNOWLEDGE_GRAPH_CHUNK_SIZE: int
     KNOWLEDGE_GRAPH_CHUNK_OVERLAP: int
-    MAX_TOKEN_PER_NEO4J_RESULT: int
 
     # LLM models
     ADVANCED_MODEL: str

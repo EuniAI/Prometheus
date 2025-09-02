@@ -61,10 +61,7 @@ def initialize_services() -> dict[str, BaseService]:
         knowledge_graph_service, database_service, settings.WORKING_DIRECTORY
     )
     issue_service = IssueService(
-        neo4j_service,
-        repository_service,
         llm_service,
-        settings.MAX_TOKEN_PER_NEO4J_RESULT,
         settings.WORKING_DIRECTORY,
         settings.LOGGING_LEVEL,
     )

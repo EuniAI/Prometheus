@@ -1,6 +1,5 @@
 from typing import Mapping, Optional, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph import END, StateGraph
 
@@ -30,8 +29,6 @@ class IssueGraph:
         base_model: BaseChatModel,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
         container: BaseContainer,
         build_commands: Optional[Sequence[str]] = None,
         test_commands: Optional[Sequence[str]] = None,
@@ -46,8 +43,6 @@ class IssueGraph:
             model=base_model,
             kg=kg,
             local_path=git_repo.playground_path,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
         )
 
         # Subgraph node for handling bug issues
@@ -57,8 +52,6 @@ class IssueGraph:
             container=container,
             kg=kg,
             git_repo=git_repo,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
             build_commands=build_commands,
             test_commands=test_commands,
         )
@@ -69,8 +62,6 @@ class IssueGraph:
             base_model=base_model,
             kg=kg,
             git_repo=git_repo,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
         )
 
         # Create the state graph for the issue handling workflow

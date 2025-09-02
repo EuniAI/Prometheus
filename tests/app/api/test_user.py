@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import FastAPI, Request
@@ -32,18 +33,20 @@ def mock_service():
 
 def test_list(mock_service):
     # Mock user as admin and return a list of users
-    mock_service["user_service"].list_users.return_value = [
-        User(
-            id=1,
-            username="testuser",
-            email="test@gmail.com",
-            password_hash="hashedpassword",
-            github_token="ghp_1234567890abcdef1234567890abcdef1234",
-            issue_credit=10,
-            is_superuser=False,
-        )
-    ]
-    mock_service["user_service"].is_admin.return_value = True
+    mock_service["user_service"].list_users = AsyncMock(
+        return_value=[
+            User(
+                id=1,
+                username="testuser",
+                email="test@gmail.com",
+                password_hash="hashedpassword",
+                github_token="ghp_1234567890abcdef1234567890abcdef1234",
+                issue_credit=10,
+                is_superuser=False,
+            )
+        ]
+    )
+    mock_service["user_service"].is_admin = AsyncMock(return_value=True)
 
     # Test the list endpoint
     response = client.get("user/list/")
@@ -65,7 +68,7 @@ def test_list(mock_service):
 
 def test_set_github_token(mock_service):
     # Mock user as admin and return a list of users
-    mock_service["user_service"].set_github_token.return_value = None
+    mock_service["user_service"].set_github_token = AsyncMock(return_value=None)
 
     # Test the list endpoint
     response = client.put(

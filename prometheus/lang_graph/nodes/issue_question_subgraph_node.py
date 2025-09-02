@@ -1,7 +1,6 @@
 import logging
 import threading
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.errors import GraphRecursionError
 
@@ -13,7 +12,8 @@ from prometheus.lang_graph.subgraphs.issue_question_subgraph import IssueQuestio
 
 class IssueQuestionSubgraphNode:
     """
-    A LangGraph node that handles the issue question subgraph, which is responsible for answering question in a GitHub issue.
+    A LangGraph node that handles the issue question subgraph,
+     which is responsible for answering question in a GitHub issue.
     """
 
     def __init__(
@@ -22,8 +22,6 @@ class IssueQuestionSubgraphNode:
         base_model: BaseChatModel,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
     ):
         self._logger = logging.getLogger(
             f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.issue_question_subgraph_node"
@@ -33,8 +31,6 @@ class IssueQuestionSubgraphNode:
             base_model=base_model,
             kg=kg,
             git_repo=git_repo,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
         )
 
     def __call__(self, state: IssueState):

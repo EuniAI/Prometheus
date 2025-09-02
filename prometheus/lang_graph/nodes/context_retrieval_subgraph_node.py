@@ -2,7 +2,6 @@ import logging
 import threading
 from typing import Dict, Sequence
 
-import neo4j
 from langchain_core.language_models.chat_models import BaseChatModel
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
@@ -17,8 +16,6 @@ class ContextRetrievalSubgraphNode:
         model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
-        neo4j_driver: neo4j.Driver,
-        max_token_per_neo4j_result: int,
         query_key_name: str,
         context_key_name: str,
     ):
@@ -27,8 +24,6 @@ class ContextRetrievalSubgraphNode:
             model=model,
             kg=kg,
             local_path=local_path,
-            neo4j_driver=neo4j_driver,
-            max_token_per_neo4j_result=max_token_per_neo4j_result,
         )
         self.query_key_name = query_key_name
         self.context_key_name = context_key_name

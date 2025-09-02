@@ -1,3 +1,4 @@
+import inspect
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -27,7 +28,6 @@ logger.info(f"WORKING_DIRECTORY={settings.WORKING_DIRECTORY}")
 logger.info(f"KNOWLEDGE_GRAPH_MAX_AST_DEPTH={settings.KNOWLEDGE_GRAPH_MAX_AST_DEPTH}")
 logger.info(f"KNOWLEDGE_GRAPH_CHUNK_SIZE={settings.KNOWLEDGE_GRAPH_CHUNK_SIZE}")
 logger.info(f"KNOWLEDGE_GRAPH_CHUNK_OVERLAP={settings.KNOWLEDGE_GRAPH_CHUNK_OVERLAP}")
-logger.info(f"MAX_TOKEN_PER_NEO4J_RESULT={settings.MAX_TOKEN_PER_NEO4J_RESULT}")
 
 
 @asynccontextmanager
@@ -36,13 +36,21 @@ async def lifespan(app: FastAPI):
     app.state.service = dependencies.initialize_services()
     logger.info("Starting services...")
     for service in app.state.service.values():
-        service.start()
+        # Start each service, handling both async and sync start methods
+        if inspect.iscoroutinefunction(service.start):
+            await service.start()
+        else:
+            service.start()
     # Initialization Completed
     yield
     # Cleanup on shutdown
     logger.info("Shutting down services...")
     for service in app.state.service.values():
-        service.close()
+        # Close each service, handling both async and sync close methods
+        if inspect.iscoroutinefunction(service.close):
+            await service.close()
+        else:
+            service.close()
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
