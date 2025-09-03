@@ -218,6 +218,7 @@ class GitHubIssueDebugger:
 
             try:
                 self.create_branch_and_push(repository_id, branch_name, commit_message, patch)
+                created_branch_and_pushed = True
             except Exception:
                 created_branch_and_pushed = False
 
