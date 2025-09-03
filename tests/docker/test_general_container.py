@@ -42,15 +42,3 @@ def test_get_dockerfile_content(container):
     assert "WORKDIR /app" in dockerfile_content
     assert "RUN apt-get update" in dockerfile_content
     assert "COPY . /app/" in dockerfile_content
-
-
-def test_run_build_raises_not_implemented(container):
-    """Test that run_build raises NotImplementedError"""
-    with pytest.raises(NotImplementedError):
-        container.run_build()
-
-
-def test_run_test_raises_not_implemented(container):
-    """Test that run_test raises NotImplementedError"""
-    with pytest.raises(NotImplementedError):
-        container.run_test()

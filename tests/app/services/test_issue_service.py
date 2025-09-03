@@ -79,7 +79,10 @@ async def test_answer_issue_with_general_container(issue_service, monkeypatch):
     )
 
     # Verify
-    mock_general_container_class.assert_called_once_with(repository.get_working_directory())
+    mock_general_container_class.assert_called_once_with(
+        project_path=repository.get_working_directory(), build_commands=None, test_commands=None
+    )
+
     mock_issue_graph_class.assert_called_once_with(
         advanced_model=issue_service.llm_service.advanced_model,
         base_model=issue_service.llm_service.base_model,
@@ -141,11 +144,11 @@ async def test_answer_issue_with_user_defined_container(issue_service, monkeypat
 
     # Verify
     mock_user_container_class.assert_called_once_with(
-        repository.get_working_directory(),
-        "/app",
-        ["pip install -r requirements.txt"],
-        ["pytest"],
-        "FROM python:3.8",
-        "test-image",
+        project_path=repository.get_working_directory(),
+        workdir="/app",
+        build_commands=["pip install -r requirements.txt"],
+        test_commands=["pytest"],
+        dockerfile_content="FROM python:3.8",
+        image_name="test-image",
     )
     assert result == (None, False, False, False, "test_response", IssueType.QUESTION)

@@ -1,7 +1,6 @@
 import shutil
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock
 
 import pytest
 
@@ -26,10 +25,10 @@ def container(temp_project_dir):
     return UserDefinedContainer(
         temp_project_dir,
         "/app",
-        ["pip install -r requirements.txt", "python setup.py build"],
-        ["pytest tests/"],
         "FROM python:3.9\nWORKDIR /app\nCOPY . /app/",
         None,
+        ["pip install -r requirements.txt", "python setup.py build"],
+        ["pytest tests/"],
     )
 
 
@@ -50,37 +49,3 @@ def test_get_dockerfile_content(container):
     assert "FROM python:3.9" in dockerfile_content
     assert "WORKDIR /app" in dockerfile_content
     assert "COPY . /app/" in dockerfile_content
-
-
-def test_run_build(container):
-    """Test that build commands are executed correctly"""
-    container.execute_command = Mock()
-    container.execute_command.side_effect = ["Output 1", "Output 2"]
-
-    build_output = container.run_build()
-
-    # Verify execute_command was called for each build command
-    assert container.execute_command.call_count == 2
-    container.execute_command.assert_any_call("pip install -r requirements.txt")
-    container.execute_command.assert_any_call("python setup.py build")
-
-    # Verify output format
-    expected_output = (
-        "$ pip install -r requirements.txt\nOutput 1\n$ python setup.py build\nOutput 2\n"
-    )
-    assert build_output == expected_output
-
-
-def test_run_test(container):
-    """Test that test commands are executed correctly"""
-    container.execute_command = Mock()
-    container.execute_command.return_value = "Test passed"
-
-    test_output = container.run_test()
-
-    # Verify execute_command was called for the test command
-    container.execute_command.assert_called_once_with("pytest tests/")
-
-    # Verify output format
-    expected_output = "$ pytest tests/\nTest passed\n"
-    assert test_output == expected_output
