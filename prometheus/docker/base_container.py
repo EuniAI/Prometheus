@@ -24,7 +24,7 @@ class BaseContainer(ABC):
     workdir: str = "/app"
     container: docker.models.containers.Container
     project_path: Path
-    timeout: int = 120
+    timeout: int = 180
     logger: logging.Logger
 
     def __init__(
