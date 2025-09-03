@@ -1,5 +1,6 @@
 import uuid
 from pathlib import Path
+from typing import Optional, Sequence
 
 from prometheus.docker.base_container import BaseContainer
 
@@ -27,13 +28,20 @@ class GeneralContainer(BaseContainer):
     custom build and test operations.
     """
 
-    def __init__(self, project_path: Path):
+    def __init__(
+        self,
+        project_path: Path,
+        build_commands: Optional[Sequence[str]] = None,
+        test_commands: Optional[Sequence[str]] = None,
+    ):
         """Initialize the general container with a unique tag name.
 
         Args:
             project_path (Path): Path to the project directory to be containerized.
         """
-        super().__init__(project_path)
+        super().__init__(
+            project_path=project_path, build_commands=build_commands, test_commands=test_commands
+        )
         self.tag_name = f"prometheus_general_container_{uuid.uuid4().hex[:10]}"
 
     def get_dockerfile_content(self) -> str:
@@ -102,31 +110,3 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 COPY . /app/
 """
         return DOCKERFILE_CONTENT
-
-    def run_build(self):
-        """Not implemented for GeneralContainer.
-
-        This method is intentionally not implemented as the GeneralContainer is designed
-        to use execute_command() directly for custom build operations.
-
-        Raises:
-            NotImplementedError: Always raises this exception to indicate that direct
-                command execution should be used instead.
-        """
-        raise NotImplementedError(
-            "GeneralContainer does not support run_build, use execute_command directly"
-        )
-
-    def run_test(self):
-        """Not implemented for GeneralContainer.
-
-        This method is intentionally not implemented as the GeneralContainer is designed
-        to use execute_command() directly for custom test operations.
-
-        Raises:
-            NotImplementedError: Always raises this exception to indicate that direct
-                command execution should be used instead.
-        """
-        raise NotImplementedError(
-            "GeneralContainer does not support run_test, use execute_command directly"
-        )

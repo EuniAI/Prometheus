@@ -92,15 +92,19 @@ class IssueService(BaseService):
         # Construct the working directory
         if dockerfile_content or image_name:
             container = UserDefinedContainer(
-                repository.get_working_directory(),
-                workdir,
-                build_commands,
-                test_commands,
-                dockerfile_content,
-                image_name,
+                project_path=repository.get_working_directory(),
+                workdir=workdir,
+                build_commands=build_commands,
+                test_commands=test_commands,
+                dockerfile_content=dockerfile_content,
+                image_name=image_name,
             )
         else:
-            container = GeneralContainer(repository.get_working_directory())
+            container = GeneralContainer(
+                project_path=repository.get_working_directory(),
+                build_commands=build_commands,
+                test_commands=test_commands,
+            )
 
         # Initialize the IssueGraph with the provided services and parameters
         issue_graph = IssueGraph(

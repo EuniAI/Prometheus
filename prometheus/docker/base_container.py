@@ -27,7 +27,13 @@ class BaseContainer(ABC):
     timeout: int = 120
     logger: logging.Logger
 
-    def __init__(self, project_path: Path, workdir: Optional[str] = None):
+    def __init__(
+        self,
+        project_path: Path,
+        workdir: Optional[str] = None,
+        build_commands: Optional[Sequence[str]] = None,
+        test_commands: Optional[Sequence[str]] = None,
+    ):
         """Initialize the container with a project directory.
 
         Creates a temporary copy of the project directory to work with.
@@ -43,6 +49,8 @@ class BaseContainer(ABC):
         shutil.copytree(project_path, temp_project_path)
         self.project_path = temp_project_path.absolute()
         self._logger.info(f"Created temporary project directory: {self.project_path}")
+        self.build_commands = build_commands
+        self.test_commands = test_commands
 
         if workdir:
             self.workdir = workdir
@@ -68,10 +76,29 @@ class BaseContainer(ABC):
         dockerfile_content = self.get_dockerfile_content()
         dockerfile_path = self.project_path / "prometheus.Dockerfile"
         dockerfile_path.write_text(dockerfile_content)
+
+        # Temporary move .dockerignore file
+        dockerignore_path = self.project_path / ".dockerignore"
+        backup_path = None
+
+        if dockerignore_path.exists():
+            backup_path = self.project_path / ".dockerignore.backup"
+            dockerignore_path.rename(backup_path)
+            self._logger.info("Temporarily renamed .dockerignore to avoid excluding files")
+
+        # Log the build process
         self._logger.info(f"Building docker image {self.tag_name}")
-        self.client.images.build(
-            path=str(self.project_path), dockerfile=dockerfile_path.name, tag=self.tag_name
-        )
+
+        # Build the Docker image
+        try:
+            self.client.images.build(
+                path=str(self.project_path), dockerfile=dockerfile_path.name, tag=self.tag_name
+            )
+        finally:
+            # Restore .dockerignore
+            if backup_path and backup_path.exists():
+                backup_path.rename(dockerignore_path)
+                self._logger.info("Restored .dockerignore file")
 
     def start_container(self):
         """Start a Docker container from the built image.
@@ -129,21 +156,27 @@ class BaseContainer(ABC):
 
         self._logger.info("Files updated successfully")
 
-    @abstractmethod
-    def run_build(self):
-        """Run build commands in the container.
+    def run_build(self) -> str:
+        if not self.build_commands:
+            self._logger.error("No build commands defined")
+            return ""
 
-        This method should be implemented by subclasses to define build steps.
-        """
-        pass
+        command_output = ""
+        for build_command in self.build_commands:
+            command_output += f"$ {build_command}\n"
+            command_output += f"{self.execute_command(build_command)}\n"
+        return command_output
 
-    @abstractmethod
-    def run_test(self):
-        """Run test commands in the container.
+    def run_test(self) -> str:
+        if not self.test_commands:
+            self._logger.error("No test commands defined")
+            return ""
 
-        This method should be implemented by subclasses to define test steps.
-        """
-        pass
+        command_output = ""
+        for test_command in self.test_commands:
+            command_output += f"$ {test_command}\n"
+            command_output += f"{self.execute_command(test_command)}\n"
+        return command_output
 
     def execute_command(self, command: str) -> str:
         """Execute a command in the running container.
