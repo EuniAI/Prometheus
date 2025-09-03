@@ -3,6 +3,7 @@ import threading
 from typing import Dict
 
 from langchain_core.language_models.chat_models import BaseChatModel
+from langgraph.errors import GraphRecursionError
 
 from prometheus.docker.base_container import BaseContainer
 from prometheus.lang_graph.subgraphs.run_regression_tests_subgraph import RunRegressionTestsSubgraph
@@ -32,9 +33,13 @@ class RunRegressionTestsSubgraphNode:
 
         self._logger.debug(f"selected_regression_tests: {state['selected_regression_tests']}")
 
-        output_state = self.subgraph.invoke(
-            selected_regression_tests=state["selected_regression_tests"]
-        )
+        try:
+            output_state = self.subgraph.invoke(
+                selected_regression_tests=state["selected_regression_tests"]
+            )
+        except GraphRecursionError as e:
+            self._logger.error("Recursion Limit reached.")
+            raise e
 
         self._logger.info(f"passed_regression_tests: {output_state['passed_regression_tests']}")
         self._logger.debug(f"regression_test_fail_log: {output_state['regression_test_fail_log']}")
