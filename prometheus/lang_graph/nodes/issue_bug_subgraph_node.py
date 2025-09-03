@@ -24,7 +24,6 @@ class IssueBugSubgraphNode:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        build_commands: Optional[Sequence[str]] = None,
         test_commands: Optional[Sequence[str]] = None,
     ):
         self._logger = logging.getLogger(
@@ -37,7 +36,6 @@ class IssueBugSubgraphNode:
             container=container,
             kg=kg,
             git_repo=git_repo,
-            build_commands=build_commands,
             test_commands=test_commands,
         )
 
@@ -57,36 +55,32 @@ class IssueBugSubgraphNode:
                 issue_title=state["issue_title"],
                 issue_body=state["issue_body"],
                 issue_comments=state["issue_comments"],
-                run_build=state["run_build"],
                 run_existing_test=state["run_existing_test"],
                 run_regression_test=state["run_regression_test"],
                 run_reproduce_test=state["run_reproduce_test"],
                 number_of_candidate_patch=state["number_of_candidate_patch"],
             )
-
-            self._logger.info(f"Generated patch:\n{output_state['edit_patch']}")
-            self._logger.info(f"passed_reproducing_test: {output_state['passed_reproducing_test']}")
-            self._logger.info(f"passed_build: {output_state['passed_build']}")
-            self._logger.info(f"passed_regression_test: {output_state['passed_regression_test']}")
-            self._logger.info(f"passed_existing_test: {output_state['passed_existing_test']}")
-            self._logger.info(f"issue_response:\n{output_state['issue_response']}")
-            return {
-                "edit_patch": output_state["edit_patch"],
-                "passed_reproducing_test": output_state["passed_reproducing_test"],
-                "passed_build": output_state["passed_build"],
-                "passed_regression_test": output_state["passed_regression_test"],
-                "passed_existing_test": output_state["passed_existing_test"],
-                "issue_response": output_state["issue_response"],
-            }
         except GraphRecursionError:
             self._logger.critical("Please increase the recursion limit of IssueBugSubgraph")
             return {
                 "edit_patch": None,
                 "passed_reproducing_test": False,
-                "passed_build": False,
                 "passed_regression_test": False,
                 "passed_existing_test": False,
                 "issue_response": None,
             }
         finally:
             self.container.cleanup()
+
+        self._logger.info(f"Generated patch:\n{output_state['edit_patch']}")
+        self._logger.info(f"passed_reproducing_test: {output_state['passed_reproducing_test']}")
+        self._logger.info(f"passed_regression_test: {output_state['passed_regression_test']}")
+        self._logger.info(f"passed_existing_test: {output_state['passed_existing_test']}")
+        self._logger.info(f"issue_response:\n{output_state['issue_response']}")
+        return {
+            "edit_patch": output_state["edit_patch"],
+            "passed_reproducing_test": output_state["passed_reproducing_test"],
+            "passed_regression_test": output_state["passed_regression_test"],
+            "passed_existing_test": output_state["passed_existing_test"],
+            "issue_response": output_state["issue_response"],
+        }

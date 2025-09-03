@@ -48,10 +48,7 @@ class IssueService(BaseService):
         dockerfile_content: Optional[str] = None,
         image_name: Optional[str] = None,
         workdir: Optional[str] = None,
-    ) -> (
-        tuple[None, bool, bool, bool, bool, None, None]
-        | tuple[str, bool, bool, bool, bool, str, IssueType]
-    ):
+    ) -> tuple[None, bool, bool, bool, None, None] | tuple[str, bool, bool, bool, str, IssueType]:
         """
         Processes an issue, generates patches if needed, runs optional builds and tests, and returning the results.
 
@@ -111,7 +108,6 @@ class IssueService(BaseService):
             kg=knowledge_graph,
             git_repo=repository,
             container=container,
-            build_commands=build_commands,
             test_commands=test_commands,
         )
 
@@ -131,7 +127,6 @@ class IssueService(BaseService):
             return (
                 output_state["edit_patch"],
                 output_state["passed_reproducing_test"],
-                output_state["passed_build"],
                 output_state["passed_regression_test"],
                 output_state["passed_existing_test"],
                 output_state["issue_response"],
@@ -139,7 +134,7 @@ class IssueService(BaseService):
             )
         except Exception as e:
             logger.error(f"Error in answer_issue: {str(e)}\n{traceback.format_exc()}")
-            return None, False, False, False, False, None, None
+            return None, False, False, False, None, None
         finally:
             logger.removeHandler(file_handler)
             file_handler.close()

@@ -23,7 +23,7 @@ class IssueBugState(TypedDict):
     edit_patch: str
 
     passed_reproducing_test: bool
-    passed_build: bool
+    passed_regression_test: bool
     passed_existing_test: bool
 
     issue_response: str

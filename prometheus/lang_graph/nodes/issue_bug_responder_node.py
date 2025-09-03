@@ -1,10 +1,10 @@
 import logging
 import threading
-from typing import Dict
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 
+from prometheus.lang_graph.subgraphs.issue_bug_state import IssueBugState
 from prometheus.utils.issue_util import format_issue_info
 
 
@@ -53,15 +53,15 @@ Verification:
             f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.issue_bug_responder_node"
         )
 
-    def format_human_message(self, state: Dict) -> HumanMessage:
+    def format_human_message(self, state: IssueBugState) -> HumanMessage:
         verification_messages = []
 
         # We only report successful verifications that were performed
         if state["passed_reproducing_test"]:
             verification_messages.append("✓ The bug reproducing test passed")
 
-        if state["passed_build"]:
-            verification_messages.append("✓ Build passes successfully")
+        if state["passed_regression_test"]:
+            verification_messages.append("✓ All selected regression tests passes successfully")
 
         if state["passed_existing_test"]:
             verification_messages.append("✓ All existing tests pass successfully")
@@ -78,7 +78,7 @@ Verification:
 
         return HumanMessage(content=formatted_message)
 
-    def __call__(self, state: Dict):
+    def __call__(self, state: IssueBugState):
         messages = [
             self.system_prompt,
             self.format_human_message(state),

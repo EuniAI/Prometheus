@@ -30,7 +30,6 @@ class IssueGraph:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
         container: BaseContainer,
-        build_commands: Optional[Sequence[str]] = None,
         test_commands: Optional[Sequence[str]] = None,
     ):
         self.git_repo = git_repo
@@ -52,7 +51,6 @@ class IssueGraph:
             container=container,
             kg=kg,
             git_repo=git_repo,
-            build_commands=build_commands,
             test_commands=test_commands,
         )
 

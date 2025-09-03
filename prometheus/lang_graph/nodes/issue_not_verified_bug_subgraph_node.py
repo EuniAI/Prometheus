@@ -53,7 +53,7 @@ class IssueNotVerifiedBugSubgraphNode:
             return {
                 "edit_patch": None,
                 "passed_reproducing_test": False,
-                "passed_build": False,
+                "passed_regression_test": False,
                 "passed_existing_test": False,
             }
         finally:
@@ -64,6 +64,8 @@ class IssueNotVerifiedBugSubgraphNode:
         return {
             "edit_patch": output_state["final_patch"],
             "passed_reproducing_test": False,
-            "passed_build": False,
+            "passed_regression_test": True
+            if state["run_regression_test"] and state["selected_regression_tests"]
+            else False,
             "passed_existing_test": False,
         }

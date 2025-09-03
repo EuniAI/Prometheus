@@ -26,7 +26,6 @@ class IssueState(TypedDict):
 
     passed_regression_test: bool
     passed_reproducing_test: bool
-    passed_build: bool
     passed_existing_test: bool
 
     issue_response: str
