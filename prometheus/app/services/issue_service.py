@@ -73,9 +73,10 @@ class IssueService(BaseService):
             Tuple containing:
                 - edit_patch (str): The generated patch for the issue.
                 - passed_reproducing_test (bool): Whether the reproducing test passed.
-                - passed_build (bool): Whether the build passed.
+                - passed_regression_test (bool): Whether the regression tests passed.
                 - passed_existing_test (bool): Whether the existing tests passed.
                 - issue_response (str): Response generated for the issue.
+                - issue_type (IssueType): The type of the issue (BUG or QUESTION).
         """
 
         # Set up a dedicated logger for this thread

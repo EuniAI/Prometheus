@@ -49,7 +49,6 @@ class IssueQuestionSubgraphNode:
             return {
                 "edit_patch": None,
                 "passed_reproducing_test": False,
-                "passed_build": False,
                 "passed_regression_test": False,
                 "passed_existing_test": False,
                 "issue_response": None,
@@ -60,7 +59,6 @@ class IssueQuestionSubgraphNode:
         return {
             "edit_patch": output_state["edit_patch"],
             "passed_reproducing_test": output_state["passed_reproducing_test"],
-            "passed_build": output_state["passed_build"],
             "passed_regression_test": output_state["passed_regression_test"],
             "passed_existing_test": output_state["passed_existing_test"],
             "issue_response": output_state["issue_response"],
