@@ -55,7 +55,6 @@ async def test_answer_issue_with_general_container(issue_service, monkeypatch):
         "issue_type": IssueType.BUG,
         "edit_patch": "test_patch",
         "passed_reproducing_test": True,
-        "passed_build": True,
         "passed_regression_test": True,
         "passed_existing_test": True,
         "issue_response": "test_response",
@@ -87,10 +86,9 @@ async def test_answer_issue_with_general_container(issue_service, monkeypatch):
         kg=knowledge_graph,
         git_repo=repository,
         container=mock_container,
-        build_commands=None,
         test_commands=None,
     )
-    assert result == ("test_patch", True, True, True, True, "test_response", IssueType.BUG)
+    assert result == ("test_patch", True, True, True, "test_response", IssueType.BUG)
 
 
 async def test_answer_issue_with_user_defined_container(issue_service, monkeypatch):
@@ -115,7 +113,6 @@ async def test_answer_issue_with_user_defined_container(issue_service, monkeypat
         "issue_type": IssueType.QUESTION,
         "edit_patch": None,
         "passed_reproducing_test": False,
-        "passed_build": False,
         "passed_regression_test": False,
         "passed_existing_test": False,
         "issue_response": "test_response",
@@ -151,4 +148,4 @@ async def test_answer_issue_with_user_defined_container(issue_service, monkeypat
         "FROM python:3.8",
         "test-image",
     )
-    assert result == (None, False, False, False, False, "test_response", IssueType.QUESTION)
+    assert result == (None, False, False, False, "test_response", IssueType.QUESTION)
