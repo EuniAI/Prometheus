@@ -1,5 +1,5 @@
 import functools
-from typing import Mapping, Optional, Sequence
+from typing import Mapping, Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.graph import END, StateGraph
@@ -11,7 +11,6 @@ from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.nodes.bug_fix_verification_subgraph_node import (
     BugFixVerificationSubgraphNode,
 )
-from prometheus.lang_graph.nodes.build_and_test_subgraph_node import BuildAndTestSubgraphNode
 from prometheus.lang_graph.nodes.context_retrieval_subgraph_node import ContextRetrievalSubgraphNode
 from prometheus.lang_graph.nodes.edit_message_node import EditMessageNode
 from prometheus.lang_graph.nodes.edit_node import EditNode
@@ -24,6 +23,9 @@ from prometheus.lang_graph.nodes.issue_bug_analyzer_message_node import IssueBug
 from prometheus.lang_graph.nodes.issue_bug_analyzer_node import IssueBugAnalyzerNode
 from prometheus.lang_graph.nodes.issue_bug_context_message_node import IssueBugContextMessageNode
 from prometheus.lang_graph.nodes.noop_node import NoopNode
+from prometheus.lang_graph.nodes.run_existing_tests_subgraph_node import (
+    RunExistingTestsSubgraphNode,
+)
 from prometheus.lang_graph.subgraphs.issue_verified_bug_state import IssueVerifiedBugState
 
 
@@ -51,8 +53,6 @@ class IssueVerifiedBugSubgraph:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        build_commands: Optional[Sequence[str]] = None,
-        test_commands: Optional[Sequence[str]] = None,
     ):
         """
         Initialize the verified bug fix subgraph.
@@ -60,12 +60,10 @@ class IssueVerifiedBugSubgraph:
         Args:
             advanced_model (BaseChatModel): A strong LLM used for bug understanding and patch generation.
             base_model (BaseChatModel): A smaller, less expensive LLM used for context retrieval and test verification.
-            container (BaseContainer): A build/test container to run code validations.
+            container (BaseContainer): A test container to run code validations.
             kg (KnowledgeGraph): A knowledge graph used for context-aware retrieval of relevant code entities.
             git_repo (GitRepository): Git interface to apply patches and get diffs.
             neo4j_driver (neo4j.Driver): Neo4j driver for executing graph-based semantic queries.
-            build_commands (Optional[Sequence[str]]): Commands to build the project inside the container.
-            test_commands (Optional[Sequence[str]]): Commands to test the project inside the container.
         """
 
         # Phase 1: Retrieve context related to the bug
@@ -111,14 +109,14 @@ class IssueVerifiedBugSubgraph:
             base_model, container, git_repo
         )
 
-        # Phase 7: Optionally run full build and test after fix
-        build_or_test_branch_node = NoopNode()
-        build_and_test_subgraph_node = BuildAndTestSubgraphNode(
-            container,
-            advanced_model,
-            kg,
-            build_commands,
-            test_commands,
+        # Phase 7: Optionally run existing tests
+        run_existing_tests_branch_node = NoopNode()
+        run_existing_tests_subgraph_node = RunExistingTestsSubgraphNode(
+            model=base_model,
+            container=container,
+            git_repo=git_repo,
+            testing_patch_key="edit_patch",
+            existing_test_fail_log_key="existing_test_fail_log",
         )
 
         # Build the LangGraph workflow
@@ -144,8 +142,8 @@ class IssueVerifiedBugSubgraph:
         )
 
         workflow.add_node("bug_fix_verification_subgraph_node", bug_fix_verification_subgraph_node)
-        workflow.add_node("build_or_test_branch_node", build_or_test_branch_node)
-        workflow.add_node("build_and_test_subgraph_node", build_and_test_subgraph_node)
+        workflow.add_node("run_existing_tests_branch_node", run_existing_tests_branch_node)
+        workflow.add_node("run_existing_tests_subgraph_node", run_existing_tests_subgraph_node)
 
         # Define edges for full flow
         workflow.set_entry_point("issue_bug_context_message_node")
@@ -192,20 +190,20 @@ class IssueVerifiedBugSubgraph:
         workflow.add_conditional_edges(
             "bug_fix_verification_subgraph_node",
             lambda state: bool(state["reproducing_test_fail_log"]),
-            {True: "issue_bug_analyzer_message_node", False: "build_or_test_branch_node"},
+            {True: "issue_bug_analyzer_message_node", False: "run_existing_tests_branch_node"},
         )
 
-        # Optionally run full build/test suite
+        # Optionally run existing tests suite
         workflow.add_conditional_edges(
-            "build_or_test_branch_node",
-            lambda state: state["run_build"] or state["run_existing_test"],
-            {True: "build_and_test_subgraph_node", False: END},
+            "run_existing_tests_branch_node",
+            lambda state: state["run_existing_test"],
+            {True: "run_existing_tests_subgraph_node", False: END},
         )
 
-        # If build/test fail, go back to reanalyze and patch
+        # If test fail, go back to reanalyze and patch
         workflow.add_conditional_edges(
-            "build_and_test_subgraph_node",
-            lambda state: bool(state["build_fail_log"]) or bool(state["existing_test_fail_log"]),
+            "run_existing_tests_subgraph_node",
+            lambda state: bool(state["existing_test_fail_log"]),
             {True: "issue_bug_analyzer_message_node", False: END},
         )
 
@@ -217,7 +215,6 @@ class IssueVerifiedBugSubgraph:
         issue_title: str,
         issue_body: str,
         issue_comments: Sequence[Mapping[str, str]],
-        run_build: bool,
         run_regression_test: bool,
         run_existing_test: bool,
         reproduced_bug_file: str,
@@ -232,7 +229,6 @@ class IssueVerifiedBugSubgraph:
             "issue_title": issue_title,
             "issue_body": issue_body,
             "issue_comments": issue_comments,
-            "run_build": run_build,
             "run_regression_test": run_regression_test,
             "run_existing_test": run_existing_test,
             "reproduced_bug_file": reproduced_bug_file,
@@ -245,9 +241,4 @@ class IssueVerifiedBugSubgraph:
         output_state = self.subgraph.invoke(input_state, config)
         return {
             "edit_patch": output_state["edit_patch"],
-            "reproducing_test_fail_log": output_state["reproducing_test_fail_log"],
-            "exist_build": output_state.get("exist_build", False),
-            "build_fail_log": output_state.get("build_fail_log", ""),
-            "exist_test": output_state.get("exist_test", False),
-            "existing_test_fail_log": output_state.get("existing_test_fail_log", ""),
         }

@@ -48,10 +48,7 @@ class IssueService(BaseService):
         dockerfile_content: Optional[str] = None,
         image_name: Optional[str] = None,
         workdir: Optional[str] = None,
-    ) -> (
-        tuple[None, bool, bool, bool, bool, None, None]
-        | tuple[str, bool, bool, bool, bool, str, IssueType]
-    ):
+    ) -> tuple[None, bool, bool, bool, None, None] | tuple[str, bool, bool, bool, str, IssueType]:
         """
         Processes an issue, generates patches if needed, runs optional builds and tests, and returning the results.
 
@@ -76,9 +73,10 @@ class IssueService(BaseService):
             Tuple containing:
                 - edit_patch (str): The generated patch for the issue.
                 - passed_reproducing_test (bool): Whether the reproducing test passed.
-                - passed_build (bool): Whether the build passed.
+                - passed_regression_test (bool): Whether the regression tests passed.
                 - passed_existing_test (bool): Whether the existing tests passed.
                 - issue_response (str): Response generated for the issue.
+                - issue_type (IssueType): The type of the issue (BUG or QUESTION).
         """
 
         # Set up a dedicated logger for this thread
@@ -111,7 +109,6 @@ class IssueService(BaseService):
             kg=knowledge_graph,
             git_repo=repository,
             container=container,
-            build_commands=build_commands,
             test_commands=test_commands,
         )
 
@@ -131,7 +128,6 @@ class IssueService(BaseService):
             return (
                 output_state["edit_patch"],
                 output_state["passed_reproducing_test"],
-                output_state["passed_build"],
                 output_state["passed_regression_test"],
                 output_state["passed_existing_test"],
                 output_state["issue_response"],
@@ -139,7 +135,7 @@ class IssueService(BaseService):
             )
         except Exception as e:
             logger.error(f"Error in answer_issue: {str(e)}\n{traceback.format_exc()}")
-            return None, False, False, False, False, None, None
+            return None, False, False, False, None, None
         finally:
             logger.removeHandler(file_handler)
             file_handler.close()

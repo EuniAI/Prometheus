@@ -364,10 +364,6 @@ def main():
         if prometheus_result.get("patch"):
             print("✅ Generated fix patch")
 
-        if prometheus_result.get("passed_build") is not None:
-            status = "✅ Passed" if prometheus_result["passed_build"] else "❌ Failed"
-            print(f"   Build Validation: {status}")
-
         if prometheus_result.get("passed_existing_test") is not None:
             status = "✅ Passed" if prometheus_result["passed_existing_test"] else "❌ Failed"
             print(f"   Test Validation: {status}")

@@ -44,7 +44,6 @@ def test_answer_issue(mock_service):
     mock_service["issue_service"].answer_issue.return_value = (
         "test patch",  # patch
         True,  # passed_reproducing_test
-        True,  # passed_build
         True,  # passed_regression_test
         True,  # passed_existing_test
         "Issue fixed",  # issue_response
@@ -67,7 +66,6 @@ def test_answer_issue(mock_service):
         "data": {
             "patch": "test patch",
             "passed_reproducing_test": True,
-            "passed_build": True,
             "passed_regression_test": True,
             "passed_existing_test": True,
             "issue_response": "Issue fixed",
@@ -140,7 +138,6 @@ def test_answer_issue_with_container(mock_service):
         True,
         True,
         True,
-        True,
         "Issue fixed",
         IssueType.BUG,
     )
@@ -169,7 +166,6 @@ def test_answer_issue_with_container(mock_service):
         "data": {
             "patch": "test patch",
             "passed_reproducing_test": True,
-            "passed_build": True,
             "passed_regression_test": True,
             "passed_existing_test": True,
             "issue_response": "Issue fixed",

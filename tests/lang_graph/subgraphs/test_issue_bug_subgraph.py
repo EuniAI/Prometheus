@@ -53,7 +53,6 @@ def test_issue_bug_subgraph_with_commands(mock_container, mock_kg, mock_git_repo
     """Test that IssueBugSubgraph initializes correctly with build and test commands."""
     fake_advanced_model = FakeListChatWithToolsModel(responses=[])
     fake_base_model = FakeListChatWithToolsModel(responses=[])
-    build_commands = ["make build"]
     test_commands = ["make test"]
 
     subgraph = IssueBugSubgraph(
@@ -62,7 +61,6 @@ def test_issue_bug_subgraph_with_commands(mock_container, mock_kg, mock_git_repo
         container=mock_container,
         kg=mock_kg,
         git_repo=mock_git_repo,
-        build_commands=build_commands,
         test_commands=test_commands,
     )
 

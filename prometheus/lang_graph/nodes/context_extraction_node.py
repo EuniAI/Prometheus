@@ -67,10 +67,16 @@ Your task is to summarize the relevant contexts to a given query and return it i
 
 HUMAN_MESSAGE = """\
 This is the original user query:
+
+--- BEGIN ORIGINAL QUERY ---
 {original_query}
+--- END ORIGINAL QUERY ---
 
 The context or file content that you have seen so far (Some of the context may be IRRELEVANT to the query!!!):
+
+--- BEGIN CONTEXT ---
 {context}
+--- END CONTEXT ---
 
 REMEMBER: Your task is to summarize the relevant contexts to a given query and return it in the specified format!
 """
@@ -112,16 +118,6 @@ class ContextExtractionNode:
             f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.context_extraction_node"
         )
 
-    def get_human_message(self, state: ContextRetrievalState) -> str:
-        full_context_str = transform_tool_messages_to_str(
-            extract_last_tool_messages(state["context_provider_messages"])
-        )
-        original_query = state["query"]
-        return HUMAN_MESSAGE.format(
-            original_query=original_query,
-            context=full_context_str,
-        )
-
     def __call__(self, state: ContextRetrievalState):
         """
         Extract relevant code contexts from the codebase based on the user query and existing context.
@@ -130,9 +126,26 @@ class ContextExtractionNode:
         self._logger.info("Starting context extraction process")
         # Get Context List with existing context
         final_context = state.get("context", [])
-        # Get a human message
-        human_message = self.get_human_message(state)
+
+        # Transform the tool messages to a single string
+        full_context_str = transform_tool_messages_to_str(
+            extract_last_tool_messages(state["context_provider_messages"])
+        )
+
+        # return existing context if no new context is available
+        if not full_context_str:
+            self._logger.debug(
+                "No context available from tool messages, returning existing context"
+            )
+            return {"context": final_context}
+
+        # Format the human message
+        human_message = HUMAN_MESSAGE.format(
+            original_query=state["query"],
+            context=full_context_str,
+        )
         self._logger.debug(human_message)
+
         # Summarize the context based on the last messages and system prompt
         response = self.model.invoke({"human_prompt": human_message})
         self._logger.debug(f"Model response: {response}")
