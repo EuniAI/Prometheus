@@ -52,7 +52,7 @@ class IssueNotVerifiedBugSubgraph:
         )
 
         edit_message_node = EditMessageNode()
-        edit_node = EditNode(advanced_model, git_repo.playground_path)
+        edit_node = EditNode(advanced_model, git_repo.playground_path, kg)
         edit_tools = ToolNode(
             tools=edit_node.tools,
             name="edit_tools",
