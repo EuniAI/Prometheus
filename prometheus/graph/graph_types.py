@@ -42,10 +42,14 @@ class TextNode:
     Attributes:
       text: A string.
       metadata: The metadata about the string.
+      start_line: The starting line number. 0-indexed and inclusive.
+      end_line: The ending line number.  0-indexed and inclusive.
     """
 
     text: str
     metadata: str
+    start_line: int
+    end_line: int
 
 
 @dataclasses.dataclass(frozen=True)
@@ -82,6 +86,8 @@ class KnowledgeGraphNode:
                     node_id=self.node_id,
                     text=self.node.text,
                     metadata=self.node.metadata,
+                    start_line=self.node.start_line,
+                    end_line=self.node.end_line,
                 )
             case _:
                 raise ValueError("Unknown KnowledgeGraphNode.node type")
@@ -112,7 +118,12 @@ class KnowledgeGraphNode:
     def from_neo4j_text_node(cls, node: "Neo4jTextNode") -> "KnowledgeGraphNode":
         return cls(
             node_id=node["node_id"],
-            node=TextNode(text=node["text"], metadata=node["metadata"]),
+            node=TextNode(
+                text=node["text"], 
+                metadata=node["metadata"],
+                start_line=node["start_line"],
+                end_line=node["end_line"]
+            ),
         )
 
 
@@ -210,6 +221,8 @@ class Neo4jTextNode(TypedDict):
     node_id: int
     text: str
     metadata: str
+    start_line: int
+    end_line: int
 
 
 class Neo4jHasFileEdge(TypedDict):

@@ -181,7 +181,57 @@ class FileGraphBuilder:
             chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap, length_function=len
         )
         text = file.open(encoding="utf-8").read()
+        
+        # Calculate line positions for the entire text
+        lines = text.split('\n')
+        line_positions = []
+        current_pos = 0
+        for line in lines:
+            line_positions.append(current_pos)
+            current_pos += len(line) + 1  # +1 for the newline character
+        
         documents = text_splitter.create_documents([text])
+        
+        # Add line position metadata to each document
+        current_pos = 0
+        for document in documents:
+            # Find the position of this chunk in the original text
+            chunk_text = document.page_content
+            start_pos = text.find(chunk_text, current_pos)
+            if start_pos == -1:
+                # If not found, try from beginning
+                start_pos = text.find(chunk_text)
+                if start_pos == -1:
+                    # Fallback: use current position
+                    start_pos = current_pos
+            
+            end_pos = start_pos + len(chunk_text)
+            current_pos = end_pos  # Update for next iteration
+            
+            # Find start line
+            start_line = 0
+            for i, pos in enumerate(line_positions):
+                if pos > start_pos:
+                    start_line = i  # Line numbers are 0-indexed
+                    break
+            else:
+                start_line = len(line_positions) - 1
+            
+            # Find end line
+            end_line = 0
+            for i, pos in enumerate(line_positions):
+                if pos > end_pos:
+                    end_line = i - 1  # Line numbers are 0-indexed
+                    break
+            else:
+                end_line = len(line_positions) - 1
+            
+            # Store line positions in metadata
+            if document.metadata is None:
+                document.metadata = {}
+            document.metadata["start_line"] = start_line
+            document.metadata["end_line"] = end_line
+        
         return self._documents_to_file_graph(documents, parent_node, next_node_id)
 
     def _documents_to_file_graph(
@@ -212,9 +262,15 @@ class FileGraphBuilder:
 
         previous_node = None
         for document in documents:
+            # Extract line positions from metadata
+            start_line = document.metadata.get("start_line", 0) if document.metadata else 0
+            end_line = document.metadata.get("end_line", 0) if document.metadata else 0
+            
             text_node = TextNode(
                 text=document.page_content,
                 metadata=str(document.metadata) if document.metadata else "",
+                start_line=start_line,
+                end_line=end_line,
             )
             kg_text_node = KnowledgeGraphNode(next_node_id, text_node)
             next_node_id += 1
