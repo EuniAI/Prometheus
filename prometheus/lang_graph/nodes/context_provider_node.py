@@ -273,6 +273,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
             name=file_operation.read_file.__name__,
             description=file_operation.READ_FILE_DESCRIPTION,
             args_schema=file_operation.ReadFileInput,
+            response_format="content_and_artifact",
         )
         tools.append(read_file_tool)
 
