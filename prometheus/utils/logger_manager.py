@@ -104,7 +104,7 @@ class LoggerManager:
         self.root_logger.handlers.clear()
 
         # Set log level
-        log_level = getattr(settings, "LOGGING_LEVEL", "INFO")
+        log_level = getattr(settings, "LOGGING_LEVEL", "DEBUG")
         self.root_logger.setLevel(getattr(logging, log_level))
 
         # Create colored formatter for console output
@@ -120,6 +120,7 @@ class LoggerManager:
         # Create console handler (using colored formatter)
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(self.colored_formatter)
+        console_handler.setLevel(getattr(logging, log_level))  # Ensure console handler uses same level
         self.root_logger.addHandler(console_handler)
 
         # Prevent log propagation to parent logger
@@ -192,6 +193,10 @@ class LoggerManager:
         # Create file handler (using plain formatter, without colors)
         file_handler = logging.FileHandler(log_file_path)
         file_handler.setFormatter(self.file_formatter)
+        
+        # Ensure file handler uses the same log level as console handler
+        log_level = getattr(settings, "LOGGING_LEVEL", "DEBUG")
+        file_handler.setLevel(getattr(logging, log_level))
 
         # Get logger and add handler
         logger = self.get_logger(logger_name)
