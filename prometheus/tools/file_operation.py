@@ -167,7 +167,7 @@ class FileOperationTool:
 
     def create_file(self, relative_path: str, content: str) -> str:
         if os.path.isabs(relative_path):
-            return f"relative_path: {relative_path} is a abolsute path, not relative path."
+            return f"relative_path: {relative_path} is a absolute path, not relative path."
 
         file_path = Path(os.path.join(self.root_path, relative_path))
         if file_path.exists():
@@ -179,7 +179,7 @@ class FileOperationTool:
 
     def delete(self, relative_path: str) -> str:
         if os.path.isabs(relative_path):
-            return f"relative_path: {relative_path} is a abolsute path, not relative path."
+            return f"relative_path: {relative_path} is a absolute path, not relative path."
 
         file_path = Path(os.path.join(self.root_path, relative_path))
         if not file_path.exists():
@@ -194,7 +194,7 @@ class FileOperationTool:
 
     def edit_file(self, relative_path: str, old_content: str, new_content: str) -> str:
         if os.path.isabs(relative_path):
-            return f"relative_path: {relative_path} is a abolsute path, not relative path."
+            return f"relative_path: {relative_path} is a absolute path, not relative path."
 
         file_path = Path(os.path.join(self.root_path, relative_path))
         if not file_path.exists():
