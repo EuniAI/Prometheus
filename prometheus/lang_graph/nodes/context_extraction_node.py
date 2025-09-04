@@ -166,6 +166,8 @@ class ContextExtractionNode:
             except FileOperationException as e:
                 self._logger.error(e)
                 continue
+
+            # Skip empty content
             if not content:
                 self._logger.warning(
                     f"Skipping context with empty content for {context_.relative_path} "
@@ -178,8 +180,16 @@ class ContextExtractionNode:
                 end_line_number=context_.end_line,
                 content=content,
             )
-            if context not in final_context:
-                final_context = final_context + [context]
+
+            # Skip duplicate context
+            for existing_context in final_context:
+                if context.content in existing_context.content:
+                    self._logger.debug(
+                        f"Skipping duplicate context for {context_.relative_path} "
+                        f"from line {context_.start_line} to {context_.end_line}"
+                    )
+                    break
+            final_context = final_context + [context]
 
         self._logger.info(f"Context extraction complete, returning context {final_context}")
         return {"context": final_context}
