@@ -28,7 +28,6 @@ class IssueBugSubgraph:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        build_commands: Optional[Sequence[str]] = None,
         test_commands: Optional[Sequence[str]] = None,
     ):
         # Construct bug reproduction node
@@ -56,8 +55,6 @@ class IssueBugSubgraph:
             container=container,
             kg=kg,
             git_repo=git_repo,
-            build_commands=build_commands,
-            test_commands=test_commands,
         )
         # Construct issue not verified bug subgraph node
         issue_not_verified_bug_subgraph_node = IssueNotVerifiedBugSubgraphNode(
@@ -110,9 +107,7 @@ class IssueBugSubgraph:
         # Go to verified bug subgraph if the bug is verified, otherwise go to not verified bug subgraph
         workflow.add_conditional_edges(
             "bug_reproduction_subgraph_node",
-            lambda state: state["reproduced_bug"]
-            or state["run_build"]
-            or state["run_existing_test"],
+            lambda state: state["reproduced_bug"] or state["run_existing_test"],
             {
                 True: "issue_verified_bug_subgraph_node",
                 False: "issue_not_verified_bug_subgraph_node",
@@ -135,7 +130,6 @@ class IssueBugSubgraph:
         issue_title: str,
         issue_body: str,
         issue_comments: Sequence[Mapping[str, str]],
-        run_build: bool,
         run_existing_test: bool,
         run_regression_test: bool,
         run_reproduce_test: bool,
@@ -148,7 +142,6 @@ class IssueBugSubgraph:
             "issue_title": issue_title,
             "issue_body": issue_body,
             "issue_comments": issue_comments,
-            "run_build": run_build,
             "run_existing_test": run_existing_test,
             "run_regression_test": run_regression_test,
             "run_reproduce_test": run_reproduce_test,
@@ -159,9 +152,7 @@ class IssueBugSubgraph:
         return {
             "edit_patch": output_state["edit_patch"],
             "passed_reproducing_test": output_state["passed_reproducing_test"],
-            "passed_build": output_state["passed_build"],
             "passed_existing_test": output_state["passed_existing_test"],
-            "passed_regression_test": bool(output_state.get("selected_regression_tests", []))
-            and bool(output_state["edit_patch"]),
+            "passed_regression_test": output_state["passed_regression_test"],
             "issue_response": output_state["issue_response"],
         }

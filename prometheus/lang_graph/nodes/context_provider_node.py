@@ -17,7 +17,6 @@ from langchain_core.messages import SystemMessage
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.tools.graph_traversal import GraphTraversalTool
 from prometheus.tools.file_operation import FileOperationTool
-from prometheus.utils.logger_manager import get_logger
 
 
 class ContextProviderNode:
@@ -91,7 +90,6 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
-        local_path: str,
     ):
         """Initializes the ContextProviderNode with model, knowledge graph, and database connection.
 
@@ -123,8 +121,9 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         )
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
-
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger = logging.getLogger(
+            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.context_provider_node"
+        )
 
     def _init_tools(self):
         """
@@ -275,7 +274,6 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
             args_schema=self.file_operation_tool.read_file_spec.input_schema,
             response_format="content_and_artifact",
         )
-        tools.append(read_file_tool)
         tools.append(read_file_tool)
 
         # Tool: Read entire code file by relative path

@@ -218,6 +218,7 @@ class GitHubIssueDebugger:
 
             try:
                 self.create_branch_and_push(repository_id, branch_name, commit_message, patch)
+                created_branch_and_pushed = True
             except Exception:
                 created_branch_and_pushed = False
 
@@ -363,10 +364,6 @@ def main():
 
         if prometheus_result.get("patch"):
             print("✅ Generated fix patch")
-
-        if prometheus_result.get("passed_build") is not None:
-            status = "✅ Passed" if prometheus_result["passed_build"] else "❌ Failed"
-            print(f"   Build Validation: {status}")
 
         if prometheus_result.get("passed_existing_test") is not None:
             status = "✅ Passed" if prometheus_result["passed_existing_test"] else "❌ Failed"

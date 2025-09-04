@@ -12,6 +12,8 @@
   <a href="https://www.arxiv.org/abs/2507.19942"><img src="https://img.shields.io/badge/Paper-arXiv-red?style=for-the-badge&logo=arxiv" alt="Paper"></a>
   <br/>
     <a href="https://github.com/Pantheon-temple/Prometheus/blob/main/CREDITS.md"><img src="https://img.shields.io/badge/Project-Credits-blue?style=for-the-badge&color=FFE165&logo=github&logoColor=white" alt="Credits"></a>
+  <a href="https://discord.gg/jDG4wqkKZj"><img src="https://img.shields.io/badge/Discord-Join%20Us-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
+
   <br/>
   <hr>
 </div>

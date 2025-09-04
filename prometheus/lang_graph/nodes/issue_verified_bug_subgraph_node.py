@@ -1,6 +1,5 @@
 import logging
 import threading
-from typing import Optional, Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.errors import GraphRecursionError
@@ -25,8 +24,6 @@ class IssueVerifiedBugSubgraphNode:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
-        build_commands: Optional[Sequence[str]] = None,
-        test_commands: Optional[Sequence[str]] = None,
     ):
         self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
         self.git_repo = git_repo
@@ -36,8 +33,6 @@ class IssueVerifiedBugSubgraphNode:
             container=container,
             kg=kg,
             git_repo=git_repo,
-            build_commands=build_commands,
-            test_commands=test_commands,
         )
 
     def __call__(self, state: IssueBugState):
@@ -47,7 +42,6 @@ class IssueVerifiedBugSubgraphNode:
                 issue_title=state["issue_title"],
                 issue_body=state["issue_body"],
                 issue_comments=state["issue_comments"],
-                run_build=state["run_build"],
                 run_regression_test=state["run_regression_test"],
                 run_existing_test=state["run_existing_test"],
                 reproduced_bug_file=state["reproduced_bug_file"],
@@ -62,26 +56,19 @@ class IssueVerifiedBugSubgraphNode:
             return {
                 "edit_patch": None,
                 "passed_reproducing_test": False,
-                "passed_build": False,
                 "passed_existing_test": False,
+                "passed_regression_test": False,
             }
         finally:
             self.git_repo.reset_repository()
-        # if all the tests passed
-        passed_reproducing_test = not bool(output_state["reproducing_test_fail_log"])
-        # if the build passed
-        passed_build = state["run_build"] and not output_state["build_fail_log"]
-        # if the existing tests passed
-        passed_existing_test = (
-            state["run_existing_test"] and not output_state["existing_test_fail_log"]
-        )
+
+        # Log the generated patch
         self._logger.info(f"edit_patch: {output_state['edit_patch']}")
-        self._logger.info(f"passed_reproducing_test: {passed_reproducing_test}")
-        self._logger.info(f"passed_build: {passed_build}")
-        self._logger.info(f"passed_existing_test: {passed_existing_test}")
         return {
             "edit_patch": output_state["edit_patch"],
-            "passed_reproducing_test": passed_reproducing_test,
-            "passed_build": passed_build,
-            "passed_existing_test": passed_existing_test,
+            "passed_reproducing_test": True if state["run_reproduce_test"] else False,
+            "passed_existing_test": True if state["run_existing_test"] else False,
+            "passed_regression_test": True
+            if state["run_regression_test"] and state["selected_regression_tests"]
+            else False,
         }

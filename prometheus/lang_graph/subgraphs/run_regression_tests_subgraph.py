@@ -15,8 +15,8 @@ from prometheus.lang_graph.subgraphs.run_regression_tests_state import RunRegres
 
 class RunRegressionTestsSubgraph:
     """
-    This class defines a LangGraph-based state machine that automatically selects and runs regression tests
-    for GitHub issues. It orchestrates context retrieval, tests selection, test execution, and feedback loops.
+    This class defines a LangGraph-based state machine that automatically runs regression tests
+    for GitHub issues.
     """
 
     def __init__(
@@ -70,7 +70,7 @@ class RunRegressionTestsSubgraph:
     def invoke(
         self,
         selected_regression_tests: Sequence[str],
-        recursion_limit: int = 50,
+        recursion_limit: int = 75,
     ):
         """
         Run the bug regression subgraph.

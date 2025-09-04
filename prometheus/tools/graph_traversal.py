@@ -67,7 +67,7 @@ class PreviewFileContentWithRelativePathInput(BaseModel):
 class ReadCodeWithBasenameInput(BaseModel):
     basename: str = Field("The basename of FileNode to read.")
     start_line: int = Field("The starting line number, 1-indexed and inclusive.")
-    end_line: int = Field("The ending line number, 1-indexed and exclusive.") 
+    end_line: int = Field("The ending line number, 1-indexed and exclusive.")
 
 class ReadCodeWithRelativePathInput(BaseModel):
     relative_path: str = Field("The relative path of FileNode to read from root of codebase.")
@@ -177,7 +177,7 @@ class GraphTraversalTool:
 
     def __init__(self, kg: KnowledgeGraph):
         self.kg = kg
-    
+
 
     ###############################################################################
     #                          FileNode retrieval                                 #
@@ -285,7 +285,7 @@ class GraphTraversalTool:
         ]
         return self.find_ast_node_with_text_in_file(text, target_files_nodes)
 
-    
+
     def find_ast_node_with_text_in_file_with_relative_path(self, text: str, relative_path: str) -> Tuple[str, List[Dict[str, Any]]]:
         """Find all ASTNodes containing the given text in files with the given relative path."""
         # Get file nodes with the given basename
@@ -357,7 +357,7 @@ class GraphTraversalTool:
             node for node in self.kg.get_file_nodes() if node.node.basename == basename
         ]
         return self.find_ast_node_with_type_in_file(type, target_files_nodes)
-    
+
 
     def find_ast_node_with_type_in_file_with_relative_path(self, type: str, relative_path: str) -> Tuple[str, List[Dict[str, Any]]]:
         """Find all ASTNodes with the given type in files with the given relative path."""
@@ -365,7 +365,7 @@ class GraphTraversalTool:
         target_files_nodes: List[KnowledgeGraphNode] = [
             node for node in self.kg.get_file_nodes() if node.node.relative_path == relative_path
         ]
-        return self.find_ast_node_with_type_in_file(type, target_files_nodes)    
+        return self.find_ast_node_with_type_in_file(type, target_files_nodes)
 
 
     ###############################################################################
@@ -394,7 +394,7 @@ class GraphTraversalTool:
         """Find all TextNodes containing the given text."""
         results = []
         # Find text nodes that contain the given text
-        text_nodes_with_text = [node for node in kg.get_text_nodes() if text in node.node.text]
+        text_nodes_with_text = [node for node in self.kg.get_text_nodes() if text in node.node.text]
 
         # If no text nodes found, return early
         if not text_nodes_with_text:
@@ -412,7 +412,8 @@ class GraphTraversalTool:
                     "TextNode": {
                         "node_id": text_node.node_id,
                         "text": text_node.node.text,
-                        "metadata": text_node.node.metadata,
+                        "start_line": text_node.node.start_line,
+                        "end_line": text_node.node.end_line,
                     },
                 }
             )
@@ -450,7 +451,8 @@ class GraphTraversalTool:
                         "TextNode": {
                             "node_id": text_node.node_id,
                             "text": text_node.node.text,
-                            "metadata": text_node.node.metadata,
+                            "start_line": text_node.node.start_line,
+                            "end_line": text_node.node.end_line,
                         },
                     }
                 )
@@ -459,7 +461,7 @@ class GraphTraversalTool:
         results.sort(key=lambda x: x["TextNode"]["node_id"])
         return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
-    
+
     def get_next_text_node_with_node_id(self, node_id: int) -> Tuple[str, List[Dict[str, Any]]]:
         """Get the next TextNode for the given node_id."""
 
@@ -498,7 +500,8 @@ class GraphTraversalTool:
                 "TextNode": {
                     "node_id": next_text_node.node_id,
                     "text": next_text_node.node.text,
-                    "metadata": next_text_node.node.metadata,
+                    "start_line": next_text_node.node.start_line,
+                    "end_line": next_text_node.node.end_line,
                 },
             }
         )
@@ -536,7 +539,7 @@ class GraphTraversalTool:
         ][0]
         text = first_ast_node.node.text
         lines = text.split("\n")
-        selected_lines = lines[start_line - 1 : end_line - 1]  # Convert to 0-indexed
+        selected_lines = lines[start_line - 1 : end_line]  # Convert to 0-indexed
         selected_text = "\n".join(selected_lines)
         selected_text_with_line_numbers = pre_append_line_numbers(selected_text, start_line)
 
@@ -555,4 +558,3 @@ class GraphTraversalTool:
             }
         ]
         return format_knowledge_graph_data(result_data), result_data
-

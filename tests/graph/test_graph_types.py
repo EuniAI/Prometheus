@@ -59,10 +59,11 @@ def test_to_neo4j_ast_node():
 
 def test_to_neo4j_text_node():
     text = "Hello world"
-    metadata = "metadata"
     node_id = 1
+    start_line = 1
+    end_line = 1
 
-    text_node = TextNode(text, metadata)
+    text_node = TextNode(text, start_line, end_line)
     knowldege_graph_node = KnowledgeGraphNode(node_id, text_node)
     neo4j_text_node = knowldege_graph_node.to_neo4j_node()
 
@@ -70,11 +71,13 @@ def test_to_neo4j_text_node():
 
     assert "node_id" in neo4j_text_node
     assert "text" in neo4j_text_node
-    assert "metadata" in neo4j_text_node
+    assert "start_line" in neo4j_text_node
+    assert "end_line" in neo4j_text_node
 
     assert neo4j_text_node["node_id"] == node_id
     assert neo4j_text_node["text"] == text
-    assert neo4j_text_node["metadata"] == metadata
+    assert neo4j_text_node["start_line"] == start_line
+    assert neo4j_text_node["end_line"] == end_line
 
 
 def test_to_neo4j_has_file_edge():
@@ -172,12 +175,13 @@ def test_to_neo4j_has_text_edge():
     source_relative_path = "foo/bar/source.py"
     source_node_id = 1
     target_text = "Hello world"
-    target_metadata = "metadata"
+    target_start_line = 1
+    target_end_line = 1
     target_node_id = 10
 
     source_file_node = FileNode(source_basename, source_relative_path)
     source_knowledge_graph_node = KnowledgeGraphNode(source_node_id, source_file_node)
-    target_text_node = TextNode(target_text, target_metadata)
+    target_text_node = TextNode(target_text, target_start_line, target_end_line)
     target_knowledge_graph_node = KnowledgeGraphNode(target_node_id, target_text_node)
     knowledge_graph_edge = KnowledgeGraphEdge(
         source_knowledge_graph_node,
@@ -197,15 +201,17 @@ def test_to_neo4j_has_text_edge():
 
 def test_to_neo4j_next_chunk_edge():
     source_text = "Hello"
-    source_metadata = "meta"
+    start_line = 1
+    end_line = 1
     source_node_id = 1
     target_text = "world"
-    target_metadata = "data"
+    target_start_line = 1
+    target_end_line = 1
     target_node_id = 10
 
-    source_text_node = TextNode(source_text, source_metadata)
+    source_text_node = TextNode(source_text, start_line, end_line)
     source_knowledge_graph_node = KnowledgeGraphNode(source_node_id, source_text_node)
-    target_text_node = TextNode(target_text, target_metadata)
+    target_text_node = TextNode(target_text, target_start_line, target_end_line)
     target_knowledge_graph_node = KnowledgeGraphNode(target_node_id, target_text_node)
     knowledge_graph_edge = KnowledgeGraphEdge(
         source_knowledge_graph_node,
@@ -254,10 +260,13 @@ def test_from_neo4j_ast_node():
 def test_from_neo4j_text_node():
     node_id = 20
     text = "hello world"
-    metadata = '{"foo": "bar"}'
-    neo4j_text_node = Neo4jTextNode(node_id=node_id, text=text, metadata=metadata)
+    start_line = 1
+    end_line = 1
+    neo4j_text_node = Neo4jTextNode(
+        node_id=node_id, text=text, start_line=start_line, end_line=end_line
+    )
     knowledge_graph_node = KnowledgeGraphNode.from_neo4j_text_node(neo4j_text_node)
 
-    expected_text_node = TextNode(text, metadata)
+    expected_text_node = TextNode(text, start_line, end_line)
     expected_knowledge_graph_node = KnowledgeGraphNode(node_id, expected_text_node)
     assert knowledge_graph_node == expected_knowledge_graph_node

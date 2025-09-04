@@ -161,7 +161,6 @@ After execution, the script outputs results in JSON format, including the follow
   "prometheus_result": {
     "patch": "Generated code patch",
     "passed_reproducing_test": true,
-    "passed_build": true,
     "passed_existing_test": false,
     "passed_regression_test": true, 
     "passed_reproduction_test": true,

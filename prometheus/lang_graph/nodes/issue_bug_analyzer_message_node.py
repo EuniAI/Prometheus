@@ -81,8 +81,6 @@ Do NOT provide actual code snippets or diffs. Focus on describing what needs to 
             )
         elif "reproducing_test_fail_log" in state and state["reproducing_test_fail_log"]:
             edit_error = f"The patch failed to pass the bug exposing test cases:\n{state['reproducing_test_fail_log']}"
-        elif "build_fail_log" in state and state["build_fail_log"]:
-            edit_error = f"The patch failed to pass the build:\n{state['build_fail_log']}"
         elif "existing_test_fail_log" in state and state["existing_test_fail_log"]:
             edit_error = (
                 f"The patch failed to existing test cases:\n{state['existing_test_fail_log']}"

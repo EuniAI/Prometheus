@@ -10,6 +10,7 @@ from prometheus.exceptions.file_operation_exception import FileOperationExceptio
 from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetrievalState
 from prometheus.models.context import Context
 from prometheus.utils.file_utils import read_file_with_line_numbers
+from prometheus.utils.knowledge_graph_utils import deduplicate_contexts
 from prometheus.utils.lang_graph_util import (
     extract_last_tool_messages,
     transform_tool_messages_to_str,
@@ -117,16 +118,6 @@ class ContextExtractionNode:
         self.root_path = root_path
         self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
 
-    def get_human_message(self, state: ContextRetrievalState) -> str:
-        full_context_str = transform_tool_messages_to_str(
-            extract_last_tool_messages(state["context_provider_messages"])
-        )
-        original_query = state["query"]
-        return HUMAN_MESSAGE.format(
-            original_query=original_query,
-            context=full_context_str,
-        )
-
     def __call__(self, state: ContextRetrievalState):
         """
         Extract relevant code contexts from the codebase based on the user query and existing context.
@@ -135,9 +126,26 @@ class ContextExtractionNode:
         self._logger.info("Starting context extraction process")
         # Get Context List with existing context
         final_context = state.get("context", [])
-        # Get a human message
-        human_message = self.get_human_message(state)
+
+        # Transform the tool messages to a single string
+        full_context_str = transform_tool_messages_to_str(
+            extract_last_tool_messages(state["context_provider_messages"])
+        )
+
+        # return existing context if no new context is available
+        if not full_context_str:
+            self._logger.debug(
+                "No context available from tool messages, returning existing context"
+            )
+            return {"context": final_context}
+
+        # Format the human message
+        human_message = HUMAN_MESSAGE.format(
+            original_query=state["query"],
+            context=full_context_str,
+        )
         self._logger.debug(human_message)
+
         # Summarize the context based on the last messages and system prompt
         response = self.model.invoke({"human_prompt": human_message})
         self._logger.debug(f"Model response: {response}")
@@ -158,6 +166,8 @@ class ContextExtractionNode:
             except FileOperationException as e:
                 self._logger.error(e)
                 continue
+
+            # Skip empty content
             if not content:
                 self._logger.warning(
                     f"Skipping context with empty content for {context_.relative_path} "
@@ -170,8 +180,10 @@ class ContextExtractionNode:
                 end_line_number=context_.end_line,
                 content=content,
             )
-            if context not in final_context:
-                final_context = final_context + [context]
 
+            final_context = final_context + [context]
+
+        # Deduplicate contexts before returning
+        final_context = deduplicate_contexts(final_context)
         self._logger.info(f"Context extraction complete, returning context {final_context}")
         return {"context": final_context}

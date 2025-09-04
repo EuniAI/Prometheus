@@ -79,7 +79,6 @@ class IssueQuestionSubgraph:
         return {
             "edit_patch": None,
             "passed_reproducing_test": False,
-            "passed_build": False,
             "passed_existing_test": False,
             "passed_regression_test": False,
             "issue_response": output_state["question_response"],

@@ -1,3 +1,4 @@
+import logging
 import shutil
 import tarfile
 import tempfile
@@ -7,7 +8,6 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 import docker
-from prometheus.utils.logger_manager import get_logger
 
 
 class BaseContainer(ABC):
@@ -24,9 +24,16 @@ class BaseContainer(ABC):
     workdir: str = "/app"
     container: docker.models.containers.Container
     project_path: Path
-    timeout: int = 120
+    timeout: int = 300  # Timeout for commands in seconds
+    logger: logging.Logger
 
-    def __init__(self, project_path: Path, workdir: Optional[str] = None):
+    def __init__(
+        self,
+        project_path: Path,
+        workdir: Optional[str] = None,
+        build_commands: Optional[Sequence[str]] = None,
+        test_commands: Optional[Sequence[str]] = None,
+    ):
         """Initialize the container with a project directory.
 
         Creates a temporary copy of the project directory to work with.
@@ -34,7 +41,7 @@ class BaseContainer(ABC):
         Args:
           project_path: Path to the project directory to be containerized.
         """
-        self._logger = get_logger(
+        self._logger = logging.getLogger(
             f"thread-{threading.get_ident()}.{self.__class__.__module__}.{self.__class__.__name__}"
         )
         temp_dir = Path(tempfile.mkdtemp())
@@ -42,6 +49,8 @@ class BaseContainer(ABC):
         shutil.copytree(project_path, temp_project_path)
         self.project_path = temp_project_path.absolute()
         self._logger.info(f"Created temporary project directory: {self.project_path}")
+        self.build_commands = build_commands
+        self.test_commands = test_commands
 
         if workdir:
             self.workdir = workdir
@@ -67,10 +76,29 @@ class BaseContainer(ABC):
         dockerfile_content = self.get_dockerfile_content()
         dockerfile_path = self.project_path / "prometheus.Dockerfile"
         dockerfile_path.write_text(dockerfile_content)
+
+        # Temporary move .dockerignore file
+        dockerignore_path = self.project_path / ".dockerignore"
+        backup_path = None
+
+        if dockerignore_path.exists():
+            backup_path = self.project_path / ".dockerignore.backup"
+            dockerignore_path.rename(backup_path)
+            self._logger.info("Temporarily renamed .dockerignore to avoid excluding files")
+
+        # Log the build process
         self._logger.info(f"Building docker image {self.tag_name}")
-        self.client.images.build(
-            path=str(self.project_path), dockerfile=dockerfile_path.name, tag=self.tag_name
-        )
+
+        # Build the Docker image
+        try:
+            self.client.images.build(
+                path=str(self.project_path), dockerfile=dockerfile_path.name, tag=self.tag_name
+            )
+        finally:
+            # Restore .dockerignore
+            if backup_path and backup_path.exists():
+                backup_path.rename(dockerignore_path)
+                self._logger.info("Restored .dockerignore file")
 
     def start_container(self):
         """Start a Docker container from the built image.
@@ -128,21 +156,27 @@ class BaseContainer(ABC):
 
         self._logger.info("Files updated successfully")
 
-    @abstractmethod
-    def run_build(self):
-        """Run build commands in the container.
+    def run_build(self) -> str:
+        if not self.build_commands:
+            self._logger.error("No build commands defined")
+            return ""
 
-        This method should be implemented by subclasses to define build steps.
-        """
-        pass
+        command_output = ""
+        for build_command in self.build_commands:
+            command_output += f"$ {build_command}\n"
+            command_output += f"{self.execute_command(build_command)}\n"
+        return command_output
 
-    @abstractmethod
-    def run_test(self):
-        """Run test commands in the container.
+    def run_test(self) -> str:
+        if not self.test_commands:
+            self._logger.error("No test commands defined")
+            return ""
 
-        This method should be implemented by subclasses to define test steps.
-        """
-        pass
+        command_output = ""
+        for test_command in self.test_commands:
+            command_output += f"$ {test_command}\n"
+            command_output += f"{self.execute_command(test_command)}\n"
+        return command_output
 
     def execute_command(self, command: str) -> str:
         """Execute a command in the running container.
@@ -158,10 +192,10 @@ class BaseContainer(ABC):
 {command} timeout after {self.timeout} seconds
 *******************************************************************************
 """
-        timeout_command = f"timeout -k 5 {self.timeout}s {command}"
-        command = f'/bin/bash -l -c "{timeout_command}"'
+        bash_cmd = ["/bin/bash", "-lc", command]
+        full_cmd = ["timeout", "-k", "5", f"{self.timeout}s", *bash_cmd]
         self._logger.debug(f"Running command in container: {command}")
-        exec_result = self.container.exec_run(command, workdir=self.workdir)
+        exec_result = self.container.exec_run(full_cmd, workdir=self.workdir)
         exec_result_str = exec_result.output.decode("utf-8")
 
         if exec_result.exit_code in (124, 137):

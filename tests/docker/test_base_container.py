@@ -14,14 +14,6 @@ class TestContainer(BaseContainer):
     def get_dockerfile_content(self) -> str:
         return "FROM python:3.9\nWORKDIR /app\nCOPY . /app/"
 
-    def run_build(self):
-        """Simple implementation for testing"""
-        return self.execute_command("echo 'Building...'")
-
-    def run_test(self):
-        """Simple implementation for testing"""
-        return self.execute_command("echo 'Testing...'")
-
 
 @pytest.fixture
 def temp_project_dir():
@@ -44,7 +36,12 @@ def mock_docker_client():
 
 @pytest.fixture
 def container(temp_project_dir, mock_docker_client):
-    container = TestContainer(temp_project_dir)
+    container = TestContainer(
+        project_path=temp_project_dir,
+        workdir="/app",
+        build_commands=["pip install -r requirements.txt", "python setup.py build"],
+        test_commands=["pytest tests/"],
+    )
     container.tag_name = "test_container_tag"
     return container
 
@@ -143,7 +140,8 @@ def test_execute_command(container):
 
     # Verify
     mock_container.exec_run.assert_called_once_with(
-        '/bin/bash -l -c "timeout -k 5 120s test command"', workdir=container.workdir
+        ["timeout", "-k", "5", "300s", "/bin/bash", "-lc", "test command"],
+        workdir=container.workdir,
     )
     assert result == "command output"
 
@@ -181,3 +179,37 @@ def test_cleanup(container, mock_docker_client):
     mock_container.remove.assert_called_once_with(force=True)
     mock_docker_client.images.remove.assert_called_once_with(container.tag_name, force=True)
     assert not container.project_path.exists()
+
+
+def test_run_build(container):
+    """Test that build commands are executed correctly"""
+    container.execute_command = Mock()
+    container.execute_command.side_effect = ["Output 1", "Output 2"]
+
+    build_output = container.run_build()
+
+    # Verify execute_command was called for each build command
+    assert container.execute_command.call_count == 2
+    container.execute_command.assert_any_call("pip install -r requirements.txt")
+    container.execute_command.assert_any_call("python setup.py build")
+
+    # Verify output format
+    expected_output = (
+        "$ pip install -r requirements.txt\nOutput 1\n$ python setup.py build\nOutput 2\n"
+    )
+    assert build_output == expected_output
+
+
+def test_run_test(container):
+    """Test that test commands are executed correctly"""
+    container.execute_command = Mock()
+    container.execute_command.return_value = "Test passed"
+
+    test_output = container.run_test()
+
+    # Verify execute_command was called for the test command
+    container.execute_command.assert_called_once_with("pytest tests/")
+
+    # Verify output format
+    expected_output = "$ pytest tests/\nTest passed\n"
+    assert test_output == expected_output

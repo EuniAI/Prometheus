@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -5,13 +6,12 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple, Union
 
 from pydantic import BaseModel, Field
-from typing import Any, Dict, List, Tuple, Union
-from prometheus.utils.str_util import pre_append_line_numbers
-from prometheus.utils.logger_manager import get_logger
+
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.utils.knowledge_graph_utils import format_knowledge_graph_data
+from prometheus.utils.str_util import pre_append_line_numbers
 
-logger = get_logger(__name__)
+logger = logging.getLogger("prometheus.tools.file_operation")
 
 @dataclass
 class ToolSpec:
@@ -53,7 +53,7 @@ class EditFileInput(BaseModel):
 
 class FileOperationTool:
     """Tool class for file operations including reading, creating, editing, and deleting files."""
-    
+
     # File operation tools
     read_file_spec = ToolSpec(
         description="""\
@@ -63,7 +63,7 @@ class FileOperationTool:
         """,
         input_schema=ReadFileInput
     )
-    
+
     read_file_with_line_numbers_spec = ToolSpec(
         description="""\
         Read a specific range of lines from a file and return the content with line numbers prepended.
@@ -72,7 +72,7 @@ class FileOperationTool:
         """,
         input_schema=ReadFileWithLineNumbersInput
     )
-    
+
     create_file_spec = ToolSpec(
         description="""\
         Create a new file at the specified path with the given content. 
@@ -81,7 +81,7 @@ class FileOperationTool:
         """,
         input_schema=CreateFileInput
     )
-    
+
     delete_spec = ToolSpec(
         description="""\
         Delete a file or directory at the specified path.
@@ -90,7 +90,7 @@ class FileOperationTool:
         """,
         input_schema=DeleteInput
     )
-    
+
     edit_file_spec = ToolSpec(
         description="""\
         Edit a file by replacing specific content with new content.
@@ -110,7 +110,7 @@ class FileOperationTool:
         """,
         input_schema=EditFileInput
     )
-    
+
     def __init__(self, root_path: str, kg: KnowledgeGraph):
         """Initialize the file operation tool.
         Args:
@@ -125,7 +125,7 @@ class FileOperationTool:
 
     def read_file(self, relative_path: str, n_lines: int = 1000) -> str:
         if os.path.isabs(relative_path):
-            return f"relative_path: {relative_path} is a abolsute path, not relative path."
+            return f"relative_path: {relative_path} is a absolute path, not relative path."
 
         file_path = Path(os.path.join(self.root_path, relative_path))
         if not file_path.exists():
@@ -135,10 +135,10 @@ class FileOperationTool:
             lines = f.readlines()
 
         return pre_append_line_numbers("".join(lines[:n_lines]), 1)
-    
+
     def read_file_with_line_numbers(self, relative_path: str, start_line: int, end_line: int) -> str:
         if os.path.isabs(relative_path):
-            return f"relative_path: {relative_path} is a abolsute path, not relative path."
+            return f"relative_path: {relative_path} is a absolute path, not relative path."
 
         file_path = Path(os.path.join(self.root_path, relative_path))
         if not file_path.exists():
@@ -156,7 +156,7 @@ class FileOperationTool:
         return pre_append_line_numbers(
             "".join(lines[zero_based_start_line:zero_based_end_line]), start_line
         )
-    
+
     def create_file(self, relative_path: str, content: str) -> str:
         if os.path.isabs(relative_path):
             return f"relative_path: {relative_path} is a abolsute path, not relative path."
@@ -169,7 +169,7 @@ class FileOperationTool:
         file_path.write_text(content)
         return f"The file {relative_path} has been created."
 
-    
+
     def delete(self, relative_path: str) -> str:
         if os.path.isabs(relative_path):
             return f"relative_path: {relative_path} is a abolsute path, not relative path."
@@ -184,7 +184,7 @@ class FileOperationTool:
 
         file_path.unlink()
         return f"The file {relative_path} has been deleted."
-    
+
     def edit_file(self, relative_path: str, old_content: str, new_content: str) -> str:
         if os.path.isabs(relative_path):
             return f"relative_path: {relative_path} is a abolsute path, not relative path."
@@ -248,7 +248,7 @@ class FileOperationTool:
                 "preview": {
                     "text": selected_text_with_line_numbers,
                     "start_line": 1,
-                    "end_line": len(selected_text_with_line_numbers),
+                    "end_line": len(selected_text_with_line_numbers.splitlines()),
                 },
             }
         ]

@@ -10,7 +10,7 @@ class IssueBugReproductionContextMessageNode:
     BUG_REPRODUCING_QUERY = """\
 {issue_info}
 
-OBJECTIVE: Find three relevant existing test cases that demonstrates similar functionality to the reported bug,
+OBJECTIVE: Find 5 relevant existing test cases that demonstrates similar functionality to the reported bug,
 including ALL necessary imports, test setup, mocking, assertions, and any test method used in the test case.
 
 <reasoning>
@@ -37,7 +37,7 @@ including ALL necessary imports, test setup, mocking, assertions, and any test m
 </reasoning>
 
 REQUIREMENTS:
-- Return THREE complete, self-contained test cases most similar to bug scenario
+- Return 5 complete, self-contained test cases most similar to bug scenario
 - Must include ALL necessary imports at the start of each test file
 - Must include full test method implementation
 - Must include ALL mock/fixture setup
@@ -106,7 +106,7 @@ Search priority:
 3. Tests with comparable mocking patterns
 4. Tests demonstrating similar assertions
 
-Find the THREE most relevant test cases with complete context, ensuring ALL necessary imports are included at the start of each test file.
+Find the 5 most relevant test cases with complete context, ensuring ALL necessary imports are included at the start of each test file.
 """
 
     def __init__(self):
