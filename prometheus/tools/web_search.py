@@ -1,30 +1,17 @@
-import os
 from dataclasses import dataclass
 from typing import Annotated
 
-from dynaconf.vendor.dotenv import load_dotenv
-from langchain_mcp_adapters.client import MultiServerMCPClient
 from pydantic import BaseModel, Field
 from tavily import InvalidAPIKeyError, TavilyClient, UsageLimitExceededError
 
 from prometheus.configuration.config import settings
 from prometheus.utils.logger_manager import get_logger
 
-logger = get_logger(__name__)
-
 
 @dataclass
 class ToolSpec:
     description: str
     input_schema: type
-
-
-tavily_api_key = settings.TAVILY_API_KEY
-if tavily_api_key is None:
-    logger.warning("Tavily API key is not set")
-    tavily_client = None
-else:
-    tavily_client = TavilyClient(api_key=tavily_api_key)
 
 
 class WebSearchInput(BaseModel):
@@ -86,22 +73,22 @@ class WebSearchTool:
 
     def __init__(self):
         """Initialize the web search tool."""
+        # Load environment variables from .env file
+        self._logger = get_logger(__name__)
+
+        tavily_api_key = settings.TAVILY_API_KEY
+        if tavily_api_key is None:
+            self._logger.warning("Tavily API key is not set")
+            tavily_client = None
+        else:
+            tavily_client = TavilyClient(api_key=tavily_api_key)
         self.tavily_client = tavily_client
 
     def web_search(
         self,
         query: str,
         max_results: int = 5,
-        include_domains: list[str] = [
-            "stackoverflow.com",
-            "github.com",
-            "developer.mozilla.org",
-            "learn.microsoft.com",
-            "docs.python.org",
-            "pydantic.dev",
-            "pypi.org",
-            "readthedocs.org",
-        ],
+        include_domains=None,
         exclude_domains: list[str] = None,
     ) -> str:
         """Search the web for technical information to aid in bug analysis and resolution.
@@ -116,16 +103,27 @@ class WebSearchTool:
             Formatted search results as a string.
         """
 
-        if tavily_client is None:
+        if include_domains is None:
+            include_domains = [
+                "stackoverflow.com",
+                "github.com",
+                "developer.mozilla.org",
+                "learn.microsoft.com",
+                "docs.python.org",
+                "pydantic.dev",
+                "pypi.org",
+                "readthedocs.org",
+            ]
+        if self.tavily_client is None:
             raise RuntimeError("Tavily API key is not set")
         try:
-            response = tavily_client.search(
+            response = self.tavily_client.search(
                 query=query,
                 max_results=max_results,
                 search_depth="advanced",
                 include_answer=True,
-                include_domains=include_domains or [],  # Convert None to empty list
-                exclude_domains=exclude_domains or [],  # Convert None to empty list
+                include_domains=include_domains or [],  # Convert None to an empty list
+                exclude_domains=exclude_domains or [],  # Convert None to an empty list
             )
             format_response = format_results(response)
             self._logger.info(f"web_search format_response: {format_response}")
@@ -136,29 +134,3 @@ class WebSearchTool:
             raise RuntimeError("Usage limit exceeded")
         except Exception as e:
             raise RuntimeError(f"An error occurred: {str(e)}")
-
-
-async def mcp_web_search():
-    client = MultiServerMCPClient(
-        {
-            "tavily_web_search": {
-                "transport": "streamable_http",
-                "url": f"https://mcp.tavily.com/mcp/?tavilyApiKey={tavily_api_key}",
-            }
-        }
-    )
-    # 异步获取工具
-    tools = await client.get_tools()
-    return tools
-
-
-if __name__ == "__main__":
-    load_dotenv()
-    tavily_api_key = os.getenv("PROMETHEUS_TAVILY_API_KEY")
-    if tavily_api_key is None:
-        logger.warning("Tavily API key is not set")
-        tavily_client = None
-    else:
-        tavily_client = TavilyClient(api_key=tavily_api_key)
-
-    print(web_search("What is the capital of France?"))

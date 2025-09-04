@@ -80,11 +80,9 @@ def test_web_search_tool_call_with_correct_parameters(fake_llm):
 
 
 @patch("prometheus.tools.web_search.tavily_client")
-def test_web_search_tool_without_api_key(mock_tavily_client, fake_llm):
+def test_web_search_tool_without_api_key(fake_llm):
     """Test web_search tool behavior when API key is not available."""
     # Simulate no API key scenario
-    mock_tavily_client = None
-
     node = IssueBugAnalyzerNode(fake_llm)
     web_search_tool = node.tools[0]
 
