@@ -221,7 +221,7 @@ class IssueVerifiedBugSubgraph:
         reproduced_bug_commands: Sequence[str],
         reproduced_bug_patch: str,
         selected_regression_tests: Sequence[str],
-        recursion_limit: int = 150,
+        recursion_limit: int = 200,
     ):
         config = {"recursion_limit": recursion_limit}
 
