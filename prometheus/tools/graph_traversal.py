@@ -362,7 +362,6 @@ def find_text_node_with_text(text: str, kg: KnowledgeGraph) -> Tuple[str, List[D
                 "TextNode": {
                     "node_id": text_node.node_id,
                     "text": text_node.node.text,
-                    "metadata": text_node.node.metadata,
                 },
             }
         )
@@ -418,7 +417,6 @@ def find_text_node_with_text_in_file(
                     "TextNode": {
                         "node_id": text_node.node_id,
                         "text": text_node.node.text,
-                        "metadata": text_node.node.metadata,
                     },
                 }
             )
@@ -481,7 +479,6 @@ def get_next_text_node_with_node_id(
             "TextNode": {
                 "node_id": next_text_node.node_id,
                 "text": next_text_node.node.text,
-                "metadata": next_text_node.node.metadata,
             },
         }
     )
