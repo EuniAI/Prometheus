@@ -547,7 +547,7 @@ def read_code_with_relative_path(
     ][0]
     text = first_ast_node.node.text
     lines = text.split("\n")
-    selected_lines = lines[start_line - 1 : end_line - 1]  # Convert to 0-indexed
+    selected_lines = lines[start_line - 1 : end_line]  # Convert to 0-indexed
     selected_text = "\n".join(selected_lines)
     selected_text_with_line_numbers = pre_append_line_numbers(selected_text, start_line)
 

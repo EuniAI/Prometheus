@@ -10,6 +10,7 @@ from prometheus.exceptions.file_operation_exception import FileOperationExceptio
 from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetrievalState
 from prometheus.models.context import Context
 from prometheus.utils.file_utils import read_file_with_line_numbers
+from prometheus.utils.knowledge_graph_utils import deduplicate_contexts
 from prometheus.utils.lang_graph_util import (
     extract_last_tool_messages,
     transform_tool_messages_to_str,
@@ -181,15 +182,9 @@ class ContextExtractionNode:
                 content=content,
             )
 
-            # Skip duplicate context
-            for existing_context in final_context:
-                if context.content in existing_context.content:
-                    self._logger.debug(
-                        f"Skipping duplicate context for {context_.relative_path} "
-                        f"from line {context_.start_line} to {context_.end_line}"
-                    )
-                    break
             final_context = final_context + [context]
 
+        # Deduplicate contexts before returning
+        final_context = deduplicate_contexts(final_context)
         self._logger.info(f"Context extraction complete, returning context {final_context}")
         return {"context": final_context}
