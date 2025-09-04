@@ -128,6 +128,10 @@ async def test_find_text_node_with_text(knowledge_graph_fixture):
     for result_row in result_data:
         assert "TextNode" in result_row
         assert text in result_row["TextNode"].get("text", "")
+        assert "start_line" in result_row["TextNode"]
+        assert result_row["TextNode"]["start_line"] == 1
+        assert "end_line" in result_row["TextNode"]
+        assert result_row["TextNode"]["end_line"] == 13
         assert "FileNode" in result_row
         assert result_row["FileNode"].get("relative_path", "") == "foo/test.md"
 
@@ -145,6 +149,10 @@ async def test_find_text_node_with_text_in_file(knowledge_graph_fixture):
     for result_row in result_data:
         assert "TextNode" in result_row
         assert text in result_row["TextNode"].get("text", "")
+        assert "start_line" in result_row["TextNode"]
+        assert result_row["TextNode"]["start_line"] == 1
+        assert "end_line" in result_row["TextNode"]
+        assert result_row["TextNode"]["end_line"] == 13
         assert "FileNode" in result_row
         assert result_row["FileNode"].get("basename", "") == basename
 
@@ -159,6 +167,10 @@ async def test_get_next_text_node_with_node_id(knowledge_graph_fixture):
     for result_row in result_data:
         assert "TextNode" in result_row
         assert "Text under header D" in result_row["TextNode"].get("text", "")
+        assert "start_line" in result_row["TextNode"]
+        assert result_row["TextNode"]["start_line"] == 13
+        assert "end_line" in result_row["TextNode"]
+        assert result_row["TextNode"]["end_line"] == 15
         assert "FileNode" in result_row
         assert result_row["FileNode"].get("relative_path", "") == "foo/test.md"
 

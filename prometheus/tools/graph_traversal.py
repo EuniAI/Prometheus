@@ -362,7 +362,8 @@ def find_text_node_with_text(text: str, kg: KnowledgeGraph) -> Tuple[str, List[D
                 "TextNode": {
                     "node_id": text_node.node_id,
                     "text": text_node.node.text,
-                    "metadata": text_node.node.metadata,
+                    "start_line": text_node.node.start_line,
+                    "end_line": text_node.node.end_line,
                 },
             }
         )
@@ -418,7 +419,8 @@ def find_text_node_with_text_in_file(
                     "TextNode": {
                         "node_id": text_node.node_id,
                         "text": text_node.node.text,
-                        "metadata": text_node.node.metadata,
+                        "start_line": text_node.node.start_line,
+                        "end_line": text_node.node.end_line,
                     },
                 }
             )
@@ -481,7 +483,8 @@ def get_next_text_node_with_node_id(
             "TextNode": {
                 "node_id": next_text_node.node_id,
                 "text": next_text_node.node.text,
-                "metadata": next_text_node.node.metadata,
+                "start_line": next_text_node.node.start_line,
+                "end_line": next_text_node.node.end_line,
             },
         }
     )
@@ -544,7 +547,7 @@ def read_code_with_relative_path(
     ][0]
     text = first_ast_node.node.text
     lines = text.split("\n")
-    selected_lines = lines[start_line - 1 : end_line - 1]  # Convert to 0-indexed
+    selected_lines = lines[start_line - 1 : end_line]  # Convert to 0-indexed
     selected_text = "\n".join(selected_lines)
     selected_text_with_line_numbers = pre_append_line_numbers(selected_text, start_line)
 

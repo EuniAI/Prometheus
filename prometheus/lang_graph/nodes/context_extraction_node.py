@@ -10,6 +10,7 @@ from prometheus.exceptions.file_operation_exception import FileOperationExceptio
 from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetrievalState
 from prometheus.models.context import Context
 from prometheus.utils.file_utils import read_file_with_line_numbers
+from prometheus.utils.knowledge_graph_utils import deduplicate_contexts
 from prometheus.utils.lang_graph_util import (
     extract_last_tool_messages,
     transform_tool_messages_to_str,
@@ -166,6 +167,8 @@ class ContextExtractionNode:
             except FileOperationException as e:
                 self._logger.error(e)
                 continue
+
+            # Skip empty content
             if not content:
                 self._logger.warning(
                     f"Skipping context with empty content for {context_.relative_path} "
@@ -178,8 +181,10 @@ class ContextExtractionNode:
                 end_line_number=context_.end_line,
                 content=content,
             )
-            if context not in final_context:
-                final_context = final_context + [context]
 
+            final_context = final_context + [context]
+
+        # Deduplicate contexts before returning
+        final_context = deduplicate_contexts(final_context)
         self._logger.info(f"Context extraction complete, returning context {final_context}")
         return {"context": final_context}

@@ -82,7 +82,7 @@ class KnowledgeGraphHandler:
         self._logger.debug(f"Writing {len(text_nodes)} TextNode to neo4j")
         query = """
       UNWIND $text_nodes AS text_node
-      CREATE (a:TextNode {node_id: text_node.node_id, text: text_node.text, metadata: text_node.metadata})
+      CREATE (a:TextNode {node_id: text_node.node_id, text: text_node.text, start_line: text_node.start_line, end_line: text_node.end_line})
     """
         for i in range(0, len(text_nodes), self.batch_size):
             text_nodes_batch = text_nodes[i : i + self.batch_size]
@@ -254,7 +254,7 @@ class KnowledgeGraphHandler:
         query = """
         MATCH (root {node_id: $root_node_id})
         OPTIONAL MATCH (root)-[*]->(n:TextNode)
-        RETURN DISTINCT n.node_id AS node_id, n.text AS text, n.metadata AS metadata
+        RETURN DISTINCT n.node_id AS node_id, n.text AS text, n.start_line AS start_line, n.end_line AS end_line
         """
         result = await tx.run(query, root_node_id=root_node_id)
         records = await result.data()

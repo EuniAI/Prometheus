@@ -76,9 +76,10 @@ def test_build_text_file_graph():
     # Test if some of the nodes exists
     text_node_1 = TextNode(
         text="# A\n\nText under header A.\n\n## B\n\nText under header B.\n\n## C\n\nText under header C.\n\n### D",
-        metadata="",
+        start_line=1,
+        end_line=13,
     )
-    text_node_2 = TextNode(text="### D\n\nText under header D.", metadata="")
+    text_node_2 = TextNode(text="### D\n\nText under header D.", start_line=13, end_line=15)
 
     found_text_node_1 = False
     for kg_node in kg_nodes:
