@@ -16,6 +16,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage
 
 from prometheus.tools.file_operation import FileOperationTool
+from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.utils.logger_manager import get_logger
 
 
@@ -119,9 +120,9 @@ MANDATORY REQUIREMENTS:
 7. NEVER write or run any tests, your change will be tested by reproduction tests and regression tests later
 """
 
-    def __init__(self, model: BaseChatModel, local_path: str):
+    def __init__(self, model: BaseChatModel, local_path: str, kg: KnowledgeGraph):
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
-        self.file_operation_tool = FileOperationTool(local_path)
+        self.file_operation_tool = FileOperationTool(local_path, kg)
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
         self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")

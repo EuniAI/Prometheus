@@ -107,6 +107,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         # self.neo4j_driver = neo4j_driver
         self.root_node_id = kg.root_node_id
         self.kg = kg
+        self.root_path = local_path
         # self.max_token_per_result = max_token_per_result
         # Initialize GraphTraversalTool with the driver and token limit
         self.graph_traversal_tool = GraphTraversalTool(kg)
@@ -114,8 +115,6 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
 
 
         ast_node_types_str = ", ".join(kg.get_all_ast_node_types())
-        self.kg = kg
-        self.root_path = local_path
         self.system_prompt = SystemMessage(
             self.SYS_PROMPT.format(file_tree=kg.get_file_tree(), ast_node_types=ast_node_types_str)
         )
