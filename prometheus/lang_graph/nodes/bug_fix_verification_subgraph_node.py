@@ -17,9 +17,6 @@ class BugFixVerificationSubgraphNode:
         container: BaseContainer,
         git_repo: GitRepository,
     ):
-        # self._logger = logging.getLogger(
-        #     f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.bug_fix_verification_subgraph_node"
-        # )
         self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
         self.git_repo = git_repo
         self.subgraph = BugFixVerificationSubgraph(
