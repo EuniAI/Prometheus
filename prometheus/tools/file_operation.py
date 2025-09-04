@@ -77,7 +77,7 @@ def read_file_with_knowledge_graph_data(
             "preview": {
                 "text": selected_text_with_line_numbers,
                 "start_line": 1,
-                "end_line": len(selected_text_with_line_numbers),
+                "end_line": len(selected_text_with_line_numbers.splitlines()),
             },
         }
     ]
