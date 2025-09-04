@@ -79,7 +79,7 @@ def test_build_text_file_graph():
         start_line=1,
         end_line=13,
     )
-    text_node_2 = TextNode(text="### D\n\nText under header D.", start_line=13, end_line=14)
+    text_node_2 = TextNode(text="### D\n\nText under header D.", start_line=13, end_line=15)
 
     found_text_node_1 = False
     for kg_node in kg_nodes:

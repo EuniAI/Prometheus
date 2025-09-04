@@ -213,7 +213,7 @@ class FileGraphBuilder:
                     start_line = i  # Line numbers are 0-indexed
                     break
             else:
-                start_line = len(line_positions) - 1
+                start_line = len(line_positions)
 
             # Find end line
             for i, pos in enumerate(line_positions):
@@ -221,7 +221,7 @@ class FileGraphBuilder:
                     end_line = i  # Line numbers are 0-indexed
                     break
             else:
-                end_line = len(line_positions) - 1
+                end_line = len(line_positions)
 
             # Store line positions in metadata
             if document.metadata is None:

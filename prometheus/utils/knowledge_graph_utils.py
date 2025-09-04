@@ -50,10 +50,12 @@ def knowledge_graph_data_for_context_generator(
                 search_result.get("ASTNode", {}).get("start_line")
                 or search_result.get("SelectedLines", {}).get("start_line")
                 or search_result.get("preview", {}).get("start_line")
+                or search_result.get("TextNode", {}).get("start_line")
             ),
             end_line_number=search_result.get("ASTNode", {}).get("end_line")
             or search_result.get("SelectedLines", {}).get("end_line")
-            or search_result.get("preview", {}).get("end_line"),
+            or search_result.get("preview", {}).get("end_line")
+            or search_result.get("TextNode", {}).get("end_line"),
         )
 
         yield context

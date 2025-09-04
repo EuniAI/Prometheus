@@ -154,6 +154,8 @@ def mock_text_node_data():
                 "metadata": "",
                 "text": "# A\n\nText under header A.\n\n## B\n\nText under header B.\n\n## C\n\nText under header C.\n\n### D",
                 "node_id": 34,
+                "start_line": 1,
+                "end_line": 15,
             },
         }
     ]
@@ -210,8 +212,8 @@ def test_neo4j_data_for_context_generator():
         context_2.content
         == "# A\n\nText under header A.\n\n## B\n\nText under header B.\n\n## C\n\nText under header C.\n\n### D"
     )
-    assert context_2.start_line_number is None
-    assert context_2.end_line_number is None
+    assert context_2.start_line_number == 1
+    assert context_2.end_line_number == 15
 
     context_3 = result[6]
     assert context_3.relative_path == "bar/test.py"
