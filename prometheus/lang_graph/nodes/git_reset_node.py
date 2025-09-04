@@ -1,4 +1,3 @@
-import logging
 import threading
 
 from prometheus.git.git_repository import GitRepository

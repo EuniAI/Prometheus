@@ -1,13 +1,13 @@
 """Git repository management module."""
 
 import asyncio
-import logging
 import shutil
 import tempfile
 from pathlib import Path
 from typing import Optional, Sequence
 
 from git import Git, GitCommandError, InvalidGitRepositoryError, Repo
+
 from prometheus.utils.logger_manager import get_logger
 
 

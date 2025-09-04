@@ -1,6 +1,6 @@
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
-from dataclasses import dataclass
 
 from pydantic import BaseModel, Field
 
@@ -20,6 +20,7 @@ like basename, relative path, text content, and node type.
 Returns a list of dictionaries containing the found nodes and their attributes.
 """
 
+
 @dataclass
 class ToolSpec:
     description: str
@@ -29,45 +30,57 @@ class ToolSpec:
 class FindFileNodeWithBasenameInput(BaseModel):
     basename: str = Field("The basename of FileNode to search for")
 
+
 class FindFileNodeWithRelativePathInput(BaseModel):
     relative_path: str = Field("The relative_path of FileNode to search for")
+
 
 class FindASTNodeWithTextInFileWithBasenameInput(BaseModel):
     text: str = Field("Search ASTNode that exactly contains this text.")
     basename: str = Field("The basename of file/directory to search under for ASTNodes.")
 
+
 class FindASTNodeWithTextInFileWithRelativePathInput(BaseModel):
     text: str = Field("Search ASTNode that exactly contains this text.")
     relative_path: str = Field("The relative path of file/directory to search under for ASTNodes.")
+
 
 class FindASTNodeWithTypeInFileWithBasenameInput(BaseModel):
     type: str = Field("Search ASTNode with this tree-sitter node type.")
     basename: str = Field("The basename of file/directory to search under for ASTNodes.")
 
+
 class FindASTNodeWithTypeInFileWithRelativePathInput(BaseModel):
     type: str = Field("Search ASTNode with this tree-sitter node type.")
     relative_path: str = Field("The relative path of file/directory to search under for ASTNodes.")
 
+
 class FindTextNodeWithTextInput(BaseModel):
     text: str = Field("Search TextNode that exactly contains this text.")
+
 
 class FindTextNodeWithTextInFileInput(BaseModel):
     text: str = Field("Search TextNode that exactly contains this text.")
     basename: str = Field("The basename of FileNode to search TextNode.")
 
+
 class GetNextTextNodeWithNodeIdInput(BaseModel):
     node_id: int = Field("Get the next TextNode of this given node_id.")
+
 
 class PreviewFileContentWithBasenameInput(BaseModel):
     basename: str = Field("The basename of FileNode to preview.")
 
+
 class PreviewFileContentWithRelativePathInput(BaseModel):
     relative_path: str = Field("The relative path of FileNode to preview.")
+
 
 class ReadCodeWithBasenameInput(BaseModel):
     basename: str = Field("The basename of FileNode to read.")
     start_line: int = Field("The starting line number, 1-indexed and inclusive.")
     end_line: int = Field("The ending line number, 1-indexed and exclusive.")
+
 
 class ReadCodeWithRelativePathInput(BaseModel):
     relative_path: str = Field("The relative path of FileNode to read from root of codebase.")
@@ -75,9 +88,7 @@ class ReadCodeWithRelativePathInput(BaseModel):
     end_line: int = Field("The ending line number, 1-indexed and exclusive.")
 
 
-
 class GraphTraversalTool:
-
     # FileNode retrieval tools
     find_file_node_with_basename_spec = ToolSpec(
         description="""Find all FileNode in the graph with this basename of a file/dir. The basename must
@@ -86,7 +97,7 @@ class GraphTraversalTool:
 
         You can use this tool to check if a file/dir with this basename exists or get all
         attributes related to the file/dir.""",
-        input_schema=FindFileNodeWithBasenameInput
+        input_schema=FindFileNodeWithBasenameInput,
     )
 
     find_file_node_with_relative_path_spec = ToolSpec(
@@ -96,7 +107,7 @@ class GraphTraversalTool:
 
         You can use this tool to check if a file/dir with this relative_path exists or get all
         attributes related to the file/dir.""",
-        input_schema=FindFileNodeWithRelativePathInput
+        input_schema=FindFileNodeWithRelativePathInput,
     )
 
     # ASTNode retrieval tools
@@ -106,7 +117,7 @@ class GraphTraversalTool:
         The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is looking for exact matches.
         For best results, use unique text segments of at least several words. The basename can be either a file (like 
         'bar.py', 'baz.java').""",
-        input_schema=FindASTNodeWithTextInFileWithBasenameInput
+        input_schema=FindASTNodeWithTextInFileWithBasenameInput,
     )
 
     find_ast_node_with_text_in_file_with_relative_path_spec = ToolSpec(
@@ -115,19 +126,19 @@ class GraphTraversalTool:
         The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is looking for exact matches.
         Therefore the search text should be exact as well. The relative path should be the path from the root of codebase 
         (like 'src/core/parser.py').""",
-        input_schema=FindASTNodeWithTextInFileWithRelativePathInput
+        input_schema=FindASTNodeWithTextInFileWithRelativePathInput,
     )
 
     find_ast_node_with_type_in_file_with_basename_spec = ToolSpec(
         description="""Find all ASTNode in the graph that has this tree-sitter node type in any source file with this basename.
         This tool is useful for searching class/function/method under files.""",
-        input_schema=FindASTNodeWithTypeInFileWithBasenameInput
+        input_schema=FindASTNodeWithTypeInFileWithBasenameInput,
     )
 
     find_ast_node_with_type_in_file_with_relative_path_spec = ToolSpec(
         description="""Find all ASTNode in the graph that has this tree-sitter node type in any source file with this relative path.
         This tool is useful for searching class/function/method under a file.""",
-        input_schema=FindASTNodeWithTypeInFileWithRelativePathInput
+        input_schema=FindASTNodeWithTypeInFileWithRelativePathInput,
     )
 
     # TextNode retrieval tools
@@ -137,7 +148,7 @@ class GraphTraversalTool:
         looking for exact matches. Therefore the search text should be exact as well.
 
         You can use this tool to find all text/documentation in codebase that contains this text.""",
-        input_schema=FindTextNodeWithTextInput
+        input_schema=FindTextNodeWithTextInput,
     )
 
     find_text_node_with_text_in_file_spec = ToolSpec(
@@ -148,14 +159,14 @@ class GraphTraversalTool:
         (in this case foo is a file without extension).
 
         You can use this tool to find text/documentation in a specific file that contains this text.""",
-        input_schema=FindTextNodeWithTextInFileInput
+        input_schema=FindTextNodeWithTextInFileInput,
     )
 
     get_next_text_node_with_node_id_spec = ToolSpec(
         description="""Get the next TextNode of this given node_id.
 
         You can use this tool to read the next section of text that you are interested in.""",
-        input_schema=GetNextTextNodeWithNodeIdInput
+        input_schema=GetNextTextNodeWithNodeIdInput,
     )
 
     read_code_with_relative_path_spec = ToolSpec(
@@ -172,12 +183,11 @@ class GraphTraversalTool:
         This tool is useful for examining specific sections of source code files when you know 
         the exact line range you want to analyze. The function will return an error message if 
         end_line is less than start_line.""",
-        input_schema=ReadCodeWithRelativePathInput
+        input_schema=ReadCodeWithRelativePathInput,
     )
 
     def __init__(self, kg: KnowledgeGraph):
         self.kg = kg
-
 
     ###############################################################################
     #                          FileNode retrieval                                 #
@@ -200,7 +210,9 @@ class GraphTraversalTool:
         results.sort(key=lambda x: x["FileNode"]["node_id"])
         return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
-    def find_file_node_with_relative_path(self, relative_path: str) -> Tuple[str, List[Dict[str, Any]]]:
+    def find_file_node_with_relative_path(
+        self, relative_path: str
+    ) -> Tuple[str, List[Dict[str, Any]]]:
         """Find all FileNodes with the given relative path."""
         results = []
         for kg_node in self.kg.get_file_nodes():
@@ -215,7 +227,6 @@ class GraphTraversalTool:
                     }
                 )
         return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
-
 
     ###############################################################################
     #                          ASTNode retrieval                                  #
@@ -277,7 +288,9 @@ class GraphTraversalTool:
         results.sort(key=lambda x: len(x["ASTNode"]["text"]))
         return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
-    def find_ast_node_with_text_in_file_with_basename(self, text: str, basename: str) -> Tuple[str, List[Dict[str, Any]]]:
+    def find_ast_node_with_text_in_file_with_basename(
+        self, text: str, basename: str
+    ) -> Tuple[str, List[Dict[str, Any]]]:
         """Find all ASTNodes containing the given text in files with the given basename."""
         # Get file nodes with the given basename
         target_files_nodes: List[KnowledgeGraphNode] = [
@@ -285,8 +298,9 @@ class GraphTraversalTool:
         ]
         return self.find_ast_node_with_text_in_file(text, target_files_nodes)
 
-
-    def find_ast_node_with_text_in_file_with_relative_path(self, text: str, relative_path: str) -> Tuple[str, List[Dict[str, Any]]]:
+    def find_ast_node_with_text_in_file_with_relative_path(
+        self, text: str, relative_path: str
+    ) -> Tuple[str, List[Dict[str, Any]]]:
         """Find all ASTNodes containing the given text in files with the given relative path."""
         # Get file nodes with the given basename
         target_files_nodes: List[KnowledgeGraphNode] = [
@@ -350,7 +364,9 @@ class GraphTraversalTool:
         results.sort(key=lambda x: len(x["ASTNode"]["text"]))
         return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
-    def find_ast_node_with_type_in_file_with_basename(self, type: str, basename: str) -> Tuple[str, List[Dict[str, Any]]]:
+    def find_ast_node_with_type_in_file_with_basename(
+        self, type: str, basename: str
+    ) -> Tuple[str, List[Dict[str, Any]]]:
         """Find all ASTNodes with the given type in files with the given basename."""
         # Get file nodes with the given basename
         target_files_nodes: List[KnowledgeGraphNode] = [
@@ -358,15 +374,15 @@ class GraphTraversalTool:
         ]
         return self.find_ast_node_with_type_in_file(type, target_files_nodes)
 
-
-    def find_ast_node_with_type_in_file_with_relative_path(self, type: str, relative_path: str) -> Tuple[str, List[Dict[str, Any]]]:
+    def find_ast_node_with_type_in_file_with_relative_path(
+        self, type: str, relative_path: str
+    ) -> Tuple[str, List[Dict[str, Any]]]:
         """Find all ASTNodes with the given type in files with the given relative path."""
         # Get file nodes with the given basename
         target_files_nodes: List[KnowledgeGraphNode] = [
             node for node in self.kg.get_file_nodes() if node.node.relative_path == relative_path
         ]
         return self.find_ast_node_with_type_in_file(type, target_files_nodes)
-
 
     ###############################################################################
     #                          TextNode retrieval                                 #
@@ -379,7 +395,9 @@ class GraphTraversalTool:
         next_chunk_reverse_map = {
             edge.target.node_id: edge.source for edge in self.kg.get_next_chunk_edges()
         }
-        has_file_node_map = {edge.target.node_id: edge.source for edge in self.kg.get_has_text_edges()}
+        has_file_node_map = {
+            edge.target.node_id: edge.source for edge in self.kg.get_has_text_edges()
+        }
 
         # Find the root text node
         current_text_node = text_node
@@ -422,7 +440,6 @@ class GraphTraversalTool:
         results.sort(key=lambda x: x["TextNode"]["node_id"])
         return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
-
     def find_text_node_with_text_in_file(
         self, text: str, basename: str
     ) -> Tuple[str, List[Dict[str, Any]]]:
@@ -461,7 +478,6 @@ class GraphTraversalTool:
         results.sort(key=lambda x: x["TextNode"]["node_id"])
         return format_knowledge_graph_data(results[:MAX_RESULT]), results[:MAX_RESULT]
 
-
     def get_next_text_node_with_node_id(self, node_id: int) -> Tuple[str, List[Dict[str, Any]]]:
         """Get the next TextNode for the given node_id."""
 
@@ -479,7 +495,9 @@ class GraphTraversalTool:
             return format_knowledge_graph_data([]), []
 
         # Get next chunk map
-        next_chunk_map = {edge.source.node_id: edge.target for edge in self.kg.get_next_chunk_edges()}
+        next_chunk_map = {
+            edge.source.node_id: edge.target for edge in self.kg.get_next_chunk_edges()
+        }
 
         # Get the next text node
         next_text_node = next_chunk_map.get(current_text_node.node_id, None)
@@ -507,13 +525,13 @@ class GraphTraversalTool:
         )
         return format_knowledge_graph_data(results), results
 
-
     ###############################################################################
     #                                 Other                                       #
     ###############################################################################
 
-
-    def read_code_with_relative_path(self, relative_path: str, start_line: int, end_line: int) -> Union[Tuple[str, List[Dict[str, Any]]], Tuple[str, None]]:
+    def read_code_with_relative_path(
+        self, relative_path: str, start_line: int, end_line: int
+    ) -> Union[Tuple[str, List[Dict[str, Any]]], Tuple[str, None]]:
         """Read a specific section of a source code file by relative path and line range."""
         if end_line < start_line:
             return f"end_line {end_line} must be greater than start_line {start_line}!", None
@@ -535,7 +553,9 @@ class GraphTraversalTool:
 
         # Get the first ast node for this file
         first_ast_node = [
-            edge.target for edge in self.kg.get_has_ast_edges() if edge.source.node_id == target_file.node_id
+            edge.target
+            for edge in self.kg.get_has_ast_edges()
+            if edge.source.node_id == target_file.node_id
         ][0]
         text = first_ast_node.node.text
         lines = text.split("\n")

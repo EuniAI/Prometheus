@@ -1,14 +1,13 @@
 import functools
-import logging
 import threading
 
 from langchain.tools import StructuredTool
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage
 
+from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.subgraphs.bug_reproduction_state import BugReproductionState
 from prometheus.tools.file_operation import FileOperationTool
-from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.utils.logger_manager import get_logger
 
 

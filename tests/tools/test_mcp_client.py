@@ -1,75 +1,54 @@
 import asyncio
-from langchain_mcp_adapters.client import MultiServerMCPClient
-from langgraph.graph import StateGraph, MessagesState, START
-from langgraph.prebuilt import ToolNode, tools_condition
-from langchain_core.messages import AIMessage, ToolMessage
-from prometheus.app.services.llm_service import LLMService, get_model
-from langchain.tools import StructuredTool
-import functools
-# 使用真实模型进行工具调用
-from prometheus.configuration.config import settings
-import json
-import re
-
-import asyncio
-import inspect
-import json
-from copy import copy
 from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    List,
-    Literal,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
     Union,
     cast,
-    get_type_hints,
 )
 
 from langchain_core.messages import (
-    AIMessage,
-    AnyMessage,
     ToolCall,
     ToolMessage,
 )
 from langchain_core.runnables import RunnableConfig
-from langchain_core.runnables.config import (
-    get_config_list,
-    get_executor_for_config,
-)
-from langchain_core.runnables.utils import Input
-from langchain_core.tools import BaseTool, InjectedToolArg
-from langchain_core.tools import tool as create_tool
-from langchain_core.tools.base import get_all_basemodel_annotations
-from typing_extensions import Annotated, get_args, get_origin
-
+from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.errors import GraphInterrupt
-from langgraph.store.base import BaseStore
-from langgraph.utils.runnable import RunnableCallable
-from langgraph.prebuilt.tool_node import msg_content_output, _infer_handled_types, _handle_tool_error
+from langgraph.graph import START, MessagesState, StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
+from langgraph.prebuilt.tool_node import (
+    _handle_tool_error,
+    _infer_handled_types,
+    msg_content_output,
+)
 
+from prometheus.app.services.llm_service import get_model
 
-    # 创建自定义 ToolNode
+# 使用真实模型进行工具调用
+from prometheus.configuration.config import settings
+
+# 创建自定义 ToolNode
 preset_params = {
     "tavily-search": {
         "include_domains": ["pypi.org", "docs.python.org"],
-        "exclude_domains": ["stackoverflow.com", "*huggingface*", "discourse.slicer.org","ask.csdn.net", 
-                            "codepudding.com", "*geeksforgeeks*", "*github*", "forum.developer.parrot.com"],
+        "exclude_domains": [
+            "stackoverflow.com",
+            "*huggingface*",
+            "discourse.slicer.org",
+            "ask.csdn.net",
+            "codepudding.com",
+            "*geeksforgeeks*",
+            "*github*",
+            "forum.developer.parrot.com",
+        ],
     }
 }
 
+
 class CustomToolNode(ToolNode):
     """自定义 ToolNode，支持为特定工具添加预设参数"""
-    
+
     def __init__(self, tools, preset_params=None, **kwargs):
         super().__init__(tools, **kwargs)
         self.preset_params = preset_params or {}
-    
+
     async def _arun_one(self, call: ToolCall, config: RunnableConfig) -> ToolMessage:
         if invalid_tool_message := self._validate_tool_call(call):
             return invalid_tool_message
@@ -77,7 +56,7 @@ class CustomToolNode(ToolNode):
         try:
             # 构建基础输入
             input = {**call, **{"type": "tool_call"}}
-            
+
             # 如果这个工具有预设参数，则添加到输入中
             if call["name"] in self.preset_params:
                 preset_for_tool = self.preset_params[call["name"]]
@@ -86,13 +65,11 @@ class CustomToolNode(ToolNode):
                 input["args"] = merged_args
                 print(f"🔧 为工具 {call['name']} 添加预设参数: {preset_for_tool}")
                 print(f"🔧 最终参数: {merged_args}")
-            
+
             tool_message: ToolMessage = await self.tools_by_name[call["name"]].ainvoke(
                 input, config
             )
-            tool_message.content = cast(
-                Union[str, list], msg_content_output(tool_message.content)
-            )
+            tool_message.content = cast(Union[str, list], msg_content_output(tool_message.content))
             return tool_message
         except GraphInterrupt as e:
             raise e
@@ -114,15 +91,15 @@ class CustomToolNode(ToolNode):
                 )
 
 
-
 async def main():
     # 获取 Tavily API key
     tavily_api_key = settings.get("TAVILY_API_KEY", None)
     if tavily_api_key is None:
         print("错误: 未设置 TAVILY_API_KEY")
         return
-    
-    model = get_model("gpt-4o-mini",
+
+    model = get_model(
+        "gpt-4o-mini",
         openai_format_api_key=settings.get("OPENAI_FORMAT_API_KEY", None),
         openai_format_base_url=settings.get("OPENAI_FORMAT_BASE_URL", None),
         anthropic_api_key=None,
@@ -131,20 +108,17 @@ async def main():
         max_output_tokens=15000,
     )
 
-    
-    
-    async def init_tool():           
+    async def init_tool():
         # 使用 HTTP 传输直接连接到 Tavily MCP 服务器
         client = MultiServerMCPClient(
-            {        
+            {
                 "tavily_web_search": {
                     "transport": "streamable_http",
                     "url": f"https://mcp.tavily.com/mcp/?tavilyApiKey={tavily_api_key}",
                 }
             }
         )
-        
-        
+
         # 异步获取工具
         tools = await client.get_tools()
         print(f"获取到的工具: {[tool.name for tool in tools]}")
@@ -159,41 +133,39 @@ async def main():
         #                 properties[param_name]['default'] = ["pypi.org", "docs.python.org"]
         #                 print(f"  ✅ 设置 {param_name} 默认值: include domains")
         #             elif re.search(r'exclude.*domain', param_lower):
-        #                 properties[param_name]['default'] = ["stackoverflow.com", "*huggingface", "discourse.slicer.org","ask.csdn.net", 
+        #                 properties[param_name]['default'] = ["stackoverflow.com", "*huggingface", "discourse.slicer.org","ask.csdn.net",
         #                     "codepudding.com", "*geeksforgeeks*", "*github*", "forum.developer.parrot.com"]
         #                 print(f"  ✅ 设置 {param_name} 默认值: exclude domains")
-                    
+
         #             elif re.search(r'search.*depth', param_lower):
         #                 properties[param_name]['default'] = "advanced"
         #                 print(f"  ✅ 设置 {param_name} 默认值: advanced")
         return tools
 
-
     tools = await init_tool()
 
     async def call_model(state: MessagesState):
         messages = state["messages"]
-        print(f"\n=== call_model 被调用 ===")
+        print("\n=== call_model 被调用 ===")
         print(f"输入消息数量: {len(messages)}")
-        
+
         print(f"可用工具: {[tool.name for tool in tools]}")
-        
+
         # 使用真实模型调用，绑定预设参数的工具
         model_with_tools = model.bind_tools(tools)
         print("开始调用模型...")
-        
+
         response = await model_with_tools.ainvoke(messages)
         print(f"模型响应类型: {type(response)}")
-        
-        
+
         return {"messages": [response]}
-    
+
     # 创建工具节点
     builder = StateGraph(MessagesState)
     builder.add_node("call_model", call_model)
     # builder.add_node("tools", CustomToolNode(tools, preset_params=preset_params))
     builder.add_node("tools", ToolNode(tools))
-    
+
     # 构建图
     builder.add_edge(START, "call_model")
     builder.add_conditional_edges(
@@ -201,9 +173,9 @@ async def main():
         tools_condition,
     )
     builder.add_edge("tools", "call_model")
-    
+
     graph = builder.compile()
-    
+
     # 执行测试 - 演示如何传递 include_domains 等参数
     # 注意：参数会在工具调用时由 LLM 自动传递，这里展示一个需要特定域名搜索的查询
     test_query = """
@@ -226,11 +198,11 @@ async def main():
 
     response = await graph.ainvoke({"messages": system_prompt + "\n" + test_query})
     # print("Response:", response)
-    
+
     return response
 
 
 # 运行异步主函数
 if __name__ == "__main__":
     result = asyncio.run(main())
-    print(result['messages'][-1].content)
+    print(result["messages"][-1].content)

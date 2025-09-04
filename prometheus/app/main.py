@@ -16,6 +16,7 @@ from prometheus.app.register_login_required_routes import (
 )
 from prometheus.configuration.config import settings
 from prometheus.utils.logger_manager import get_logger
+
 logger = get_logger(__name__)
 
 

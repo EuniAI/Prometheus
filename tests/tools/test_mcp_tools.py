@@ -1,14 +1,16 @@
 # weather_server.py
 import sys
+
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("Weather")
+
 
 class WeatherTools:
     driver: str
     timeout: int
     max_retries: int
-    
+
     @classmethod
     def configure(cls, **kwargs):
         """动态配置工具参数"""
@@ -31,6 +33,7 @@ class WeatherTools:
         """Get temperature for a location."""
         return f"[Driver={WeatherTools.driver}, Retries={WeatherTools.max_retries}] Temperature in {location} is 25°C"
 
+
 def parse_args(args):
     """解析命令行参数为 kwargs"""
     kwargs = {}
@@ -43,8 +46,8 @@ def parse_args(args):
                 # 尝试转换数据类型
                 if value.isdigit():
                     value = int(value)
-                elif value.lower() in ['true', 'false']:
-                    value = value.lower() == 'true'
+                elif value.lower() in ["true", "false"]:
+                    value = value.lower() == "true"
                 kwargs[key] = value
                 i += 2
             else:
@@ -53,6 +56,7 @@ def parse_args(args):
         else:
             i += 1
     return kwargs
+
 
 if __name__ == "__main__":
     # 动态解析命令行参数

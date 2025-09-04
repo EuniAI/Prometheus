@@ -1,4 +1,3 @@
-import logging
 import threading
 
 from prometheus.lang_graph.subgraphs.issue_classification_state import IssueClassificationState

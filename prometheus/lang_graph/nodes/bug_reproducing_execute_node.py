@@ -1,5 +1,4 @@
 import functools
-import logging
 import threading
 from pathlib import Path
 from typing import Optional, Sequence
@@ -12,8 +11,8 @@ from prometheus.docker.base_container import BaseContainer
 from prometheus.lang_graph.subgraphs.bug_reproduction_state import BugReproductionState
 from prometheus.tools.container_command import ContainerCommandTool
 from prometheus.utils.issue_util import format_test_commands
+from prometheus.utils.logger_manager import get_logger
 from prometheus.utils.patch_util import get_updated_files
-from prometheus.utils.logger_manager import get_logger  
 
 
 class BugReproducingExecuteNode:

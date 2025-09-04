@@ -5,9 +5,10 @@ workflows without performing any operations. It acts as a structural element in
 node graphs where a connection is needed but no processing is required.
 """
 
-from prometheus.utils.logger_manager import get_logger
 import threading
 from typing import Dict
+
+from prometheus.utils.logger_manager import get_logger
 
 
 class NoopNode:

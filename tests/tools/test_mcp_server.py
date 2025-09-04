@@ -1,14 +1,13 @@
-from mcp.server.fastmcp import FastMCP
+import asyncio
+import json
 import os
 import sys
-import json
-import asyncio
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 import yaml
 from langchain_mcp_adapters.client import MultiServerMCPClient
-
+from mcp.server.fastmcp import FastMCP
 
 # ==========================================
 # MCP Server (existing behavior preserved)
@@ -96,7 +95,9 @@ def _load_server_configs() -> Dict[str, Dict[str, Any]]:
     }
 
 
-def _build_client(server_configs: Optional[Dict[str, Dict[str, Any]]] = None) -> MultiServerMCPClient:
+def _build_client(
+    server_configs: Optional[Dict[str, Dict[str, Any]]] = None,
+) -> MultiServerMCPClient:
     global _CLIENT_CACHE
     if _CLIENT_CACHE is not None:
         return _CLIENT_CACHE
@@ -143,6 +144,7 @@ if __name__ == "__main__":
     # 确保在启动前注册所有工具
     sys.path.append("~/lix/Prometheus")
     import prometheus.tools  # noqa: F401
+
     mcp.run(transport="stdio")
 
     async def main():

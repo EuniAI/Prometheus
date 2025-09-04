@@ -9,6 +9,8 @@ from typing import Optional, Sequence
 
 import docker
 
+from prometheus.utils.logger_manager import get_logger
+
 
 class BaseContainer(ABC):
     """An abstract base class for managing Docker containers with file synchronization capabilities.
@@ -41,7 +43,7 @@ class BaseContainer(ABC):
         Args:
           project_path: Path to the project directory to be containerized.
         """
-        self._logger = logging.getLogger(
+        self._logger = get_logger(
             f"thread-{threading.get_ident()}.{self.__class__.__module__}.{self.__class__.__name__}"
         )
         temp_dir = Path(tempfile.mkdtemp())

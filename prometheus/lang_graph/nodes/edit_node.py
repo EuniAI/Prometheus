@@ -7,7 +7,6 @@ while maintaining code integrity.
 """
 
 import functools
-import logging
 import threading
 from typing import Dict
 
@@ -15,8 +14,8 @@ from langchain.tools import StructuredTool
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage
 
-from prometheus.tools.file_operation import FileOperationTool
 from prometheus.graph.knowledge_graph import KnowledgeGraph
+from prometheus.tools.file_operation import FileOperationTool
 from prometheus.utils.logger_manager import get_logger
 
 

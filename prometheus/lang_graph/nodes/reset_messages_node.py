@@ -10,9 +10,10 @@ The module is specifically designed for workflows where:
 - The same state attribute name is reused
 """
 
-from prometheus.utils.logger_manager import get_logger
 import threading
 from typing import Dict
+
+from prometheus.utils.logger_manager import get_logger
 
 
 class ResetMessagesNode:

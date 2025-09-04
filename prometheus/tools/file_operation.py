@@ -1,25 +1,28 @@
-import logging
 import os
 import shutil
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 from pydantic import BaseModel, Field
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.utils.knowledge_graph_utils import format_knowledge_graph_data
+from prometheus.utils.logger_manager import get_logger
 from prometheus.utils.str_util import pre_append_line_numbers
 
-logger = logging.getLogger("prometheus.tools.file_operation")
+logger = get_logger(__name__)
+
 
 @dataclass
 class ToolSpec:
     description: str
     input_schema: type
 
+
 class ReadFileInput(BaseModel):
     relative_path: str = Field("The relative path of the file to read")
+
 
 class ReadFileWithLineNumbersInput(BaseModel):
     relative_path: str = Field(
@@ -28,16 +31,19 @@ class ReadFileWithLineNumbersInput(BaseModel):
     start_line: int = Field(description="The start line number to read, 1-indexed and inclusive")
     end_line: int = Field(description="The ending line number to read, 1-indexed and exclusive")
 
+
 class CreateFileInput(BaseModel):
     relative_path: str = Field(
         description="The relative path of the file to create, eg. foo/bar/test.py, not absolute path"
     )
     content: str = Field(description="The content of the file to create")
 
+
 class DeleteInput(BaseModel):
     relative_path: str = Field(
         description="The relative path of the file/dir to delete, eg. foo/bar/test.py, not absolute path"
     )
+
 
 class EditFileInput(BaseModel):
     relative_path: str = Field(
@@ -61,7 +67,7 @@ class FileOperationTool:
         Returns up to the first 1000 lines by default to prevent context issues with large files.
         Returns an error message if the file doesn't exist.
         """,
-        input_schema=ReadFileInput
+        input_schema=ReadFileInput,
     )
 
     read_file_with_line_numbers_spec = ToolSpec(
@@ -70,7 +76,7 @@ class FileOperationTool:
         The line numbers are 1-indexed where start_line is inclusive and end_line is exclusive.
         For best results when analyzing code or text files, consider reading chunks of 500-1000 lines at a time.
         """,
-        input_schema=ReadFileWithLineNumbersInput
+        input_schema=ReadFileWithLineNumbersInput,
     )
 
     create_file_spec = ToolSpec(
@@ -79,7 +85,7 @@ class FileOperationTool:
         If the parent directories don't exist, they will be created automatically.
         Returns an error message if the file already exists.
         """,
-        input_schema=CreateFileInput
+        input_schema=CreateFileInput,
     )
 
     delete_spec = ToolSpec(
@@ -88,7 +94,7 @@ class FileOperationTool:
         For directories, it will recursively delete all contents.
         Returns an error message if the path doesn't exist.
         """,
-        input_schema=DeleteInput
+        input_schema=DeleteInput,
     )
 
     edit_file_spec = ToolSpec(
@@ -108,7 +114,7 @@ class FileOperationTool:
             new_content="return a / b"
         )
         """,
-        input_schema=EditFileInput
+        input_schema=EditFileInput,
     )
 
     def __init__(self, root_path: str, kg: KnowledgeGraph):
@@ -136,7 +142,9 @@ class FileOperationTool:
 
         return pre_append_line_numbers("".join(lines[:n_lines]), 1)
 
-    def read_file_with_line_numbers(self, relative_path: str, start_line: int, end_line: int) -> str:
+    def read_file_with_line_numbers(
+        self, relative_path: str, start_line: int, end_line: int
+    ) -> str:
         if os.path.isabs(relative_path):
             return f"relative_path: {relative_path} is a absolute path, not relative path."
 
@@ -168,7 +176,6 @@ class FileOperationTool:
         file_path.parent.mkdir(parents=True, exist_ok=True)
         file_path.write_text(content)
         return f"The file {relative_path} has been created."
-
 
     def delete(self, relative_path: str) -> str:
         if os.path.isabs(relative_path):
@@ -211,7 +218,9 @@ class FileOperationTool:
 
         return f"Successfully edited {relative_path}."
 
-    def read_file_with_knowledge_graph_data(self, relative_path: str) -> Union[Tuple[str, List[Dict[str, Any]]], Tuple[str, None]]:
+    def read_file_with_knowledge_graph_data(
+        self, relative_path: str
+    ) -> Union[Tuple[str, List[Dict[str, Any]]], Tuple[str, None]]:
         """
         Read the content of a file and return it along with structured knowledge graph data.
         Used for context provider node

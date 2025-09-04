@@ -6,14 +6,13 @@ files are properly reflected in the container's filesystem, maintaining consiste
 between the agent's workspace and the container environment.
 """
 
-import logging
 import threading
 from typing import Dict
 
 from prometheus.docker.base_container import BaseContainer
 from prometheus.git.git_repository import GitRepository
-from prometheus.utils.patch_util import get_updated_files
 from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.patch_util import get_updated_files
 
 
 class UpdateContainerNode:
