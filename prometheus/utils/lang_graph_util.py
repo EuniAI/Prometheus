@@ -67,7 +67,6 @@ def extract_last_tool_messages(messages: Sequence[BaseMessage]) -> Sequence[Tool
 
 
 def transform_tool_messages_to_str(messages: Sequence[ToolMessage]) -> str:
-
     # Aggregate all artifacts from the tool messages
     total_artifacts = []
     for message in messages:
