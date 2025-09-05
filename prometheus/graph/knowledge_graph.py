@@ -19,6 +19,7 @@ codebase to find the most relevant context for the user query.
 
 import asyncio
 import itertools
+import logging
 from collections import defaultdict, deque
 from pathlib import Path
 from typing import Mapping, Optional, Sequence
@@ -42,7 +43,8 @@ from prometheus.graph.graph_types import (
     Neo4jTextNode,
     TextNode,
 )
-from prometheus.utils.logger_manager import get_logger
+
+# from prometheus.utils.logger_manager import get_logger
 
 
 class KnowledgeGraph:
@@ -79,7 +81,7 @@ class KnowledgeGraph:
         self._next_node_id = root_node_id + len(self._knowledge_graph_nodes)
 
         self._file_graph_builder = FileGraphBuilder(max_ast_depth, chunk_size, chunk_overlap)
-        self._logger = get_logger(__name__)
+        self._logger = logging.getLogger(__name__)
 
     async def build_graph(self, root_dir: Path):
         """Asynchronously builds knowledge graph for a codebase at a location.

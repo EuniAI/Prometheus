@@ -1,5 +1,6 @@
 """The neo4j handler for writing the knowledge graph to neo4j."""
 
+import logging
 from typing import Mapping, Sequence
 
 from neo4j import AsyncGraphDatabase, AsyncManagedTransaction
@@ -15,7 +16,8 @@ from prometheus.graph.graph_types import (
     Neo4jTextNode,
 )
 from prometheus.graph.knowledge_graph import KnowledgeGraph
-from prometheus.utils.logger_manager import get_logger
+
+# from prometheus.utils.logger_manager import get_logger
 
 
 class KnowledgeGraphHandler:
@@ -30,7 +32,7 @@ class KnowledgeGraphHandler:
         self.driver = driver
         self.batch_size = batch_size
         # initialize the database and logger
-        self._logger = get_logger(__name__)
+        self._logger = logging.getLogger(__name__)
 
     async def init_database(self):
         """Initialization of the neo4j database."""

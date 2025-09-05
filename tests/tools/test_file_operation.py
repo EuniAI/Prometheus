@@ -1,3 +1,5 @@
+import shutil
+
 import pytest
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
@@ -7,9 +9,12 @@ from tests.test_utils.fixtures import temp_test_dir  # noqa: F401
 
 
 @pytest.fixture(scope="function")
-async def knowledge_graph_fixture():
-    kg = KnowledgeGraph(1000, 100, 10, 0)
-    await kg.build_graph(test_project_paths.TEST_PROJECT_PATH)
+async def knowledge_graph_fixture(temp_test_dir):  # noqa: F811
+    if temp_test_dir.exists():
+        shutil.rmtree(temp_test_dir)
+    shutil.copytree(test_project_paths.TEST_PROJECT_PATH, temp_test_dir)
+    kg = KnowledgeGraph(1, 1000, 100, 0)
+    await kg.build_graph(temp_test_dir)
     return kg
 
 

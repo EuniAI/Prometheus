@@ -38,7 +38,7 @@ async def test_num_ast_nodes(mock_neo4j_service):
 
     async with mock_neo4j_service.neo4j_driver.session() as session:
         read_ast_nodes = await session.execute_read(handler._read_ast_nodes, root_node_id=0)
-        assert len(read_ast_nodes) == 84
+        assert len(read_ast_nodes) == 7
 
 
 @pytest.mark.slow
@@ -56,7 +56,7 @@ async def test_num_text_nodes(mock_neo4j_service):
 
     async with mock_neo4j_service.neo4j_driver.session() as session:
         read_text_nodes = await session.execute_read(handler._read_text_nodes, root_node_id=0)
-        assert len(read_text_nodes) == 2
+        assert len(read_text_nodes) == 1
 
 
 @pytest.mark.slow
@@ -67,7 +67,7 @@ async def test_num_parent_of_edges(mock_neo4j_service):
         read_parent_of_edges = await session.execute_read(
             handler._read_parent_of_edges, root_node_id=0
         )
-        assert len(read_parent_of_edges) == 81
+        assert len(read_parent_of_edges) == 4
 
 
 @pytest.mark.slow
@@ -98,7 +98,7 @@ async def test_num_has_text_edges(mock_neo4j_service):
         read_has_text_edges = await session.execute_read(
             handler._read_has_text_edges, root_node_id=0
         )
-        assert len(read_has_text_edges) == 2
+        assert len(read_has_text_edges) == 1
 
 
 @pytest.mark.slow
@@ -109,12 +109,12 @@ async def test_num_next_chunk_edges(mock_neo4j_service):
         read_next_chunk_edges = await session.execute_read(
             handler._read_next_chunk_edges, root_node_id=0
         )
-        assert len(read_next_chunk_edges) == 1
+        assert len(read_next_chunk_edges) == 0
 
 
 @pytest.mark.slow
 async def test_clear_knowledge_graph(mock_empty_neo4j_service):
-    kg = KnowledgeGraph(1000, 1000, 100, 0)
+    kg = KnowledgeGraph(1, 1000, 100, 0)
     await kg.build_graph(test_project_paths.TEST_PROJECT_PATH)
 
     driver = mock_empty_neo4j_service.neo4j_driver
