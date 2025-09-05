@@ -3,6 +3,7 @@
 This module provides functions for counting tokens in text and chat messages,
 compatible with OpenAI models using the tiktoken library.
 """
+
 from typing import Sequence
 
 import tiktoken
