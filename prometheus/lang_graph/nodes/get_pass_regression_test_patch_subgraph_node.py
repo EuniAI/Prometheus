@@ -11,7 +11,7 @@ from prometheus.lang_graph.subgraphs.get_pass_regression_test_patch_subgraph imp
     GetPassRegressionTestPatchSubgraph,
 )
 from prometheus.models.test_patch_result import TestedPatchResult
-
+from prometheus.utils.logger_manager import get_thread_logger
 
 class GetPassRegressionTestPatchSubgraphNode:
     def __init__(
@@ -22,9 +22,7 @@ class GetPassRegressionTestPatchSubgraphNode:
         testing_patch_key: str,
         is_testing_patch_list: bool,
     ):
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.get_pass_regression_test_patch_subgraph_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
         self.subgraph = GetPassRegressionTestPatchSubgraph(
             base_model=model,
             container=container,

@@ -8,6 +8,7 @@ from prometheus.app.services.base_service import BaseService
 from prometheus.app.services.neo4j_service import Neo4jService
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.neo4j import knowledge_graph_handler
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class KnowledgeGraphService(BaseService):
@@ -42,7 +43,7 @@ class KnowledgeGraphService(BaseService):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.writing_lock = asyncio.Lock()
-        self._logger = logging.getLogger("prometheus.app.services.knowledge_graph_service")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     async def start(self):
         # Initialize the Neo4j database for Knowledge Graph operations

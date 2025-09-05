@@ -9,13 +9,14 @@ from sqlmodel import select
 from prometheus.app.entity.invitation_code import InvitationCode
 from prometheus.app.services.base_service import BaseService
 from prometheus.app.services.database_service import DatabaseService
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class InvitationCodeService(BaseService):
     def __init__(self, database_service: DatabaseService):
         self.database_service = database_service
         self.engine = database_service.engine
-        self._logger = logging.getLogger("prometheus.app.services.invitation_code_service")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     async def create_invitation_code(self) -> InvitationCode:
         """

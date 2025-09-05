@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from prometheus.lang_graph.graphs.issue_state import IssueType
 from prometheus.lang_graph.subgraphs.issue_classification_state import IssueClassificationState
 from prometheus.utils.issue_util import format_issue_info
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueClassifierOutput(BaseModel):
@@ -125,7 +125,7 @@ Issue classification context:
         )
         structured_llm = model.with_structured_output(IssueClassifierOutput)
         self.model = prompt | structured_llm
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def format_context_info(self, state: IssueClassificationState) -> str:
         context_info = self.ISSUE_CLASSIFICATION_CONTEXT.format(

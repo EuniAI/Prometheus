@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from prometheus.lang_graph.subgraphs.run_regression_tests_state import RunRegressionTestsState
 from prometheus.utils.lang_graph_util import get_last_message_content
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class RunRegressionTestsStructureOutput(BaseModel):
@@ -104,9 +105,7 @@ Don't forget to return the total number of tests run!
         )
         structured_llm = model.with_structured_output(RunRegressionTestsStructureOutput)
         self.model = prompt | structured_llm
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.run_regression_tests_structure_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)    
 
     def get_human_message(self, state: RunRegressionTestsState) -> str:
         # Format the human message using the state

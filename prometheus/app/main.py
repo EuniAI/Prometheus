@@ -1,6 +1,8 @@
 import inspect
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from pathlib import Path
+import threading
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,9 +17,11 @@ from prometheus.app.register_login_required_routes import (
     register_login_required_routes,
 )
 from prometheus.configuration.config import settings
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger, remove_multi_threads_log_file_handler
 
-logger = get_logger(__name__)
+
+# Create main thread logger with file handler - ONE LINE!
+logger, file_handler = get_thread_logger(__name__)
 
 
 @asynccontextmanager

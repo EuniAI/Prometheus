@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Sequence
 
 from prometheus.lang_graph.subgraphs.issue_not_verified_bug_state import IssueNotVerifiedBugState
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 @dataclass
@@ -39,7 +39,7 @@ class PatchNormalizationNode:
     """
 
     def __init__(self):
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def normalize_patch(self, raw_patch: str) -> str:
         """Normalize patch content for deduplication

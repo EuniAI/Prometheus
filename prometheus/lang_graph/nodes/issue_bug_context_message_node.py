@@ -2,7 +2,7 @@ import threading
 from typing import Dict
 
 from prometheus.utils.issue_util import format_issue_info
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueBugContextMessageNode:
@@ -20,7 +20,7 @@ Skip any test files
 """
 
     def __init__(self):
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, state: Dict):
         bug_fix_query = self.BUG_FIX_QUERY.format(

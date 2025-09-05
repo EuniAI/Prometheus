@@ -7,15 +7,14 @@ from langgraph.errors import GraphRecursionError
 
 from prometheus.docker.base_container import BaseContainer
 from prometheus.lang_graph.subgraphs.run_regression_tests_subgraph import RunRegressionTestsSubgraph
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class RunRegressionTestsSubgraphNode:
     def __init__(
         self, model: BaseChatModel, container: BaseContainer, passed_regression_tests_key: str
     ):
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.run_regression_tests_subgraph_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
         self.subgraph = RunRegressionTestsSubgraph(
             base_model=model,
             container=container,

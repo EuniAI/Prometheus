@@ -5,8 +5,7 @@ from pydantic import BaseModel, Field
 from tavily import InvalidAPIKeyError, TavilyClient, UsageLimitExceededError
 
 from prometheus.configuration.config import settings
-from prometheus.exceptions.web_search_tool_exception import WebSearchToolException
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 @dataclass
@@ -75,8 +74,15 @@ class WebSearchTool:
     def __init__(self):
         """Initialize the web search tool."""
         # Load environment variables from .env file
-        self._logger = get_logger(__name__)
-        self.tavily_client = TavilyClient(api_key=settings.TAVILY_API_KEY)
+        self._logger, file_handler = get_thread_logger(__name__)
+
+        tavily_api_key = settings.TAVILY_API_KEY
+        if tavily_api_key is None:
+            self._logger.warning("Tavily API key is not set")
+            tavily_client = None
+        else:
+            tavily_client = TavilyClient(api_key=tavily_api_key)
+        self.tavily_client = tavily_client
 
     def web_search(
         self,

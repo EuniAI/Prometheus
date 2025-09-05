@@ -11,7 +11,7 @@ from typing import Dict
 
 from prometheus.docker.base_container import BaseContainer
 from prometheus.git.git_repository import GitRepository
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 from prometheus.utils.patch_util import get_updated_files
 
 
@@ -34,7 +34,7 @@ class UpdateContainerNode:
         """
         self.container = container
         self.git_repo = git_repo
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, _: Dict):
         """Synchronizes the current project state with the container."""

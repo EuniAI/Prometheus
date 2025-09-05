@@ -10,7 +10,7 @@ import threading
 from typing import Dict, Optional
 
 from prometheus.git.git_repository import GitRepository
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class GitDiffNode:
@@ -33,7 +33,7 @@ class GitDiffNode:
         self.state_patch_name = state_patch_name
         self.state_excluded_files_key = state_excluded_files_key
         self.return_list = return_list
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, state: Dict):
         """Generates a Git diff for the current project state.

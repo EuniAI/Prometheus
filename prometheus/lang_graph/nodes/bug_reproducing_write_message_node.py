@@ -4,7 +4,7 @@ from langchain_core.messages import HumanMessage
 
 from prometheus.lang_graph.subgraphs.bug_reproduction_state import BugReproductionState
 from prometheus.utils.issue_util import format_issue_info
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class BugReproducingWriteMessageNode:
@@ -25,7 +25,7 @@ Now think about what went wrong and generate the complete self-contained test ca
 """
 
     def __init__(self):
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def format_human_message(self, state: BugReproductionState):
         if "reproduced_bug_failure_log" in state and state["reproduced_bug_failure_log"]:

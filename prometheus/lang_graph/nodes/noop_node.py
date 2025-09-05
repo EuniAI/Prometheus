@@ -8,7 +8,7 @@ node graphs where a connection is needed but no processing is required.
 import threading
 from typing import Dict
 
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class NoopNode:
@@ -21,7 +21,7 @@ class NoopNode:
     """
 
     def __init__(self):
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, state: Dict) -> None:
         """Routes the workflow without performing any operations.

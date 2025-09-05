@@ -9,7 +9,7 @@ from prometheus.git.git_repository import GitRepository
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.graphs.issue_state import IssueState
 from prometheus.lang_graph.subgraphs.issue_bug_subgraph import IssueBugSubgraph
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueBugSubgraphNode:
@@ -26,7 +26,7 @@ class IssueBugSubgraphNode:
         git_repo: GitRepository,
         test_commands: Optional[Sequence[str]] = None,
     ):
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
         self.container = container
         self.issue_bug_subgraph = IssueBugSubgraph(
             advanced_model=advanced_model,

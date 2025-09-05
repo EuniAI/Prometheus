@@ -7,7 +7,7 @@ from prometheus.docker.base_container import BaseContainer
 from prometheus.git.git_repository import GitRepository
 from prometheus.lang_graph.subgraphs.bug_fix_verification_subgraph import BugFixVerificationSubgraph
 from prometheus.lang_graph.subgraphs.issue_verified_bug_state import IssueVerifiedBugState
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class BugFixVerificationSubgraphNode:
@@ -17,7 +17,7 @@ class BugFixVerificationSubgraphNode:
         container: BaseContainer,
         git_repo: GitRepository,
     ):
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
         self.git_repo = git_repo
         self.subgraph = BugFixVerificationSubgraph(
             model=model,

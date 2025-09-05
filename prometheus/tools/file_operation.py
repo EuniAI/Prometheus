@@ -8,10 +8,10 @@ from pydantic import BaseModel, Field
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.utils.knowledge_graph_utils import format_knowledge_graph_data
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 from prometheus.utils.str_util import pre_append_line_numbers
 
-logger = get_logger(__name__)
+logger, file_handler = get_thread_logger(__name__)
 
 
 @dataclass

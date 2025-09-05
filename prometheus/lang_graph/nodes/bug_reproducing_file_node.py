@@ -9,7 +9,7 @@ from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.subgraphs.bug_reproduction_state import BugReproductionState
 from prometheus.tools.file_operation import FileOperationTool
 from prometheus.utils.lang_graph_util import get_last_message_content
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class BugReproducingFileNode:
@@ -42,7 +42,7 @@ Current project structure:
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def _init_tools(self):
         """Initializes file operation tools."""

@@ -5,6 +5,7 @@ from prometheus.lang_graph.subgraphs.bug_get_regression_tests_state import (
     BugGetRegressionTestsState,
 )
 from prometheus.utils.issue_util import format_issue_info
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class BugGetRegressionContextMessageNode:
@@ -86,9 +87,7 @@ def test_offset_preserved(self):
 """
 
     def __init__(self):
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.bug_get_regression_context_message_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, state: BugGetRegressionTestsState):
         select_regression_query = self.SELECT_REGRESSION_QUERY.format(

@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from prometheus.lang_graph.subgraphs.build_and_test_state import BuildAndTestState
 from prometheus.utils.lang_graph_util import format_agent_tool_message_history
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class TestStructuredOutput(BaseModel):
@@ -287,7 +287,7 @@ Output:
         )
         structured_llm = model.with_structured_output(TestStructuredOutput)
         self.model = prompt | structured_llm
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, state: BuildAndTestState):
         """Processes test state to generate structured test analysis.

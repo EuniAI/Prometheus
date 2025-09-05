@@ -13,7 +13,7 @@ The module is specifically designed for workflows where:
 import threading
 from typing import Dict
 
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class ResetMessagesNode:
@@ -37,7 +37,7 @@ class ResetMessagesNode:
             be reset during node execution.
         """
         self.message_state_key = message_state_key
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, state: Dict):
         """Resets the specified message state for the next iteration.

@@ -91,9 +91,12 @@ class LoggerManager:
 
     def __init__(self):
         """Initialize logger manager"""
+        self.log_level = getattr(settings, "LOGGING_LEVEL")
+        self.issue_log_dir = Path(getattr(settings, "WORKING_DIRECTORY")) / "answer_issue_logs"
         if not self._initialized:
             self._setup_root_logger()
             self._initialized = True
+
 
     def _setup_root_logger(self):
         """Setup root logger"""
@@ -104,25 +107,19 @@ class LoggerManager:
         self.root_logger.handlers.clear()
 
         # Set log level
-        log_level = getattr(settings, "LOGGING_LEVEL", "DEBUG")
-        self.root_logger.setLevel(getattr(logging, log_level))
+        self.root_logger.setLevel(getattr(logging, self.log_level))
 
         # Create colored formatter for console output
-        self.colored_formatter = ColoredFormatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
-
+        self.colored_formatter = ColoredFormatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         # Create plain formatter for file output
-        self.file_formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        self.file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        
+        
 
         # Create console handler (using colored formatter)
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(self.colored_formatter)
-        console_handler.setLevel(
-            getattr(logging, log_level)
-        )  # Ensure console handler uses same level
+        console_handler.setLevel(getattr(logging, self.log_level)) # Ensure console handler uses same level
         self.root_logger.addHandler(console_handler)
 
         # Prevent log propagation to parent logger
@@ -130,6 +127,39 @@ class LoggerManager:
 
         # Log configuration information
         self._log_configuration()
+
+    def _set_multi_threads_log_file_handler(self, thread_id: int, logger_name: str):
+        """Set multi threads log file handler"""
+        # Find existing log file for this thread_id, or create new one if none exists
+        log_file_path = self._find_or_create_log_file(thread_id)
+        file_handler = self.create_file_handler(log_file_path, logger_name)
+        return file_handler
+
+    def _find_or_create_log_file(self, thread_id: int) -> Path:
+        """
+        Find existing log file for the thread_id, or create new one if none exists
+        
+        Args:
+            thread_id: Thread ID to find/create log file for
+            
+        Returns:
+            Path to the log file (existing earliest one or newly created)
+        """
+        import glob
+        
+        # Pattern to match log files for this thread_id
+        pattern = str(self.issue_log_dir / f"*_{thread_id}.log")
+        existing_logs = glob.glob(pattern)
+        
+        if existing_logs:
+            # Sort by filename (which includes timestamp) to get chronological order
+            existing_logs.sort()
+            # Return the earliest (first) file
+            return Path(existing_logs[0])
+        else:
+            # No existing log file found, create a new one
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            return self.issue_log_dir / f"{timestamp}_{thread_id}.log"
 
     def _log_configuration(self):
         """Log configuration information"""
@@ -163,9 +193,9 @@ class LoggerManager:
         Returns:
             Configured logger instance
         """
-        # Ensure logger name starts with prometheus
-        if not name.startswith("prometheus"):
-            name = f"prometheus.{name}"
+        # # Ensure logger name starts with prometheus
+        # if not name.startswith("prometheus"):
+        #     name = f"prometheus.{name}"
 
         logger = logging.getLogger(name)
 
@@ -176,9 +206,8 @@ class LoggerManager:
 
         return logger
 
-    def create_file_handler(
-        self, log_file_path: Path, logger_name: str = "prometheus"
-    ) -> logging.FileHandler:
+
+    def create_file_handler(self, log_file_path: Path, logger_name: str) -> logging.FileHandler:
         """
         Create file handler for specified logger
 
@@ -191,38 +220,31 @@ class LoggerManager:
         """
         # Ensure log directory exists
         log_file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Create file handler (using plain formatter, without colors)
-        file_handler = logging.FileHandler(log_file_path)
+        
+        # Create file handler with append mode to preserve existing content
+        file_handler = logging.FileHandler(log_file_path, mode='a')
+        file_handler.setLevel(getattr(logging, self.log_level))
         file_handler.setFormatter(self.file_formatter)
-
-        # Ensure file handler uses the same log level as console handler
-        log_level = getattr(settings, "LOGGING_LEVEL", "DEBUG")
-        file_handler.setLevel(getattr(logging, log_level))
-
-        # Get logger and add handler
-        logger = self.get_logger(logger_name)
-        logger.addHandler(file_handler)
-
+        
+        # # Get logger directly without going through get_logger to avoid recursion
+        # # Ensure logger name starts with prometheus
+        # if not logger_name.startswith("prometheus"):
+        #     logger_name = f"prometheus.{logger_name}"
+        
+        logger = logging.getLogger(logger_name)
+        
+        # If it's a child logger, inherit root logger configuration
+        if logger_name != "prometheus":
+            logger.parent = self.root_logger
+            logger.propagate = True
+        
+        # Check if this logger already has a file handler to avoid duplicates
+        has_file_handler = any(isinstance(h, logging.FileHandler) for h in logger.handlers)
+        if not has_file_handler:
+            logger.addHandler(file_handler)
+        
         return file_handler
 
-    def create_timestamped_file_handler(
-        self, log_dir: Path, prefix: str = "prometheus", logger_name: str = "prometheus"
-    ) -> logging.FileHandler:
-        """
-        Create file handler with timestamp
-
-        Args:
-            log_dir: Log directory
-            prefix: Log file prefix
-            logger_name: Logger name
-
-        Returns:
-            Configured file handler
-        """
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_file = log_dir / f"{prefix}_{timestamp}.log"
-        return self.create_file_handler(log_file, logger_name)
 
     def remove_file_handler(self, handler: logging.FileHandler, logger_name: str = "prometheus"):
         """
@@ -236,17 +258,23 @@ class LoggerManager:
         logger.removeHandler(handler)
         handler.close()
 
-    def enable_colors(self):
-        """Enable colored log output"""
-        self.colored_formatter.use_colors = True and self.colored_formatter._supports_color()
+    def remove_multi_thread_file_handler(self, handler: logging.FileHandler, logger_name: str = None):
+        """
+        Remove multi-thread file handler from specific logger
 
-    def disable_colors(self):
-        """Disable colored log output"""
-        self.colored_formatter.use_colors = False
+        Args:
+            handler: File handler to remove
+            logger_name: Logger name to remove handler from
+        """
+        if logger_name:
+            logger = self.get_logger(logger_name)
+            logger.removeHandler(handler)
+        else:
+            # Fallback: try to remove from root logger
+            self.root_logger.removeHandler(handler)
+        handler.close()
 
-    def is_colors_enabled(self) -> bool:
-        """Check if colored output is enabled"""
-        return self.colored_formatter.use_colors
+    
 
 
 # Create global logger manager instance
@@ -264,40 +292,49 @@ def get_logger(name: str) -> logging.Logger:
         Configured logger instance
 
     Examples:
-        >>> logger = get_logger(__name__)
-        >>> logger = get_logger("prometheus.tools.web_search")
+        >>> logger, file_handler = get_thread_logger(__name__)
+        >>> logger, file_handler = get_thread_logger("prometheus.tools.web_search")
     """
     return logger_manager.get_logger(name)
 
 
-def create_file_handler(
-    log_file_path: Path, logger_name: str = "prometheus"
-) -> logging.FileHandler:
+
+
+def remove_multi_threads_log_file_handler(handler: logging.FileHandler, logger_name: str = None):
     """
-    Convenience function to create file handler
+    Convenience function to remove multi-thread file handler
 
     Args:
-        log_file_path: Log file path
-        logger_name: Logger name
-
-    Returns:
-        Configured file handler
+        handler: File handler to remove
+        logger_name: Logger name (optional)
     """
-    return logger_manager.create_file_handler(log_file_path, logger_name)
+    logger_manager.remove_multi_thread_file_handler(handler, logger_name)
 
 
-def create_timestamped_file_handler(
-    log_dir: Path, prefix: str = "prometheus", logger_name: str = "prometheus"
-) -> logging.FileHandler:
+def get_thread_logger(module_name: str) -> tuple[logging.Logger, logging.FileHandler]:
     """
-    Convenience function to create timestamped file handler
-
+    Convenience function to create a thread-specific logger with file handler in one call
+    
     Args:
-        log_dir: Log directory
-        prefix: Log file prefix
-        logger_name: Logger name
-
+        module_name: Module name (usually __name__), if None, uses current module
+        
     Returns:
-        Configured file handler
+        Tuple of (logger, file_handler) for easy cleanup
+        
+    Examples:
+        >>> logger, file_handler = get_thread_logger(__name__)
+        >>> logger.info("This goes to both console and file")
+        >>> # In finally block:
+        >>> remove_multi_threads_log_file_handler(file_handler, logger.name)
     """
-    return logger_manager.create_timestamped_file_handler(log_dir, prefix, logger_name)
+    import threading
+    
+    # Get thread ID
+    thread_id = threading.get_ident()
+    logger_name = f"thread-{thread_id}.{module_name}"
+    
+    # Create file handler and logger
+    file_handler = logger_manager._set_multi_threads_log_file_handler(thread_id, logger_name)
+    logger = get_logger(logger_name)
+    return logger, file_handler
+

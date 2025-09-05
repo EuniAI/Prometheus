@@ -10,7 +10,7 @@ from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.subgraphs.issue_not_verified_bug_subgraph import (
     IssueNotVerifiedBugSubgraph,
 )
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueNotVerifiedBugSubgraphNode:
@@ -22,7 +22,7 @@ class IssueNotVerifiedBugSubgraphNode:
         git_repo: GitRepository,
         container: BaseContainer,
     ):
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
         self.issue_not_verified_bug_subgraph = IssueNotVerifiedBugSubgraph(
             advanced_model=advanced_model,

@@ -11,7 +11,7 @@ from prometheus.utils.lang_graph_util import (
     format_agent_tool_message_history,
     get_last_message_content,
 )
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class BugReproducingStructuredOutput(BaseModel):
@@ -136,7 +136,7 @@ Log from executing bug reproducing file:
         )
         structured_llm = model.with_structured_output(BugReproducingStructuredOutput)
         self.model = prompt | structured_llm
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, state: BugReproductionState):
         bug_reproducing_log = format_agent_tool_message_history(

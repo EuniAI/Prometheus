@@ -7,7 +7,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage
 
 from prometheus.tools.web_search import WebSearchTool
-from prometheus.utils.logger_manager import get_logger
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueBugAnalyzerNode:
@@ -71,7 +71,7 @@ rather than implementation details.
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
-        self._logger = get_logger(f"thread-{threading.get_ident()}.{__name__}")
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def _init_tools(self):
         """Initializes tools for the node."""
