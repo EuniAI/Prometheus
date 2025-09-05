@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from tavily import InvalidAPIKeyError, TavilyClient, UsageLimitExceededError
 
 from prometheus.configuration.config import settings
+from prometheus.exceptions.web_search_tool_exception import WebSearchToolException
 from prometheus.utils.logger_manager import get_logger
 
 
@@ -75,14 +76,7 @@ class WebSearchTool:
         """Initialize the web search tool."""
         # Load environment variables from .env file
         self._logger = get_logger(__name__)
-
-        tavily_api_key = settings.TAVILY_API_KEY
-        if tavily_api_key is None:
-            self._logger.warning("Tavily API key is not set")
-            tavily_client = None
-        else:
-            tavily_client = TavilyClient(api_key=tavily_api_key)
-        self.tavily_client = tavily_client
+        self.tavily_client = TavilyClient(api_key=settings.TAVILY_API_KEY)
 
     def web_search(
         self,
@@ -102,7 +96,7 @@ class WebSearchTool:
         Returns:
             Formatted search results as a string.
         """
-
+        # Set default include domains if not provided
         if include_domains is None:
             include_domains = [
                 "stackoverflow.com",
@@ -114,8 +108,8 @@ class WebSearchTool:
                 "pypi.org",
                 "readthedocs.org",
             ]
-        if self.tavily_client is None:
-            raise RuntimeError("Tavily API key is not set")
+
+        # Call the Tavily API
         try:
             response = self.tavily_client.search(
                 query=query,
@@ -125,12 +119,14 @@ class WebSearchTool:
                 include_domains=include_domains or [],  # Convert None to an empty list
                 exclude_domains=exclude_domains or [],  # Convert None to an empty list
             )
-            format_response = format_results(response)
-            self._logger.info(f"web_search format_response: {format_response}")
-            return format_response
         except InvalidAPIKeyError:
-            raise ValueError("Invalid Tavily API key")
+            raise WebSearchToolException("Invalid Tavily API key")
         except UsageLimitExceededError:
-            raise RuntimeError("Usage limit exceeded")
+            raise WebSearchToolException("Usage limit exceeded")
         except Exception as e:
-            raise RuntimeError(f"An error occurred: {str(e)}")
+            raise WebSearchToolException(f"An error occurred: {str(e)}")
+
+        # Format and return the results
+        format_response = format_results(response)
+        self._logger.info(f"web_search format_response: {format_response}")
+        return format_response

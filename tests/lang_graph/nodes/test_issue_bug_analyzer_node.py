@@ -79,17 +79,6 @@ def test_web_search_tool_call_with_correct_parameters(fake_llm):
     assert web_search_tool.args_schema is not None
 
 
-@patch("prometheus.tools.web_search.tavily_client")
-def test_web_search_tool_without_api_key(fake_llm):
-    """Test web_search tool behavior when API key is not available."""
-    # Simulate no API key scenario
-    node = IssueBugAnalyzerNode(fake_llm)
-    web_search_tool = node.tools[0]
-
-    # The tool should still be created but may handle missing API key gracefully
-    assert web_search_tool.name == "web_search"
-
-
 def test_system_prompt_contains_web_search_info(fake_llm):
     """Test that the system prompt mentions web_search tool."""
     node = IssueBugAnalyzerNode(fake_llm)
