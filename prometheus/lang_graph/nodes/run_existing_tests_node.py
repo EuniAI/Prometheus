@@ -1,6 +1,3 @@
-import logging
-import threading
-
 from prometheus.docker.base_container import BaseContainer
 from prometheus.lang_graph.subgraphs.run_existing_tests_state import RunExistingTestsState
 from prometheus.utils.logger_manager import get_thread_logger

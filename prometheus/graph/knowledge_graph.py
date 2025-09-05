@@ -19,7 +19,6 @@ codebase to find the most relevant context for the user query.
 
 import asyncio
 import itertools
-import logging
 from collections import defaultdict, deque
 from pathlib import Path
 from typing import Mapping, Optional, Sequence

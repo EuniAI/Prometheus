@@ -1,7 +1,5 @@
 """Service for managing Neo4j database driver."""
 
-import logging
-
 from neo4j import AsyncGraphDatabase
 
 from prometheus.app.services.base_service import BaseService

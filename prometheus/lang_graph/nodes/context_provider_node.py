@@ -6,7 +6,6 @@ with structured tools to systematically search and analyze the codebase Knowledg
 """
 
 import functools
-import threading
 from typing import Dict
 
 from langchain.tools import StructuredTool

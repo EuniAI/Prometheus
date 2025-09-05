@@ -1,5 +1,3 @@
-import threading
-
 from prometheus.git.git_repository import GitRepository
 from prometheus.utils.logger_manager import get_thread_logger
 

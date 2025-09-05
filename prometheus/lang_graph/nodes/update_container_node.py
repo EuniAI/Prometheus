@@ -6,7 +6,6 @@ files are properly reflected in the container's filesystem, maintaining consiste
 between the agent's workspace and the container environment.
 """
 
-import threading
 from typing import Dict
 
 from prometheus.docker.base_container import BaseContainer

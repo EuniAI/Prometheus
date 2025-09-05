@@ -97,7 +97,6 @@ class LoggerManager:
             self._setup_root_logger()
             self._initialized = True
 
-
     def _setup_root_logger(self):
         """Setup root logger"""
         # Get root logger
@@ -110,16 +109,20 @@ class LoggerManager:
         self.root_logger.setLevel(getattr(logging, self.log_level))
 
         # Create colored formatter for console output
-        self.colored_formatter = ColoredFormatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        self.colored_formatter = ColoredFormatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         # Create plain formatter for file output
-        self.file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        
-        
+        self.file_formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
 
         # Create console handler (using colored formatter)
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(self.colored_formatter)
-        console_handler.setLevel(getattr(logging, self.log_level)) # Ensure console handler uses same level
+        console_handler.setLevel(
+            getattr(logging, self.log_level)
+        )  # Ensure console handler uses same level
         self.root_logger.addHandler(console_handler)
 
         # Prevent log propagation to parent logger
@@ -138,19 +141,19 @@ class LoggerManager:
     def _find_or_create_log_file(self, thread_id: int) -> Path:
         """
         Find existing log file for the thread_id, or create new one if none exists
-        
+
         Args:
             thread_id: Thread ID to find/create log file for
-            
+
         Returns:
             Path to the log file (existing earliest one or newly created)
         """
         import glob
-        
+
         # Pattern to match log files for this thread_id
         pattern = str(self.issue_log_dir / f"*_{thread_id}.log")
         existing_logs = glob.glob(pattern)
-        
+
         if existing_logs:
             # Sort by filename (which includes timestamp) to get chronological order
             existing_logs.sort()
@@ -206,7 +209,6 @@ class LoggerManager:
 
         return logger
 
-
     def create_file_handler(self, log_file_path: Path, logger_name: str) -> logging.FileHandler:
         """
         Create file handler for specified logger
@@ -220,31 +222,30 @@ class LoggerManager:
         """
         # Ensure log directory exists
         log_file_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Create file handler with append mode to preserve existing content
-        file_handler = logging.FileHandler(log_file_path, mode='a')
+        file_handler = logging.FileHandler(log_file_path, mode="a")
         file_handler.setLevel(getattr(logging, self.log_level))
         file_handler.setFormatter(self.file_formatter)
-        
+
         # # Get logger directly without going through get_logger to avoid recursion
         # # Ensure logger name starts with prometheus
         # if not logger_name.startswith("prometheus"):
         #     logger_name = f"prometheus.{logger_name}"
-        
+
         logger = logging.getLogger(logger_name)
-        
+
         # If it's a child logger, inherit root logger configuration
         if logger_name != "prometheus":
             logger.parent = self.root_logger
             logger.propagate = True
-        
+
         # Check if this logger already has a file handler to avoid duplicates
         has_file_handler = any(isinstance(h, logging.FileHandler) for h in logger.handlers)
         if not has_file_handler:
             logger.addHandler(file_handler)
-        
-        return file_handler
 
+        return file_handler
 
     def remove_file_handler(self, handler: logging.FileHandler, logger_name: str = "prometheus"):
         """
@@ -258,7 +259,9 @@ class LoggerManager:
         logger.removeHandler(handler)
         handler.close()
 
-    def remove_multi_thread_file_handler(self, handler: logging.FileHandler, logger_name: str = None):
+    def remove_multi_thread_file_handler(
+        self, handler: logging.FileHandler, logger_name: str = None
+    ):
         """
         Remove multi-thread file handler from specific logger
 
@@ -273,8 +276,6 @@ class LoggerManager:
             # Fallback: try to remove from root logger
             self.root_logger.removeHandler(handler)
         handler.close()
-
-    
 
 
 # Create global logger manager instance
@@ -298,8 +299,6 @@ def get_logger(name: str) -> logging.Logger:
     return logger_manager.get_logger(name)
 
 
-
-
 def remove_multi_threads_log_file_handler(handler: logging.FileHandler, logger_name: str = None):
     """
     Convenience function to remove multi-thread file handler
@@ -314,13 +313,13 @@ def remove_multi_threads_log_file_handler(handler: logging.FileHandler, logger_n
 def get_thread_logger(module_name: str) -> tuple[logging.Logger, logging.FileHandler]:
     """
     Convenience function to create a thread-specific logger with file handler in one call
-    
+
     Args:
         module_name: Module name (usually __name__), if None, uses current module
-        
+
     Returns:
         Tuple of (logger, file_handler) for easy cleanup
-        
+
     Examples:
         >>> logger, file_handler = get_thread_logger(__name__)
         >>> logger.info("This goes to both console and file")
@@ -328,13 +327,12 @@ def get_thread_logger(module_name: str) -> tuple[logging.Logger, logging.FileHan
         >>> remove_multi_threads_log_file_handler(file_handler, logger.name)
     """
     import threading
-    
+
     # Get thread ID
     thread_id = threading.get_ident()
     logger_name = f"thread-{thread_id}.{module_name}"
-    
+
     # Create file handler and logger
     file_handler = logger_manager._set_multi_threads_log_file_handler(thread_id, logger_name)
     logger = get_logger(logger_name)
     return logger, file_handler
-

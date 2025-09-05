@@ -1,5 +1,3 @@
-import logging
-import threading
 from typing import Dict
 
 from prometheus.git.git_repository import GitRepository

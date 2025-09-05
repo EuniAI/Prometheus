@@ -6,8 +6,6 @@ execution histories to determine build system presence, extract build steps, and
 identify any failures.
 """
 
-import threading
-
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field

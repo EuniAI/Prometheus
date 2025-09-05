@@ -2,7 +2,6 @@ import logging
 import shutil
 import tarfile
 import tempfile
-import threading
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional, Sequence

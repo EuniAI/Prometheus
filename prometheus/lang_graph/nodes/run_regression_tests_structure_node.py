@@ -1,5 +1,3 @@
-import logging
-import threading
 from typing import Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -105,7 +103,7 @@ Don't forget to return the total number of tests run!
         )
         structured_llm = model.with_structured_output(RunRegressionTestsStructureOutput)
         self.model = prompt | structured_llm
-        self._logger, file_handler = get_thread_logger(__name__)    
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def get_human_message(self, state: RunRegressionTestsState) -> str:
         # Format the human message using the state

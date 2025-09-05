@@ -1,7 +1,6 @@
 """Service for managing and interacting with Knowledge Graphs in Neo4j."""
 
 import asyncio
-import logging
 from pathlib import Path
 
 from prometheus.app.services.base_service import BaseService

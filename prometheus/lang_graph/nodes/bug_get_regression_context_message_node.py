@@ -1,6 +1,3 @@
-import logging
-import threading
-
 from prometheus.lang_graph.subgraphs.bug_get_regression_tests_state import (
     BugGetRegressionTestsState,
 )

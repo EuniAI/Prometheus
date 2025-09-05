@@ -1,4 +1,3 @@
-import logging
 from typing import Optional, Sequence
 
 from argon2 import PasswordHasher

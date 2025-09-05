@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from tavily import InvalidAPIKeyError, TavilyClient, UsageLimitExceededError
 
 from prometheus.configuration.config import settings
+from prometheus.exceptions.web_search_tool_exception import WebSearchToolException
 from prometheus.utils.logger_manager import get_thread_logger
 
 

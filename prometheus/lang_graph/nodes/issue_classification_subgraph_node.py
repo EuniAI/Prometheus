@@ -1,5 +1,3 @@
-import threading
-
 from langchain_core.language_models.chat_models import BaseChatModel
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph

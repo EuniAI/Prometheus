@@ -1,5 +1,3 @@
-import threading
-
 from langchain_core.messages import HumanMessage
 
 from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetrievalState

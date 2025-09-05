@@ -1,4 +1,3 @@
-import threading
 from typing import Dict
 
 from prometheus.utils.issue_util import format_issue_info

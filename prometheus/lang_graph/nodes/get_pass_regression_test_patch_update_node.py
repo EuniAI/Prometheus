@@ -1,6 +1,3 @@
-import logging
-import threading
-
 from prometheus.git.git_repository import GitRepository
 from prometheus.lang_graph.subgraphs.get_pass_regression_test_patch_state import (
     GetPassRegressionTestPatchState,

@@ -1,5 +1,3 @@
-import threading
-
 from prometheus.lang_graph.subgraphs.bug_reproduction_state import BugReproductionState
 from prometheus.utils.issue_util import format_issue_info
 from prometheus.utils.logger_manager import get_thread_logger

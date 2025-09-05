@@ -1,5 +1,3 @@
-import logging
-import threading
 from collections import Counter
 
 from prometheus.lang_graph.subgraphs.get_pass_regression_test_patch_state import (
@@ -15,7 +13,9 @@ class GetPassRegressionTestPatchCheckResultNode:
     """
 
     def __init__(self):
-        self._logger, file_handler = get_thread_logger(__name__ + f"get_pass_regression_test_patch_check_result_node")
+        self._logger, file_handler = get_thread_logger(
+            __name__ + "get_pass_regression_test_patch_check_result_node"
+        )
 
     def __call__(self, state: GetPassRegressionTestPatchState):
         """

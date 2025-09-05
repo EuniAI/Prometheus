@@ -6,7 +6,6 @@ fixes. It uses the GitRepository class to access Git operations and generate pat
 output.
 """
 
-import threading
 from typing import Dict, Optional
 
 from prometheus.git.git_repository import GitRepository
