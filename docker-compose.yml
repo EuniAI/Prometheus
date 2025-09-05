@@ -15,9 +15,6 @@ services:
       - NEO4J_server_memory_heap_max__size=12G
       - NEO4J_dbms_memory_transaction_total_max=12G
       - NEO4J_db_transaction_timeout=600s
-    ports:
-      - "7474:7474"
-      - "7687:7687"
     volumes:
       - ./data_neo4j:/data
     healthcheck:
@@ -36,8 +33,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=postgres
-    ports:
-      - "5432:5432"
     volumes:
       - ./data_postgres:/var/lib/postgresql/data
     healthcheck:
