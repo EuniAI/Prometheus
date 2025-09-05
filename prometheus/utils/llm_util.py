@@ -1,3 +1,9 @@
+"""LLM utility functions for token counting using tiktoken.
+
+This module provides functions for counting tokens in text and chat messages,
+compatible with OpenAI models using the tiktoken library.
+"""
+
 from typing import Sequence
 
 import tiktoken
@@ -6,14 +12,34 @@ from langchain_core.output_parsers import StrOutputParser
 
 
 def str_token_counter(text: str) -> int:
+    """Count the number of tokens in a text string using tiktoken.
+
+    Uses the "o200k_base" encoding which is compatible with GPT-4o models.
+
+    Args:
+        text: The input text string to count tokens for.
+
+    Returns:
+        The number of tokens in the text.
+    """
     enc = tiktoken.get_encoding("o200k_base")
     return len(enc.encode(text))
 
 
 def tiktoken_counter(messages: Sequence[BaseMessage]) -> int:
-    """Approximately reproduce https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+    """Count tokens for a sequence of chat messages using OpenAI's methodology.
 
-    For simplicity only supports str Message.contents.
+    Approximately reproduces the token counting logic from OpenAI's official
+    implementation. For simplicity, only supports string Message.contents.
+
+    Args:
+        messages: A sequence of BaseMessage objects representing the chat messages.
+
+    Returns:
+        The total number of tokens including message formatting overhead.
+
+    Raises:
+        ValueError: If an unsupported message type is encountered.
     """
     output_parser = StrOutputParser()
     num_tokens = 3  # every reply is primed with <|start|>assistant<|message|>
