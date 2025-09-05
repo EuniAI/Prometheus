@@ -16,9 +16,6 @@ services:
       - NEO4J_db_transaction_timeout=600s
     networks:
       - prometheus_network
-    ports:
-      - "7474:7474"
-      - "7687:7687"
     volumes:
       - ./data_neo4j:/data:rw
     healthcheck:
