@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "Prometheus"
-version = "0.0.1"
+version = "1.2.0"
 dependencies = [
   "langchain==0.3.3",
   "tree-sitter==0.21.3",
