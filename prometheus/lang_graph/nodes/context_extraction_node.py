@@ -10,6 +10,7 @@ from prometheus.models.context import Context
 from prometheus.utils.file_utils import read_file_with_line_numbers
 from prometheus.utils.knowledge_graph_utils import deduplicate_contexts
 from prometheus.utils.lang_graph_util import (
+    extract_human_queries,
     extract_last_tool_messages,
     transform_tool_messages_to_str,
 )
@@ -81,6 +82,28 @@ The context or file content that you have seen so far (Some of the context may b
 REMEMBER: Your task is to summarize the relevant contexts to a given query and return it in the specified format!
 """
 
+HUMAN_MESSAGE_WITH_REFINEMENT_QUERY = """\
+This is the original user query:
+
+--- BEGIN ORIGINAL QUERY ---
+{original_query}
+--- END ORIGINAL QUERY ---
+
+This is the refinement query. Please consider it together with the original query:
+
+--- BEGIN REFINEMENT QUERY ---
+{refinement_query}
+--- END REFINEMENT QUERY ---
+
+The context or file content that you have seen so far (Some of the context may be IRRELEVANT to the query!!!):
+
+--- BEGIN CONTEXT ---
+{context}
+--- END CONTEXT ---
+
+REMEMBER: Your task is to summarize the relevant contexts to a given query and the refinement query, and return your response in the specified format!
+"""
+
 
 class ContextOutput(BaseModel):
     reasoning: str = Field(
@@ -137,11 +160,24 @@ class ContextExtractionNode:
             )
             return {"context": final_context}
 
+        # Get last user query or refinement query
+        last_human_query = extract_human_queries(state["context_provider_messages"])[0]
+
         # Format the human message
-        human_message = HUMAN_MESSAGE.format(
-            original_query=state["query"],
-            context=full_context_str,
-        )
+        # If there is no refinement query, use the original query only
+        if last_human_query.strip() == state["query"].strip():
+            human_message = HUMAN_MESSAGE.format(
+                original_query=state["query"],
+                context=full_context_str,
+            )
+        else:
+            human_message = HUMAN_MESSAGE_WITH_REFINEMENT_QUERY.format(
+                original_query=state["query"],
+                refinement_query=last_human_query,
+                context=full_context_str,
+            )
+
+        # Log the human message for debugging
         self._logger.debug(human_message)
 
         # Summarize the context based on the last messages and system prompt

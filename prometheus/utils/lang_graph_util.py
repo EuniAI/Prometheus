@@ -70,7 +70,9 @@ def transform_tool_messages_to_str(messages: Sequence[ToolMessage]) -> str:
     # Aggregate all artifacts from the tool messages
     total_artifacts = []
     for message in messages:
-        total_artifacts.extend(message.artifact)
+        # only process messages that have artifacts
+        if message.artifact:
+            total_artifacts.extend(message.artifact)
 
     # Convert the aggregated artifacts to a string representation
     result = ""
