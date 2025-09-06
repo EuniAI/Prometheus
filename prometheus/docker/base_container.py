@@ -57,6 +57,8 @@ class BaseContainer(ABC):
         self._logger.debug(f"Using workdir: {self.workdir}")
 
         self.container = None
+        self._session_id = None  # ID of the active session
+        self._session_active = False  # Whether a session is currently active
 
     @abstractmethod
     def get_dockerfile_content(self) -> str:
@@ -187,6 +189,10 @@ class BaseContainer(ABC):
         Returns:
             str: Output of the command as a string.
         """
+        # Use session-based execution if a session is active
+        if self._session_active:
+            return self.execute_in_session(command)
+        
         timeout_msg = f"""
 *******************************************************************************
 {command} timeout after {self.timeout} seconds
@@ -210,6 +216,97 @@ class BaseContainer(ABC):
         self.execute_command("git reset --hard")
         self.execute_command("git clean -fd")
 
+    def start_session(self):
+        """Start a persistent interactive session.
+        
+        Creates a persistent bash session that maintains state between command executions.
+        This allows environment variables, working directory, and other session state
+        to persist across multiple execute_command calls.
+        
+        Note: This implementation uses a state file approach to maintain environment
+        variables and working directory between command executions.
+        """
+        if self._session_active:
+            self._logger.warning("Session already active, ending previous session")
+            self.end_session()
+        
+        self._logger.info("Starting persistent interactive session")
+        
+        # Initialize session state by creating a state file
+        self.execute_command("mkdir -p /tmp/prometheus_session")
+        self.execute_command("touch /tmp/prometheus_session/env_state")
+        self.execute_command("pwd > /tmp/prometheus_session/cwd_state")
+        
+        self._session_active = True
+        self._logger.debug("Session started with state tracking")
+
+    def execute_in_session(self, command: str) -> str:
+        """Execute a command in the persistent session.
+        
+        Args:
+            command: Command to execute in the active session.
+            
+        Returns:
+            str: Output of the command as a string.
+        """
+        if not self._session_active:
+            self._logger.warning("No active session, starting new session")
+            self.start_session()
+        
+        self._logger.debug(f"Executing in session: {command}")
+        
+        # For session-based execution, we load the session state first
+        # then execute the command, and finally save the new state
+        
+        # Load environment and working directory from previous session
+        env_load_cmd = "if [ -f /tmp/prometheus_session/env_state ]; then source /tmp/prometheus_session/env_state; fi"
+        cwd_load_cmd = "if [ -f /tmp/prometheus_session/cwd_state ]; then cd $(cat /tmp/prometheus_session/cwd_state); fi"
+        
+        # Execute the command with session state
+        full_command = f"{env_load_cmd} && {cwd_load_cmd} && {command}"
+        
+        timeout_msg = f"""
+*******************************************************************************
+{command} timeout after {self.timeout} seconds
+*******************************************************************************
+"""
+        bash_cmd = ["/bin/bash", "-lc", full_command]
+        full_cmd = ["timeout", "-k", "5", f"{self.timeout}s", *bash_cmd]
+        
+        exec_result = self.container.exec_run(full_cmd, workdir=self.workdir)
+        exec_result_str = exec_result.output.decode("utf-8")
+
+        if exec_result.exit_code in (124, 137):
+            exec_result_str += timeout_msg
+
+        # Save environment state for next command
+        self._save_session_state()
+        
+        self._logger.debug(f"Session command output:\n{exec_result_str}")
+        return exec_result_str
+
+    def _save_session_state(self):
+        """Save the current session state (environment and working directory)."""
+        # Save current environment variables (excluding special shell variables)
+        env_save_cmd = "env | grep -vE '^(PWD|OLDPWD|SHLVL|_|\\(|\\))' > /tmp/prometheus_session/env_state"
+        # Save current working directory
+        cwd_save_cmd = "pwd > /tmp/prometheus_session/cwd_state"
+        
+        # Execute state saving commands
+        self.container.exec_run(["/bin/bash", "-lc", env_save_cmd], workdir=self.workdir)
+        self.container.exec_run(["/bin/bash", "-lc", cwd_save_cmd], workdir=self.workdir)
+
+    def end_session(self):
+        """Clean up the persistent session."""
+        if self._session_active:
+            self._logger.info("Ending persistent session")
+            # Clean up any session-related resources
+            self._session_id = None
+            self._session_active = False
+            self._logger.debug("Session ended")
+        else:
+            self._logger.debug("No active session to end")
+
     def cleanup(self):
         """Clean up container resources and temporary files.
 
@@ -217,6 +314,10 @@ class BaseContainer(ABC):
         and deletes temporary project files.
         """
         self._logger.info("Cleaning up container and temporary files")
+        
+        # End any active session to prevent resource leaks
+        self.end_session()
+        
         if self.container:
             self.container.stop(timeout=10)
             self.container.remove(force=True)
