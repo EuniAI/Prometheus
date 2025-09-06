@@ -1,11 +1,9 @@
-import logging
-import threading
-
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from prometheus.lang_graph.subgraphs.issue_question_state import IssueQuestionState
 from prometheus.utils.issue_util import format_issue_info
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueQuestionAnalyzerNode:
@@ -46,9 +44,7 @@ rather than implementation details.
     def __init__(self, model: BaseChatModel):
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
         self.model = model
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.issue_question_analyzer_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, state: IssueQuestionState):
         human_prompt = HumanMessage(

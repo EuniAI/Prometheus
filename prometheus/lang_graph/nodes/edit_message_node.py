@@ -1,11 +1,10 @@
-import logging
-import threading
 from typing import Dict
 
 from langchain_core.messages import HumanMessage
 
 from prometheus.utils.issue_util import format_issue_info
 from prometheus.utils.lang_graph_util import get_last_message_content
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class EditMessageNode:
@@ -43,9 +42,7 @@ specific issues that caused the previous error.
 """
 
     def __init__(self):
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.edit_message_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def format_human_message(self, state: Dict):
         edit_error = ""

@@ -4,14 +4,13 @@ This module implements simplified patch normalization and direct selection funct
 Provides standardized patch candidates with direct best patch selection.
 """
 
-import logging
 import re
-import threading
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Sequence
 
 from prometheus.lang_graph.subgraphs.issue_not_verified_bug_state import IssueNotVerifiedBugState
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 @dataclass
@@ -39,9 +38,7 @@ class PatchNormalizationNode:
     """
 
     def __init__(self):
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.patch_normalization_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def normalize_patch(self, raw_patch: str) -> str:
         """Normalize patch content for deduplication

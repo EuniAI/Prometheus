@@ -1,15 +1,14 @@
 """Service for managing Neo4j database driver."""
 
-import logging
-
 from neo4j import AsyncGraphDatabase
 
 from prometheus.app.services.base_service import BaseService
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class Neo4jService(BaseService):
     def __init__(self, neo4j_uri: str, neo4j_username: str, neo4j_password: str):
-        self._logger = logging.getLogger("prometheus.app.services.neo4j_service")
+        self._logger, file_handler = get_thread_logger(__name__)
         self.neo4j_driver = AsyncGraphDatabase.driver(
             neo4j_uri,
             auth=(neo4j_username, neo4j_password),

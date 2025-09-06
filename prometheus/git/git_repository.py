@@ -1,13 +1,14 @@
 """Git repository management module."""
 
 import asyncio
-import logging
 import shutil
 import tempfile
 from pathlib import Path
 from typing import Optional, Sequence
 
 from git import Git, GitCommandError, InvalidGitRepositoryError, Repo
+
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class GitRepository:
@@ -23,12 +24,12 @@ class GitRepository:
         """
         Initialize a GitRepository instance.
         """
-        self._logger = logging.getLogger("prometheus.git.git_repository")
+        self._logger, file_handler = get_thread_logger(__name__)
 
         # Configure git command to use our logger
         g = Git()
         type(g).GIT_PYTHON_TRACE = "full"
-        git_cmd_logger = logging.getLogger("git.cmd")
+        git_cmd_logger, file_handler = get_thread_logger("git.cmd")
 
         # Ensure git command output goes to our logger
         for handler in git_cmd_logger.handlers:

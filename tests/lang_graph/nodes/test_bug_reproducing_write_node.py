@@ -6,6 +6,7 @@ from langchain_core.messages import HumanMessage
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.nodes.bug_reproducing_write_node import BugReproducingWriteNode
 from prometheus.lang_graph.subgraphs.bug_reproduction_state import BugReproductionState
+from tests.test_utils.fixtures import temp_test_dir  # noqa: F401
 from tests.test_utils.util import FakeListChatWithToolsModel
 
 
@@ -35,11 +36,11 @@ def test_state():
     )
 
 
-def test_call_method(mock_kg, test_state):
+def test_call_method(mock_kg, test_state, temp_test_dir):  # noqa: F811
     """Test the __call__ method execution."""
     fake_response = "Created test file"
     fake_llm = FakeListChatWithToolsModel(responses=[fake_response])
-    node = BugReproducingWriteNode(fake_llm, mock_kg)
+    node = BugReproducingWriteNode(fake_llm, temp_test_dir, mock_kg)
 
     result = node(test_state)
 

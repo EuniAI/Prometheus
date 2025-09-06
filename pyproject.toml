@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "Prometheus"
-version = "0.0.1"
+version = "1.2.0"
 dependencies = [
   "langchain==0.3.3",
   "tree-sitter==0.21.3",
@@ -27,6 +27,9 @@ dependencies = [
   "sqlmodel==0.0.24",
   "asyncpg",
   "pyjwt==2.6.0",
+  "mcp>=1.4.1",
+  "tavily-python>=0.5.1",
+  "langchain-mcp-adapters>=0.1.9",
   "httpx==0.28.1",
 ]
 requires-python = ">= 3.11"

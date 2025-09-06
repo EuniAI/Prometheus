@@ -1,8 +1,6 @@
-import logging
-import threading
-
 from prometheus.lang_graph.subgraphs.bug_reproduction_state import BugReproductionState
 from prometheus.utils.issue_util import format_issue_info
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueBugReproductionContextMessageNode:
@@ -109,9 +107,7 @@ Find the 5 most relevant test cases with complete context, ensuring ALL necessar
 """
 
     def __init__(self):
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.issue_bug_reproduction_context_message_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, state: BugReproductionState):
         bug_reproducing_query = self.BUG_REPRODUCING_QUERY.format(

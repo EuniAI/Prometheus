@@ -1,7 +1,7 @@
 import pytest
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
-from prometheus.tools import graph_traversal
+from prometheus.tools.graph_traversal import GraphTraversalTool
 from tests.test_utils import test_project_paths
 
 
@@ -12,11 +12,15 @@ async def knowledge_graph_fixture():
     return kg
 
 
+@pytest.fixture(scope="function")
+def graph_traversal_tool(knowledge_graph_fixture):
+    graph_traversal_tool = GraphTraversalTool(knowledge_graph_fixture)
+    return graph_traversal_tool
+
+
 @pytest.mark.slow
-async def test_find_file_node_with_basename(knowledge_graph_fixture):
-    result = graph_traversal.find_file_node_with_basename(
-        test_project_paths.PYTHON_FILE.name, knowledge_graph_fixture
-    )
+async def test_find_file_node_with_basename(graph_traversal_tool):
+    result = graph_traversal_tool.find_file_node_with_basename(test_project_paths.PYTHON_FILE.name)
 
     basename = test_project_paths.PYTHON_FILE.name
     relative_path = str(
@@ -31,13 +35,11 @@ async def test_find_file_node_with_basename(knowledge_graph_fixture):
 
 
 @pytest.mark.slow
-async def test_find_file_node_with_relative_path(knowledge_graph_fixture):
+async def test_find_file_node_with_relative_path(graph_traversal_tool):
     relative_path = str(
         test_project_paths.MD_FILE.relative_to(test_project_paths.TEST_PROJECT_PATH).as_posix()
     )
-    result = graph_traversal.find_file_node_with_relative_path(
-        relative_path, knowledge_graph_fixture
-    )
+    result = graph_traversal_tool.find_file_node_with_relative_path(relative_path)
 
     basename = test_project_paths.MD_FILE.name
 
@@ -49,10 +51,10 @@ async def test_find_file_node_with_relative_path(knowledge_graph_fixture):
 
 
 @pytest.mark.slow
-async def test_find_ast_node_with_text_in_file_with_basename(knowledge_graph_fixture):  # noqa: F811
+async def test_find_ast_node_with_text_in_file_with_basename(graph_traversal_tool):
     basename = test_project_paths.PYTHON_FILE.name
-    result = graph_traversal.find_ast_node_with_text_in_file_with_basename(
-        "Hello world!", basename, knowledge_graph_fixture
+    result = graph_traversal_tool.find_ast_node_with_text_in_file_with_basename(
+        "Hello world!", basename
     )
 
     result_data = result[1]
@@ -65,12 +67,12 @@ async def test_find_ast_node_with_text_in_file_with_basename(knowledge_graph_fix
 
 
 @pytest.mark.slow
-async def test_find_ast_node_with_text_in_file_with_relative_path(knowledge_graph_fixture):
+async def test_find_ast_node_with_text_in_file_with_relative_path(graph_traversal_tool):
     relative_path = str(
         test_project_paths.C_FILE.relative_to(test_project_paths.TEST_PROJECT_PATH).as_posix()
     )
-    result = graph_traversal.find_ast_node_with_text_in_file_with_relative_path(
-        "Hello world!", relative_path, knowledge_graph_fixture
+    result = graph_traversal_tool.find_ast_node_with_text_in_file_with_relative_path(
+        "Hello world!", relative_path
     )
 
     result_data = result[1]
@@ -83,12 +85,10 @@ async def test_find_ast_node_with_text_in_file_with_relative_path(knowledge_grap
 
 
 @pytest.mark.slow
-async def test_find_ast_node_with_type_in_file_with_basename(knowledge_graph_fixture):
+async def test_find_ast_node_with_type_in_file_with_basename(graph_traversal_tool):
     basename = test_project_paths.C_FILE.name
     node_type = "function_definition"
-    result = graph_traversal.find_ast_node_with_type_in_file_with_basename(
-        node_type, basename, knowledge_graph_fixture
-    )
+    result = graph_traversal_tool.find_ast_node_with_type_in_file_with_basename(node_type, basename)
 
     result_data = result[1]
     assert len(result_data) > 0
@@ -100,13 +100,13 @@ async def test_find_ast_node_with_type_in_file_with_basename(knowledge_graph_fix
 
 
 @pytest.mark.slow
-async def test_find_ast_node_with_type_in_file_with_relative_path(knowledge_graph_fixture):  # noqa: F811
+async def test_find_ast_node_with_type_in_file_with_relative_path(graph_traversal_tool):
     relative_path = str(
         test_project_paths.JAVA_FILE.relative_to(test_project_paths.TEST_PROJECT_PATH).as_posix()
     )
     node_type = "string_literal"
-    result = graph_traversal.find_ast_node_with_type_in_file_with_relative_path(
-        node_type, relative_path, knowledge_graph_fixture
+    result = graph_traversal_tool.find_ast_node_with_type_in_file_with_relative_path(
+        node_type, relative_path
     )
 
     result_data = result[1]
@@ -119,9 +119,9 @@ async def test_find_ast_node_with_type_in_file_with_relative_path(knowledge_grap
 
 
 @pytest.mark.slow
-async def test_find_text_node_with_text(knowledge_graph_fixture):
+async def test_find_text_node_with_text(graph_traversal_tool):
     text = "Text under header C"
-    result = graph_traversal.find_text_node_with_text(text, knowledge_graph_fixture)
+    result = graph_traversal_tool.find_text_node_with_text(text)
 
     result_data = result[1]
     assert len(result_data) > 0
@@ -137,12 +137,10 @@ async def test_find_text_node_with_text(knowledge_graph_fixture):
 
 
 @pytest.mark.slow
-async def test_find_text_node_with_text_in_file(knowledge_graph_fixture):
+async def test_find_text_node_with_text_in_file(graph_traversal_tool):
     basename = test_project_paths.MD_FILE.name
     text = "Text under header B"
-    result = graph_traversal.find_text_node_with_text_in_file(
-        text, basename, knowledge_graph_fixture
-    )
+    result = graph_traversal_tool.find_text_node_with_text_in_file(text, basename)
 
     result_data = result[1]
     assert len(result_data) > 0
@@ -158,9 +156,9 @@ async def test_find_text_node_with_text_in_file(knowledge_graph_fixture):
 
 
 @pytest.mark.slow
-async def test_get_next_text_node_with_node_id(knowledge_graph_fixture):
+async def test_get_next_text_node_with_node_id(graph_traversal_tool):
     node_id = 34
-    result = graph_traversal.get_next_text_node_with_node_id(node_id, knowledge_graph_fixture)
+    result = graph_traversal_tool.get_next_text_node_with_node_id(node_id)
 
     result_data = result[1]
     assert len(result_data) > 0
@@ -176,13 +174,11 @@ async def test_get_next_text_node_with_node_id(knowledge_graph_fixture):
 
 
 @pytest.mark.slow
-async def test_read_code_with_relative_path(knowledge_graph_fixture):  # noqa: F811
+async def test_read_code_with_relative_path(graph_traversal_tool):
     relative_path = str(
         test_project_paths.C_FILE.relative_to(test_project_paths.TEST_PROJECT_PATH).as_posix()
     )
-    result = graph_traversal.read_code_with_relative_path(
-        relative_path, 5, 6, knowledge_graph_fixture
-    )
+    result = graph_traversal_tool.read_code_with_relative_path(relative_path, 5, 6)
 
     result_data = result[1]
     assert len(result_data) > 0

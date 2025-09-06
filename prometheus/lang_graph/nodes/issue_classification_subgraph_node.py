@@ -1,6 +1,3 @@
-import logging
-import threading
-
 from langchain_core.language_models.chat_models import BaseChatModel
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
@@ -8,6 +5,7 @@ from prometheus.lang_graph.graphs.issue_state import IssueState
 from prometheus.lang_graph.subgraphs.issue_classification_subgraph import (
     IssueClassificationSubgraph,
 )
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueClassificationSubgraphNode:
@@ -17,9 +15,7 @@ class IssueClassificationSubgraphNode:
         kg: KnowledgeGraph,
         local_path: str,
     ):
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.issue_classification_subgraph_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
         self.issue_classification_subgraph = IssueClassificationSubgraph(
             model=model,
             kg=kg,

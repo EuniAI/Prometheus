@@ -70,7 +70,7 @@ class BugReproductionSubgraph:
         # Step 3: Write a patch to reproduce the bug
         bug_reproducing_write_message_node = BugReproducingWriteMessageNode()
         bug_reproducing_write_node = BugReproducingWriteNode(
-            advanced_model, git_repo.playground_path
+            advanced_model, git_repo.playground_path, kg
         )
         bug_reproducing_write_tools = ToolNode(
             tools=bug_reproducing_write_node.tools,

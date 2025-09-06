@@ -1,5 +1,3 @@
-import logging
-import threading
 from typing import Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -8,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from prometheus.lang_graph.subgraphs.issue_not_verified_bug_state import IssueNotVerifiedBugState
 from prometheus.utils.issue_util import format_issue_info
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class FinalPatchSelectionStructuredOutput(BaseModel):
@@ -128,9 +127,7 @@ I have generated the following patches, now please select the best patch among t
         )
         structured_llm = model.with_structured_output(FinalPatchSelectionStructuredOutput)
         self.model = prompt | structured_llm
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.final_patch_selection_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
         self.majority_voting_times = 10
 
     def format_human_message(self, patches: Sequence[str], state: IssueNotVerifiedBugState):

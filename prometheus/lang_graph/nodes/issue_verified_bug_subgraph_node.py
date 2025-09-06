@@ -1,6 +1,3 @@
-import logging
-import threading
-
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.errors import GraphRecursionError
 
@@ -9,6 +6,7 @@ from prometheus.git.git_repository import GitRepository
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.subgraphs.issue_bug_state import IssueBugState
 from prometheus.lang_graph.subgraphs.issue_verified_bug_subgraph import IssueVerifiedBugSubgraph
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueVerifiedBugSubgraphNode:
@@ -24,9 +22,7 @@ class IssueVerifiedBugSubgraphNode:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
     ):
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.issue_verified_bug_subgraph_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
         self.git_repo = git_repo
         self.issue_reproduced_bug_subgraph = IssueVerifiedBugSubgraph(
             advanced_model=advanced_model,
