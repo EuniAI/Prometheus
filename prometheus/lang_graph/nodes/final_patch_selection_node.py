@@ -160,8 +160,9 @@ I have generated the following patches, now please select the best patch among t
 
         # Handle the case with no candidate patches
         if not patches:
-            self._logger.warning("No candidate patches available for selection.")
-            return {"final_patch": ""}
+            self._logger.warning("No candidate patches, using full edit patches")
+            patches = state["edit_patches"]
+
         # Handle the case with only one candidate patch
         elif len(patches) == 1:
             self._logger.info("Only one candidate patch available, selecting it by default.")
