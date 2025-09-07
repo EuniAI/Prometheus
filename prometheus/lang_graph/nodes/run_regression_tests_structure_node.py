@@ -14,7 +14,7 @@ class RunRegressionTestsStructureOutput(BaseModel):
         description="List of test identifier of regression tests that passed (e.g., class name and method name)"
     )
     regression_test_fail_log: str = Field(
-        description="If the test failed, contains the complete test FAILURE log. Otherwise empty string"
+        description="If any test failed, contains the exact and complete test FAILURE log. Otherwise empty string"
     )
     total_tests_run: int = Field(
         description="Total number of tests run, including both passed and failed tests, or 0 if no tests were run",
@@ -31,7 +31,7 @@ Your task is to:
    - Test summary showing "passed" or "PASSED"
    - Warning is ok
    - No "FAILURES" section
-2. If a test fails, capture the complete failure output. Otherwise empty string for failure log
+2. If a test fails, capture the exact and complete failure output. Otherwise empty string for failure log
 3. Return the exact test identifiers that passed
 4. Count the total number of tests run. Only count tests that were actually executed! If tests were unable to run due to an error, do not count them!
 
