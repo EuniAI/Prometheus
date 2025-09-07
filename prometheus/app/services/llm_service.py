@@ -74,7 +74,7 @@ def get_model(
         )
     else:
         """
-        Use tiktoken_counter to ensure that the input messages do not exceed the maximum token limit.
+        Custom OpenAI chat model with specific configuration.
         """
         return CustomChatOpenAI(
             max_input_tokens=max_input_tokens,
