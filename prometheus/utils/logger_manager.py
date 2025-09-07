@@ -144,27 +144,18 @@ class LoggerManager:
 
         Args:
             thread_id: Thread ID to find/create log file for
-<<<<<<< HEAD
-
-=======
             force_new_file: If True, always create a new file with timestamp, even if existing files exist
             
->>>>>>> 25fb802 (fix log)
         Returns:
             Path to the log file (existing earliest one or newly created)
         """
         import glob
-<<<<<<< HEAD
-
-=======
-        
         if force_new_file:
             # Always create a new log file with current timestamp
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]  # Include milliseconds for uniqueness
             return self.issue_log_dir / f"{timestamp}_{thread_id}.log"
         
         # Original logic: find existing file or create new one
->>>>>>> 25fb802 (fix log)
         # Pattern to match log files for this thread_id
         pattern = str(self.issue_log_dir / f"*_{thread_id}.log")
         existing_logs = glob.glob(pattern)
@@ -331,12 +322,9 @@ def get_thread_logger(module_name: str, force_new_file: bool = False) -> tuple[l
 
     Args:
         module_name: Module name (usually __name__), if None, uses current module
-<<<<<<< HEAD
 
-=======
         force_new_file: If True, always create a new log file with timestamp, even if existing files exist
         
->>>>>>> 25fb802 (fix log)
     Returns:
         Tuple of (logger, file_handler) for easy cleanup
 
