@@ -89,7 +89,7 @@ This is the original user query:
 {original_query}
 --- END ORIGINAL QUERY ---
 
-This is the refinement query. Please consider it together with the original query:
+This is the refinement query. Please consider it together with the original query. It's really IMPORTANT!!!
 
 --- BEGIN REFINEMENT QUERY ---
 {refinement_query}
