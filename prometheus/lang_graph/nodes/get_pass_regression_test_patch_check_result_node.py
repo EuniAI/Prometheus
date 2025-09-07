@@ -13,9 +13,7 @@ class GetPassRegressionTestPatchCheckResultNode:
     """
 
     def __init__(self):
-        self._logger, file_handler = get_thread_logger(
-            __name__ + "get_pass_regression_test_patch_check_result_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, state: GetPassRegressionTestPatchState):
         """
