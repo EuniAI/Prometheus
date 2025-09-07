@@ -78,7 +78,7 @@ class IssueService(BaseService):
         """
 
         # Create thread-specific logger with file handler - ONE LINE!
-        logger, file_handler = get_thread_logger(__name__)
+        logger, file_handler = get_thread_logger(__name__, force_new_file=True)
 
         # Construct the working directory
         if dockerfile_content or image_name:

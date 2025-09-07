@@ -131,25 +131,40 @@ class LoggerManager:
         # Log configuration information
         self._log_configuration()
 
-    def _set_multi_threads_log_file_handler(self, thread_id: int, logger_name: str):
+    def _set_multi_threads_log_file_handler(self, thread_id: int, logger_name: str, force_new_file: bool = False):
         """Set multi threads log file handler"""
         # Find existing log file for this thread_id, or create new one if none exists
-        log_file_path = self._find_or_create_log_file(thread_id)
+        log_file_path = self._find_or_create_log_file(thread_id, force_new_file)
         file_handler = self.create_file_handler(log_file_path, logger_name)
         return file_handler
 
-    def _find_or_create_log_file(self, thread_id: int) -> Path:
+    def _find_or_create_log_file(self, thread_id: int, force_new_file: bool = False) -> Path:
         """
         Find existing log file for the thread_id, or create new one if none exists
 
         Args:
             thread_id: Thread ID to find/create log file for
+<<<<<<< HEAD
 
+=======
+            force_new_file: If True, always create a new file with timestamp, even if existing files exist
+            
+>>>>>>> 25fb802 (fix log)
         Returns:
             Path to the log file (existing earliest one or newly created)
         """
         import glob
+<<<<<<< HEAD
 
+=======
+        
+        if force_new_file:
+            # Always create a new log file with current timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]  # Include milliseconds for uniqueness
+            return self.issue_log_dir / f"{timestamp}_{thread_id}.log"
+        
+        # Original logic: find existing file or create new one
+>>>>>>> 25fb802 (fix log)
         # Pattern to match log files for this thread_id
         pattern = str(self.issue_log_dir / f"*_{thread_id}.log")
         existing_logs = glob.glob(pattern)
@@ -310,13 +325,18 @@ def remove_multi_threads_log_file_handler(handler: logging.FileHandler, logger_n
     logger_manager.remove_multi_thread_file_handler(handler, logger_name)
 
 
-def get_thread_logger(module_name: str) -> tuple[logging.Logger, logging.FileHandler]:
+def get_thread_logger(module_name: str, force_new_file: bool = False) -> tuple[logging.Logger, logging.FileHandler]:
     """
     Convenience function to create a thread-specific logger with file handler in one call
 
     Args:
         module_name: Module name (usually __name__), if None, uses current module
+<<<<<<< HEAD
 
+=======
+        force_new_file: If True, always create a new log file with timestamp, even if existing files exist
+        
+>>>>>>> 25fb802 (fix log)
     Returns:
         Tuple of (logger, file_handler) for easy cleanup
 
@@ -325,6 +345,9 @@ def get_thread_logger(module_name: str) -> tuple[logging.Logger, logging.FileHan
         >>> logger.info("This goes to both console and file")
         >>> # In finally block:
         >>> remove_multi_threads_log_file_handler(file_handler, logger.name)
+        
+        >>> # Force creating a new file each time
+        >>> logger, file_handler = get_thread_logger(__name__, force_new_file=True)
     """
     import threading
 
@@ -333,6 +356,6 @@ def get_thread_logger(module_name: str) -> tuple[logging.Logger, logging.FileHan
     logger_name = f"thread-{thread_id}.{module_name}"
 
     # Create file handler and logger
-    file_handler = logger_manager._set_multi_threads_log_file_handler(thread_id, logger_name)
+    file_handler = logger_manager._set_multi_threads_log_file_handler(thread_id, logger_name, force_new_file)
     logger = get_logger(logger_name)
     return logger, file_handler
