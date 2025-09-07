@@ -131,7 +131,9 @@ class LoggerManager:
         # Log configuration information
         self._log_configuration()
 
-    def _set_multi_threads_log_file_handler(self, thread_id: int, logger_name: str, force_new_file: bool = False):
+    def _set_multi_threads_log_file_handler(
+        self, thread_id: int, logger_name: str, force_new_file: bool = False
+    ):
         """Set multi threads log file handler"""
         # Find existing log file for this thread_id, or create new one if none exists
         log_file_path = self._find_or_create_log_file(thread_id, force_new_file)
@@ -145,16 +147,19 @@ class LoggerManager:
         Args:
             thread_id: Thread ID to find/create log file for
             force_new_file: If True, always create a new file with timestamp, even if existing files exist
-            
+
         Returns:
             Path to the log file (existing earliest one or newly created)
         """
         import glob
+
         if force_new_file:
             # Always create a new log file with current timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]  # Include milliseconds for uniqueness
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[
+                :-3
+            ]  # Include milliseconds for uniqueness
             return self.issue_log_dir / f"{timestamp}_{thread_id}.log"
-        
+
         # Original logic: find existing file or create new one
         # Pattern to match log files for this thread_id
         pattern = str(self.issue_log_dir / f"*_{thread_id}.log")
@@ -172,7 +177,7 @@ class LoggerManager:
 
     def _log_configuration(self):
         """Log configuration information"""
-        # 动态获取settings中所有可用的配置属性
+        # Dynamically get all attributes from settings
         config_attrs = [
             attr for attr in dir(settings) if attr.isupper() and not attr.startswith("_")
         ]
@@ -180,14 +185,14 @@ class LoggerManager:
         for attr in config_attrs:
             value = getattr(settings, attr, "Not Set")
 
-            # 使用通配符匹配敏感配置项（包含KEY、API、PASSWORD的）
+            # Check if the attribute name indicates a sensitive configuration
             is_sensitive = any(
                 keyword in attr.upper() for keyword in ["KEY", "API", "PASSWORD", "SECRET"]
             )
 
-            # 如果是敏感配置项，用星号代替
+            # If sensitive, mask the value
             if is_sensitive and value and value != "Not Set":
-                masked_value = "*" * min(len(str(value)), 8)  # 最多显示8个星号
+                masked_value = "*" * min(len(str(value)), 8)
                 self.root_logger.info(f"{attr}={masked_value}")
             else:
                 self.root_logger.info(f"{attr}={value}")
@@ -316,7 +321,9 @@ def remove_multi_threads_log_file_handler(handler: logging.FileHandler, logger_n
     logger_manager.remove_multi_thread_file_handler(handler, logger_name)
 
 
-def get_thread_logger(module_name: str, force_new_file: bool = False) -> tuple[logging.Logger, logging.FileHandler]:
+def get_thread_logger(
+    module_name: str, force_new_file: bool = False
+) -> tuple[logging.Logger, logging.FileHandler]:
     """
     Convenience function to create a thread-specific logger with file handler in one call
 
@@ -324,7 +331,7 @@ def get_thread_logger(module_name: str, force_new_file: bool = False) -> tuple[l
         module_name: Module name (usually __name__), if None, uses current module
 
         force_new_file: If True, always create a new log file with timestamp, even if existing files exist
-        
+
     Returns:
         Tuple of (logger, file_handler) for easy cleanup
 
@@ -333,7 +340,7 @@ def get_thread_logger(module_name: str, force_new_file: bool = False) -> tuple[l
         >>> logger.info("This goes to both console and file")
         >>> # In finally block:
         >>> remove_multi_threads_log_file_handler(file_handler, logger.name)
-        
+
         >>> # Force creating a new file each time
         >>> logger, file_handler = get_thread_logger(__name__, force_new_file=True)
     """
@@ -344,6 +351,8 @@ def get_thread_logger(module_name: str, force_new_file: bool = False) -> tuple[l
     logger_name = f"thread-{thread_id}.{module_name}"
 
     # Create file handler and logger
-    file_handler = logger_manager._set_multi_threads_log_file_handler(thread_id, logger_name, force_new_file)
+    file_handler = logger_manager._set_multi_threads_log_file_handler(
+        thread_id, logger_name, force_new_file
+    )
     logger = get_logger(logger_name)
     return logger, file_handler
