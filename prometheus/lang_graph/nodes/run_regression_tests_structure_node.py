@@ -1,5 +1,3 @@
-import logging
-import threading
 from typing import Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -8,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from prometheus.lang_graph.subgraphs.run_regression_tests_state import RunRegressionTestsState
 from prometheus.utils.lang_graph_util import get_last_message_content
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class RunRegressionTestsStructureOutput(BaseModel):
@@ -15,7 +14,7 @@ class RunRegressionTestsStructureOutput(BaseModel):
         description="List of test identifier of regression tests that passed (e.g., class name and method name)"
     )
     regression_test_fail_log: str = Field(
-        description="If the test failed, contains the complete test FAILURE log. Otherwise empty string"
+        description="If any test failed, contains the exact and complete test FAILURE log. Otherwise empty string"
     )
     total_tests_run: int = Field(
         description="Total number of tests run, including both passed and failed tests, or 0 if no tests were run",
@@ -32,7 +31,7 @@ Your task is to:
    - Test summary showing "passed" or "PASSED"
    - Warning is ok
    - No "FAILURES" section
-2. If a test fails, capture the complete failure output. Otherwise empty string for failure log
+2. If a test fails, capture the exact and complete failure output. Otherwise empty string for failure log
 3. Return the exact test identifiers that passed
 4. Count the total number of tests run. Only count tests that were actually executed! If tests were unable to run due to an error, do not count them!
 
@@ -104,9 +103,7 @@ Don't forget to return the total number of tests run!
         )
         structured_llm = model.with_structured_output(RunRegressionTestsStructureOutput)
         self.model = prompt | structured_llm
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.run_regression_tests_structure_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def get_human_message(self, state: RunRegressionTestsState) -> str:
         # Format the human message using the state

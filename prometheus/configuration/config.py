@@ -66,5 +66,8 @@ class Settings(BaseSettings):
     # Default normal user repository number
     DEFAULT_USER_REPOSITORY_LIMIT: int = 5
 
+    # tool for Websearch
+    TAVILY_API_KEY: str
+
 
 settings = Settings()

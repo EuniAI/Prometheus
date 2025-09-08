@@ -7,15 +7,15 @@ while maintaining code integrity.
 """
 
 import functools
-import logging
-import threading
 from typing import Dict
 
 from langchain.tools import StructuredTool
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage
 
-from prometheus.tools import file_operation
+from prometheus.graph.knowledge_graph import KnowledgeGraph
+from prometheus.tools.file_operation import FileOperationTool
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class EditNode:
@@ -118,15 +118,14 @@ MANDATORY REQUIREMENTS:
 7. NEVER write or run any tests, your change will be tested by reproduction tests and regression tests later
 """
 
-    def __init__(self, model: BaseChatModel, local_path: str):
+    def __init__(self, model: BaseChatModel, local_path: str, kg: KnowledgeGraph):
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
-        self.tools = self._init_tools(local_path)
+        self.file_operation_tool = FileOperationTool(local_path, kg)
+        self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.edit_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
 
-    def _init_tools(self, root_path: str):
+    def _init_tools(self):
         """Initializes file operation tools with the given root path.
 
         Args:
@@ -137,50 +136,50 @@ MANDATORY REQUIREMENTS:
         """
         tools = []
 
-        read_file_fn = functools.partial(file_operation.read_file, root_path=root_path)
+        read_file_fn = functools.partial(self.file_operation_tool.read_file)
         read_file_tool = StructuredTool.from_function(
             func=read_file_fn,
-            name=file_operation.read_file.__name__,
-            description=file_operation.READ_FILE_DESCRIPTION,
-            args_schema=file_operation.ReadFileInput,
+            name=self.file_operation_tool.read_file.__name__,
+            description=self.file_operation_tool.read_file_spec.description,
+            args_schema=self.file_operation_tool.read_file_spec.input_schema,
         )
         tools.append(read_file_tool)
 
         read_file_with_line_numbers_fn = functools.partial(
-            file_operation.read_file_with_line_numbers, root_path=root_path
+            self.file_operation_tool.read_file_with_line_numbers
         )
         read_file_with_line_numbers_tool = StructuredTool.from_function(
             func=read_file_with_line_numbers_fn,
-            name=file_operation.read_file_with_line_numbers.__name__,
-            description=file_operation.READ_FILE_WITH_LINE_NUMBERS_DESCRIPTION,
-            args_schema=file_operation.ReadFileWithLineNumbersInput,
+            name=self.file_operation_tool.read_file_with_line_numbers.__name__,
+            description=self.file_operation_tool.read_file_with_line_numbers_spec.description,
+            args_schema=self.file_operation_tool.read_file_with_line_numbers_spec.input_schema,
         )
         tools.append(read_file_with_line_numbers_tool)
 
-        create_file_fn = functools.partial(file_operation.create_file, root_path=root_path)
+        create_file_fn = functools.partial(self.file_operation_tool.create_file)
         create_file_tool = StructuredTool.from_function(
             func=create_file_fn,
-            name=file_operation.create_file.__name__,
-            description=file_operation.CREATE_FILE_DESCRIPTION,
-            args_schema=file_operation.CreateFileInput,
+            name=self.file_operation_tool.create_file.__name__,
+            description=self.file_operation_tool.create_file_spec.description,
+            args_schema=self.file_operation_tool.create_file_spec.input_schema,
         )
         tools.append(create_file_tool)
 
-        delete_fn = functools.partial(file_operation.delete, root_path=root_path)
+        delete_fn = functools.partial(self.file_operation_tool.delete)
         delete_tool = StructuredTool.from_function(
             func=delete_fn,
-            name=file_operation.delete.__name__,
-            description=file_operation.DELETE_DESCRIPTION,
-            args_schema=file_operation.DeleteInput,
+            name=self.file_operation_tool.delete.__name__,
+            description=self.file_operation_tool.delete_spec.description,
+            args_schema=self.file_operation_tool.delete_spec.input_schema,
         )
         tools.append(delete_tool)
 
-        edit_file_fn = functools.partial(file_operation.edit_file, root_path=root_path)
+        edit_file_fn = functools.partial(self.file_operation_tool.edit_file)
         edit_file_tool = StructuredTool.from_function(
             func=edit_file_fn,
-            name=file_operation.edit_file.__name__,
-            description=file_operation.EDIT_FILE_DESCRIPTION,
-            args_schema=file_operation.EditFileInput,
+            name=self.file_operation_tool.edit_file.__name__,
+            description=self.file_operation_tool.edit_file_spec.description,
+            args_schema=self.file_operation_tool.edit_file_spec.input_schema,
         )
         tools.append(edit_file_tool)
 

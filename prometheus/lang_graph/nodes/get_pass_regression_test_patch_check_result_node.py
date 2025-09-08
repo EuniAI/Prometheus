@@ -1,11 +1,10 @@
-import logging
-import threading
 from collections import Counter
 
 from prometheus.lang_graph.subgraphs.get_pass_regression_test_patch_state import (
     GetPassRegressionTestPatchState,
 )
 from prometheus.models.test_patch_result import TestedPatchResult
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class GetPassRegressionTestPatchCheckResultNode:
@@ -14,10 +13,7 @@ class GetPassRegressionTestPatchCheckResultNode:
     """
 
     def __init__(self):
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes."
-            f"get_pass_regression_test_patch_check_result_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def __call__(self, state: GetPassRegressionTestPatchState):
         """

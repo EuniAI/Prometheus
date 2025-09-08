@@ -177,7 +177,11 @@ async def list_repositories(request: Request):
     response_model=Response,
 )
 @requireLogin
-async def delete(repository_id: int, request: Request):
+async def delete(
+    repository_id: int,
+    request: Request,
+    force: bool = False,
+):
     knowledge_graph_service: KnowledgeGraphService = request.app.state.service[
         "knowledge_graph_service"
     ]
@@ -189,7 +193,7 @@ async def delete(repository_id: int, request: Request):
     if not repository:
         raise ServerException(code=404, message="Repository not found")
     # Check if the repository is being processed
-    if repository.is_working:
+    if repository.is_working and not force:
         raise ServerException(
             code=400, message="Repository is currently being processed, please try again later"
         )

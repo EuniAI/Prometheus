@@ -107,7 +107,7 @@ class IssueBugSubgraph:
         # Go to verified bug subgraph if the bug is verified, otherwise go to not verified bug subgraph
         workflow.add_conditional_edges(
             "bug_reproduction_subgraph_node",
-            lambda state: state["reproduced_bug"] or state["run_existing_test"],
+            lambda state: state["reproduced_bug"],
             {
                 True: "issue_verified_bug_subgraph_node",
                 False: "issue_not_verified_bug_subgraph_node",
