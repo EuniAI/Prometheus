@@ -187,22 +187,26 @@ async def delete(
 
     # Get the repository by ID
     repository = await repository_service.get_repository_by_id(repository_id)
+
     # Check if the repository exists
     if not repository:
         raise ServerException(code=404, message="Repository not found")
-    # Check if the repository is being processed
-    if repository.is_working and not force:
-        raise ServerException(
-            code=400, message="Repository is currently being processed, please try again later"
-        )
+
     # Check if the user has permission to delete the repository
     if settings.ENABLE_AUTHENTICATION and repository.user_id != request.state.user_id:
         raise ServerException(
             code=403, message="You do not have permission to delete this repository"
         )
+
+    # Check if the repository is being processed
+    if repository.is_working and not force:
+        raise ServerException(
+            code=400, message="Repository is currently being processed, please try again later"
+        )
     # Clear the knowledge graph and repository data
     await knowledge_graph_service.clear_kg(repository.kg_root_node_id)
     repository_service.clean_repository(repository)
+
     # Delete the repository from the database
     await repository_service.delete_repository(repository)
     return Response()
