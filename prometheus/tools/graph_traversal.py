@@ -147,7 +147,9 @@ class GraphTraversalTool:
         same as python's check `'foo' in text`, ie. it is case sensitive and is
         looking for exact matches. Therefore the search text should be exact as well.
 
-        You can use this tool to find all text/documentation in codebase that contains this text.""",
+        You can use this tool to find all text/documentation in codebase that contains this text.
+        Code snippets are NOT included in TextNode, so this tool is only for text files and documentation!
+        """,
         input_schema=FindTextNodeWithTextInput,
     )
 
@@ -155,17 +157,21 @@ class GraphTraversalTool:
         description="""Find all TextNode in the graph that exactly contains this text in a file with this basename.
         The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is
         looking for exact matches. Therefore the search text should be exact as well.
-        The basename must include the extension, like 'bar.py', 'baz.java' or 'foo'
+        The basename must include the extension, like 'bar.txt', 'baz.md' or 'foo'
         (in this case foo is a file without extension).
 
-        You can use this tool to find text/documentation in a specific file that contains this text.""",
+        You can use this tool to find text/documentation in a specific file that contains this text.
+        Code snippets are NOT included in TextNode, so this tool is only for text files and documentation!
+        """,
         input_schema=FindTextNodeWithTextInFileInput,
     )
 
     get_next_text_node_with_node_id_spec = ToolSpec(
         description="""Get the next TextNode of this given node_id.
 
-        You can use this tool to read the next section of text that you are interested in.""",
+        You can use this tool to read the next section of text that you are interested in.
+        Code snippets are NOT included in TextNode, so this tool is only for text files and documentation!
+        """,
         input_schema=GetNextTextNodeWithNodeIdInput,
     )
 

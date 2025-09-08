@@ -4,15 +4,11 @@ from langchain_core.language_models import LanguageModelInput
 from langchain_core.messages import BaseMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
-from pydantic import PrivateAttr
 
 
 class CustomChatOpenAI(ChatOpenAI):
-    _max_input_tokens: int = PrivateAttr()
-
-    def __init__(self, max_input_tokens: int, *args: Any, **kwargs: Any):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
-        self._max_input_tokens = max_input_tokens
 
     def bind_tools(self, tools, tool_choice=None, **kwargs):
         kwargs["parallel_tool_calls"] = False

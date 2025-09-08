@@ -34,10 +34,8 @@ def test_llm_service_init(mock_custom_chat_openai, mock_chat_anthropic):
     service = LLMService(
         advanced_model_name="gpt-4",
         base_model_name="claude-2.1",
-        advanced_model_max_input_tokens=64000,
         advanced_model_max_output_tokens=8000,
         advanced_model_temperature=0.0,
-        base_model_max_input_tokens=64000,
         base_model_max_output_tokens=8000,
         base_model_temperature=0.0,
         openai_format_api_key="openai-key",
@@ -49,7 +47,6 @@ def test_llm_service_init(mock_custom_chat_openai, mock_chat_anthropic):
     assert service.advanced_model == mock_gpt_instance
     assert service.base_model == mock_claude_instance
     mock_custom_chat_openai.assert_called_once_with(
-        max_input_tokens=64000,
         model="gpt-4",
         api_key="openai-key",
         base_url="https://api.openai.com/v1",
@@ -73,13 +70,11 @@ def test_get_openai_format_model(mock_custom_chat_openai):
         openai_format_api_key="openrouter-key",
         openai_format_base_url="https://openrouter.ai/api/v1",
         max_output_tokens=16000,
-        max_input_tokens=60000,
         temperature=0.0,
     )
 
     # Verify
     mock_custom_chat_openai.assert_called_once_with(
-        max_input_tokens=60000,
         model="openrouter/model",
         api_key="openrouter-key",
         base_url="https://openrouter.ai/api/v1",
@@ -96,7 +91,6 @@ def test_get_model_claude(mock_chat_anthropic):
         anthropic_api_key="anthropic-key",
         temperature=0.0,
         max_output_tokens=8000,
-        max_input_tokens=60000,
     )
 
     # Verify
@@ -116,7 +110,6 @@ def test_get_model_gemini(mock_chat_google):
         gemini_api_key="gemini-key",
         temperature=0.0,
         max_output_tokens=8000,
-        max_input_tokens=60000,
     )
 
     # Verify

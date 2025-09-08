@@ -13,10 +13,8 @@ class LLMService(BaseService):
         self,
         advanced_model_name: str,
         base_model_name: str,
-        advanced_model_max_input_tokens: int,
         advanced_model_max_output_tokens: int,
         advanced_model_temperature: float,
-        base_model_max_input_tokens: int,
         base_model_max_output_tokens: int,
         base_model_temperature: float,
         openai_format_api_key: Optional[str] = None,
@@ -27,7 +25,6 @@ class LLMService(BaseService):
         self.advanced_model = get_model(
             advanced_model_name,
             advanced_model_temperature,
-            advanced_model_max_input_tokens,
             advanced_model_max_output_tokens,
             openai_format_api_key,
             openai_format_base_url,
@@ -37,7 +34,6 @@ class LLMService(BaseService):
         self.base_model = get_model(
             base_model_name,
             base_model_temperature,
-            base_model_max_input_tokens,
             base_model_max_output_tokens,
             openai_format_api_key,
             openai_format_base_url,
@@ -49,7 +45,6 @@ class LLMService(BaseService):
 def get_model(
     model_name: str,
     temperature: float,
-    max_input_tokens: int,
     max_output_tokens: int,
     openai_format_api_key: Optional[str] = None,
     openai_format_base_url: Optional[str] = None,
@@ -77,7 +72,6 @@ def get_model(
         Custom OpenAI chat model with specific configuration.
         """
         return CustomChatOpenAI(
-            max_input_tokens=max_input_tokens,
             model=model_name,
             api_key=openai_format_api_key,
             base_url=openai_format_base_url,
