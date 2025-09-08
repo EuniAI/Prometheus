@@ -13,7 +13,6 @@ from prometheus.utils.lang_graph_util import (
     format_agent_tool_message_history,
     get_last_message_content,
 )
-from prometheus.utils.llm_util import str_token_counter, tiktoken_counter
 
 
 # Test check_remaining_steps
@@ -26,28 +25,6 @@ def test_check_remaining_steps():
 
     assert check_remaining_steps(state_enough_steps, mock_router, 3) == "next_step"
     assert check_remaining_steps(state_low_steps, mock_router, 3) == "low_remaining_steps"
-
-
-# Test str_token_counter
-def test_str_token_counter():
-    text = "Hello, world!"
-    token_count = str_token_counter(text)
-    assert isinstance(token_count, int)
-    assert token_count > 0
-
-
-# Test tiktoken_counter
-def test_tiktoken_counter():
-    messages = [
-        SystemMessage(content="System message"),
-        HumanMessage(content="Human message"),
-        AIMessage(content="AI response"),
-        ToolMessage(content="Tool message", tool_call_id="call_1"),
-    ]
-
-    token_count = tiktoken_counter(messages)
-    assert isinstance(token_count, int)
-    assert token_count > 0
 
 
 # Test extract_ai_responses

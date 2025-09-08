@@ -42,11 +42,9 @@ class Settings(BaseSettings):
     OPENAI_FORMAT_API_KEY: Optional[str] = None
 
     # Model parameters
-    ADVANCED_MODEL_MAX_INPUT_TOKENS: int
     ADVANCED_MODEL_TEMPERATURE: Optional[float] = None
     ADVANCED_MODEL_MAX_OUTPUT_TOKENS: Optional[int] = None
 
-    BASE_MODEL_MAX_INPUT_TOKENS: int
     BASE_MODEL_TEMPERATURE: Optional[float] = None
     BASE_MODEL_MAX_OUTPUT_TOKENS: Optional[int] = None
 
