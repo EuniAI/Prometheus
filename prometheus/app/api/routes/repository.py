@@ -68,14 +68,12 @@ async def upload_github_repository(
             upload_repository_request.commit_id,
             request.state.user_id,
         )
-    else:
-        repository = await repository_service.get_repository_by_url_and_commit_id(
-            upload_repository_request.https_url, commit_id=upload_repository_request.commit_id
-        )
 
-    # If the repository already exists, return its ID
-    if repository:
-        return Response(message="Repository already exists", data={"repository_id": repository.id})
+        # If the repository already exists, return its ID
+        if repository:
+            return Response(
+                message="Repository already exists", data={"repository_id": repository.id}
+            )
 
     # Check if the number of repositories exceeds the limit
     if settings.ENABLE_AUTHENTICATION:
