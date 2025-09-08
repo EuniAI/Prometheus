@@ -1,7 +1,4 @@
-import logging
-import threading
 import traceback
-from datetime import datetime
 from pathlib import Path
 from typing import Mapping, Optional, Sequence
 
@@ -13,6 +10,7 @@ from prometheus.git.git_repository import GitRepository
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.graphs.issue_graph import IssueGraph
 from prometheus.lang_graph.graphs.issue_state import IssueType
+from prometheus.utils.logger_manager import get_thread_logger, remove_multi_threads_log_file_handler
 
 
 class IssueService(BaseService):
@@ -79,15 +77,8 @@ class IssueService(BaseService):
                 - issue_type (IssueType): The type of the issue (BUG or QUESTION).
         """
 
-        # Set up a dedicated logger for this thread
-        logger = logging.getLogger(f"thread-{threading.get_ident()}.prometheus")
-        logger.setLevel(getattr(logging, self.logging_level))
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_file = self.answer_issue_log_dir / f"{timestamp}_{threading.get_ident()}.log"
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+        # Create thread-specific logger with file handler - ONE LINE!
+        logger, file_handler = get_thread_logger(__name__, force_new_file=True)
 
         # Construct the working directory
         if dockerfile_content or image_name:
@@ -141,5 +132,5 @@ class IssueService(BaseService):
             logger.error(f"Error in answer_issue: {str(e)}\n{traceback.format_exc()}")
             return None, False, False, False, None, None
         finally:
-            logger.removeHandler(file_handler)
-            file_handler.close()
+            # Remove multi-thread file handler
+            remove_multi_threads_log_file_handler(file_handler, logger.name)

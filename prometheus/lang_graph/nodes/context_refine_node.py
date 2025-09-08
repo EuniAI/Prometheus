@@ -1,6 +1,3 @@
-import logging
-import threading
-
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
@@ -8,6 +5,7 @@ from pydantic import BaseModel, Field
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetrievalState
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class ContextRefineStructuredOutput(BaseModel):
@@ -90,9 +88,7 @@ If additional context is needed:
         )
         structured_llm = model.with_structured_output(ContextRefineStructuredOutput)
         self.model = prompt | structured_llm
-        self._logger = logging.getLogger(
-            f"thread-{threading.get_ident()}.prometheus.lang_graph.nodes.context_refine_node"
-        )
+        self._logger, file_handler = get_thread_logger(__name__)
 
     def format_refine_message(self, state: ContextRetrievalState):
         original_query = state["query"]

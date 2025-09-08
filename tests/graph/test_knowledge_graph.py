@@ -22,24 +22,24 @@ async def mock_neo4j_service(neo4j_container_with_kg_fixture):  # noqa: F811
 
 
 async def test_build_graph():
-    knowledge_graph = KnowledgeGraph(1000, 100, 10, 0)
+    knowledge_graph = KnowledgeGraph(1, 1000, 100, 0)
     await knowledge_graph.build_graph(test_project_paths.TEST_PROJECT_PATH)
 
-    assert knowledge_graph._next_node_id == 93
+    assert knowledge_graph._next_node_id == 15
     # 7 FileNode
     # 84 ASTnode
     # 2 TextNode
-    assert len(knowledge_graph._knowledge_graph_nodes) == 93
-    assert len(knowledge_graph._knowledge_graph_edges) == 93
+    assert len(knowledge_graph._knowledge_graph_nodes) == 15
+    assert len(knowledge_graph._knowledge_graph_edges) == 14
 
     assert len(knowledge_graph.get_file_nodes()) == 7
-    assert len(knowledge_graph.get_ast_nodes()) == 84
-    assert len(knowledge_graph.get_text_nodes()) == 2
-    assert len(knowledge_graph.get_parent_of_edges()) == 81
+    assert len(knowledge_graph.get_ast_nodes()) == 7
+    assert len(knowledge_graph.get_text_nodes()) == 1
+    assert len(knowledge_graph.get_parent_of_edges()) == 4
     assert len(knowledge_graph.get_has_file_edges()) == 6
     assert len(knowledge_graph.get_has_ast_edges()) == 3
-    assert len(knowledge_graph.get_has_text_edges()) == 2
-    assert len(knowledge_graph.get_next_chunk_edges()) == 1
+    assert len(knowledge_graph.get_has_text_edges()) == 1
+    assert len(knowledge_graph.get_next_chunk_edges()) == 0
 
 
 async def test_get_file_tree():

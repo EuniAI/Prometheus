@@ -1,4 +1,3 @@
-import logging
 from typing import Optional, Sequence
 
 from argon2 import PasswordHasher
@@ -11,13 +10,14 @@ from prometheus.app.services.base_service import BaseService
 from prometheus.app.services.database_service import DatabaseService
 from prometheus.exceptions.server_exception import ServerException
 from prometheus.utils.jwt_utils import JWTUtils
+from prometheus.utils.logger_manager import get_thread_logger
 
 
 class UserService(BaseService):
     def __init__(self, database_service: DatabaseService):
         self.database_service = database_service
         self.engine = database_service.engine
-        self._logger = logging.getLogger("prometheus.app.services.user_service")
+        self._logger, file_handler = get_thread_logger(__name__)
         self.ph = PasswordHasher()
         self.jwt_utils = JWTUtils()
 

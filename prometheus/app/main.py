@@ -1,5 +1,4 @@
 import inspect
-import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -16,27 +15,10 @@ from prometheus.app.register_login_required_routes import (
     register_login_required_routes,
 )
 from prometheus.configuration.config import settings
+from prometheus.utils.logger_manager import get_thread_logger
 
-# Create a logger for the application's namespace
-logger = logging.getLogger("prometheus")
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
-logger.setLevel(getattr(logging, settings.LOGGING_LEVEL))
-logger.propagate = False
-
-# Log the configuration settings
-logger.info(f"LOGGING_LEVEL={settings.LOGGING_LEVEL}")
-logger.info(f"ENVIRONMENT={settings.ENVIRONMENT}")
-logger.info(f"BACKEND_CORS_ORIGINS={settings.BACKEND_CORS_ORIGINS}")
-logger.info(f"ADVANCED_MODEL={settings.ADVANCED_MODEL}")
-logger.info(f"BASE_MODEL={settings.BASE_MODEL}")
-logger.info(f"NEO4J_BATCH_SIZE={settings.NEO4J_BATCH_SIZE}")
-logger.info(f"WORKING_DIRECTORY={settings.WORKING_DIRECTORY}")
-logger.info(f"KNOWLEDGE_GRAPH_MAX_AST_DEPTH={settings.KNOWLEDGE_GRAPH_MAX_AST_DEPTH}")
-logger.info(f"KNOWLEDGE_GRAPH_CHUNK_SIZE={settings.KNOWLEDGE_GRAPH_CHUNK_SIZE}")
-logger.info(f"KNOWLEDGE_GRAPH_CHUNK_OVERLAP={settings.KNOWLEDGE_GRAPH_CHUNK_OVERLAP}")
+# Create main thread logger with file handler - ONE LINE!
+logger, file_handler = get_thread_logger(__name__)
 
 
 @asynccontextmanager
