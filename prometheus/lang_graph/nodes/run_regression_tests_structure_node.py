@@ -14,7 +14,7 @@ class RunRegressionTestsStructureOutput(BaseModel):
         description="List of test identifier of regression tests that passed (e.g., class name and method name)"
     )
     regression_test_fail_log: str = Field(
-        description="If any test failed, contains the exact and complete test FAILURE log. Otherwise empty string"
+        description="Complete failure log if any test failed. Empty string if all tests passed or no tests were run."
     )
     total_tests_run: int = Field(
         description="Total number of tests run, including both passed and failed tests, or 0 if no tests were run",
@@ -31,53 +31,78 @@ Your task is to:
    - Test summary showing "passed" or "PASSED"
    - Warning is ok
    - No "FAILURES" section
-2. If a test fails, capture the exact and complete failure output. Otherwise empty string for failure log
+2. If ANY test failed, capture the complete failure output; otherwise leave failure log empty
 3. Return the exact test identifiers that passed
-4. Count the total number of tests run. Only count tests that were actually executed! If tests were unable to run due to an error, do not count them!
+4. Count the total number of tests run. Only count tests that were actually executed (Both Passed and Failed)! Regardless of pass or fail, count them if they were run.
 
 Return:
 - passed_regression_tests: List of test identifier of regression tests that passed (e.g., class name and method name)
 - regression_test_fail_log: empty string if all tests pass, exact complete test output if a test fails
-- total_tests_run: Total number of tests run, including both passed and failed tests. If you can't find any test run, return 0
+- total_tests_run: Total number of tests run, including BOTH PASSED and FAILED tests. If you can't find any test run, return 0
 
 Example 1:
+
+<example>
 ```
 Run Regression Tests Logs:
 ============================= test session starts ==============================
-collecting ... collected 7 items
+collected 6 items
 
-test_file_operation.py::test_create_and_read_file PASSED                 [ 14%]
-test_file_operation.py::test_read_file_nonexistent PASSED                [ 28%]
-test_file_operation.py::test_read_file_with_line_numbers PASSED          [ 42%]
-test_file_operation.py::test_delete PASSED                               [ 57%]
-test_file_operation.py::test_delete_nonexistent PASSED                   [ 71%]
-test_file_operation.py::test_edit_file PASSED                            [ 85%]
-test_file_operation.py::test_create_file_already_exists PASSED           [100%]
+test_patch_util.py::test_get_updated_files_empty_diff PASSED             [ 16%]
+test_patch_util.py::test_get_updated_files_added_only FAILED             [ 33%]
+tests/utils/test_patch_util.py:13 (test_get_updated_files_added_only)
+0 != 1
 
-============================== 7 passed in 1.53s ===============================
+Expected:1
+Actual:0
+<点击以查看差异>
+
+def test_get_updated_files_added_only():
+        diff = \"""
+    diff --git a/new_file.txt b/new_file.txt
+    new file mode 100644
+    index 0000000..1234567
+    --- /dev/null
+    +++ b/new_file.txt
+    @@ -0,0 +1 @@
+    +New content
+    \"""
+        added, modified, removed = get_updated_files(diff)
+        assert len(added) == 1
+>       assert len(modified) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+test_patch_util.py:26: AssertionError
+
+test_patch_util.py::test_get_updated_files_modified_only PASSED          [ 50%]
+test_patch_util.py::test_get_updated_files_removed_only PASSED           [ 66%]
+test_patch_util.py::test_get_updated_files_multiple_changes PASSED       [ 83%]
+test_patch_util.py::test_get_updated_files_with_subfolders PASSED        [100%]
+
+========================= 1 failed, 5 passed in 0.03s ==========================
 ```
 
 Example 1 Output:
 {{  
     "passed_regression_tests": [
-        "test_file_operation.py::test_create_and_read_file",
-        "test_file_operation.py::test_read_file_nonexistent",
-        "test_file_operation.py::test_read_file_with_line_numbers",
-        "test_file_operation.py::test_delete",
-        "test_file_operation.py::test_delete_nonexistent",
-        "test_file_operation.py::test_edit_file",
-        "test_file_operation.py::test_create_file_already_exists"
+        "test_patch_util.py::test_get_updated_files_empty_diff",
+        "test_patch_util.py::test_get_updated_files_modified_only",
+        "test_patch_util.py::test_get_updated_files_removed_only",
+        "test_patch_util.py::test_get_updated_files_multiple_changes",
+        "test_patch_util.py::test_get_updated_files_with_subfolders"
     ],
-    "reproducing_test_fail_log": "",
-    "total_tests_run": 7
+    "regression_test_fail_log": "test_patch_util.py::test_get_updated_files_added_only FAILED             [ 33%] tests/utils/test_patch_util.py:13 (test_get_updated_files_added_only) 0 != 1 Expected:1 Actual:0 <点击以查看差异> def test_get_updated_files_added_only():         diff = \\\"\"\"     diff --git a/new_file.txt b/new_file.txt     new file mode 100644     index 0000000..1234567     --- /dev/null     +++ b/new_file.txt     @@ -0,0 +1 @@     +New content     \\\"\"\"         added, modified, removed = get_updated_files(diff)         assert len(added) == 1 >       assert len(modified) == 1 E       assert 0 == 1 E        +  where 0 = len([]) test_patch_util.py:26: AssertionError",
+    "total_tests_run": 6
 }}
+</example>
 
 Important:
 - Only look at test pass/fail status
 - A single failing test means the test is not passing
 - Include complete test output in failure log
 - Do Not output any log when where is no test executed. ONLY output the log exact and complete test FAILURE log when test failure!
-- Do not forget to return the total number of tests run! If tests were unable to run due to an error, do not count them!
+- Only include tests that actually executed (Both Passed and Failed). If tests couldn't run due to setup errors, don't count them.
 - If you can't find any test run, return 0 for total number of tests run!
 """
     HUMAN_PROMPT = """

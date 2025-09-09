@@ -65,19 +65,23 @@ class IssueNotVerifiedBugSubgraph:
         reset_edit_messages_node = ResetMessagesNode("edit_messages")
 
         # Patch Normalization Node
-        patch_normalization_node = PatchNormalizationNode()
+        patch_normalization_node = PatchNormalizationNode("edit_patches", "final_candidate_patches")
 
         # Get pass regression test patch subgraph node
         get_pass_regression_test_patch_subgraph_node = GetPassRegressionTestPatchSubgraphNode(
             model=base_model,
             container=container,
             git_repo=git_repo,
-            testing_patch_key="deduplicated_patches",
+            testing_patch_key="final_candidate_patches",
             is_testing_patch_list=True,
+            return_str_patch=True,
+            return_key="final_candidate_patches",
         )
 
         # Final patch selection node
-        final_patch_selection_node = FinalPatchSelectionNode(advanced_model)
+        final_patch_selection_node = FinalPatchSelectionNode(
+            advanced_model, "final_candidate_patches"
+        )
 
         workflow = StateGraph(IssueNotVerifiedBugState)
 

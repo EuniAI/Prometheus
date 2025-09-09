@@ -9,7 +9,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Sequence
 
-from prometheus.lang_graph.subgraphs.issue_not_verified_bug_state import IssueNotVerifiedBugState
 from prometheus.utils.logger_manager import get_thread_logger
 
 
@@ -37,8 +36,10 @@ class PatchNormalizationNode:
     Simplified approach without complex voting mechanisms.
     """
 
-    def __init__(self):
+    def __init__(self, input_patch_key: str, return_key: str):
         self._logger, file_handler = get_thread_logger(__name__)
+        self.return_key = return_key
+        self.input_patch_key = input_patch_key
 
     def normalize_patch(self, raw_patch: str) -> str:
         """Normalize patch content for deduplication
@@ -135,17 +136,17 @@ class PatchNormalizationNode:
 
         return deduplicated
 
-    def __call__(self, state: IssueNotVerifiedBugState) -> Dict:
+    def __call__(self, state: Dict) -> Dict:
         """Node call interface
 
         Process edit_patches in state, return normalized, deduplicated patches
         """
-        patches = state.get("edit_patches", [])
+        patches = state.get(self.input_patch_key, [])
 
         if not patches:
             self._logger.warning("No patches found to process")
             return {
-                "deduplicated_patches": [],
+                self.return_key: [],
             }
 
         self._logger.info(f"Starting to process {len(patches)} patches")
@@ -161,5 +162,5 @@ class PatchNormalizationNode:
         )
 
         return {
-            "deduplicated_patches": deduplicated_patches,
+            self.return_key: deduplicated_patches,
         }

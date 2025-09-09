@@ -39,6 +39,7 @@ class IssueVerifiedBugSubgraphNode:
                 issue_title=state["issue_title"],
                 issue_body=state["issue_body"],
                 issue_comments=state["issue_comments"],
+                number_of_candidate_patch=state["number_of_candidate_patch"],
                 run_regression_test=state["run_regression_test"],
                 run_existing_test=state["run_existing_test"],
                 reproduced_bug_file=state["reproduced_bug_file"],
