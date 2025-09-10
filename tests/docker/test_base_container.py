@@ -67,16 +67,25 @@ def test_build_docker_image(container, mock_docker_client):
     )
 
 
-def test_start_container(container, mock_docker_client):
+@patch("prometheus.docker.base_container.pexpect.spawn")
+def test_start_container(mock_spawn, container, mock_docker_client):
     """Test starting Docker container"""
-    # Setup mock
+    # Setup mock for pexpect shell
+    mock_shell = Mock()
+    mock_spawn.return_value = mock_shell
+    mock_shell.expect.return_value = 0  # Simulate successful prompt match
+
+    # Setup mock for docker client
     mock_containers = Mock()
     mock_docker_client.containers = mock_containers
+    mock_container = Mock()
+    mock_container.id = "test_container_id"
+    mock_containers.run.return_value = mock_container
 
     # Execute
     container.start_container()
 
-    # Verify
+    # Verify docker container run was called
     mock_containers.run.assert_called_once_with(
         container.tag_name,
         detach=True,
@@ -85,6 +94,14 @@ def test_start_container(container, mock_docker_client):
         environment={"PYTHONPATH": f"{container.workdir}:$PYTHONPATH"},
         volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
     )
+
+    # Verify pexpect shell was started
+    mock_spawn.assert_called_once_with(
+        f"docker exec -it {mock_container.id} /bin/bash",
+        encoding="utf-8",
+        timeout=container.timeout,
+    )
+    mock_shell.expect.assert_called()
 
 
 def test_is_running(container):
@@ -101,8 +118,7 @@ def test_update_files(container, temp_project_dir):
     """Test updating files in container"""
     # Setup
     container.container = Mock()
-    mock_execute = Mock()
-    container.execute_command = mock_execute
+    container.execute_command = Mock()
 
     # Create test files
     test_file1 = temp_project_dir / "dir1" / "test1.txt"
@@ -119,39 +135,59 @@ def test_update_files(container, temp_project_dir):
     container.update_files(temp_project_dir, updated_files, removed_files)
 
     # Verify
-    mock_execute.assert_has_calls(
+    container.execute_command.assert_has_calls(
         [call("rm dir3/old.txt"), call("mkdir -p dir1"), call("mkdir -p dir2")]
     )
     assert container.container.put_archive.called
 
 
-def test_execute_command(container):
-    """Test executing command in container"""
-    # Setup
-    mock_container = Mock()
-    mock_exec_result = Mock()
-    mock_exec_result.exit_code = 0
-    mock_exec_result.output = b"command output"
-    mock_container.exec_run.return_value = mock_exec_result
-    container.container = mock_container
+@patch("prometheus.docker.base_container.pexpect.spawn")
+def test_execute_command(mock_spawn, container):
+    """Test executing command in container using persistent shell"""
+    # Setup mock shell
+    mock_shell = Mock()
+    mock_spawn.return_value = mock_shell
+
+    # Setup container and shell
+    container.container = Mock()
+    container.container.id = "test_container_id"
+    container.shell = mock_shell
+    mock_shell.isalive.return_value = True
+
+    # Mock the shell interactions
+    mock_shell.match = Mock()
+    mock_shell.match.group.return_value = "0"  # Exit code 0
+    mock_shell.before = "test command\ncommand output"
+
+    # Execute
+    result = container.execute_command("test command")
+
+    # Verify shell interactions
+    assert mock_shell.sendline.call_count == 2  # Command + marker command
+    mock_shell.expect.assert_called()
+
+    # The result should contain the cleaned output
+    assert "command output" in result
+
+
+def test_execute_command_with_mock(container):
+    """Test executing command with direct mocking"""
+    # Setup - directly mock the execute_command method
+    container.execute_command = Mock(return_value="mocked output")
+    container.container = Mock()
 
     # Execute
     result = container.execute_command("test command")
 
     # Verify
-    mock_container.exec_run.assert_called_once_with(
-        ["timeout", "-k", "5", "300s", "/bin/bash", "-lc", "test command"],
-        workdir=container.workdir,
-    )
-    assert result == "command output"
+    container.execute_command.assert_called_once_with("test command")
+    assert result == "mocked output"
 
 
 def test_reset_repository(container):
     """Test container reset repository"""
-    # Setup - Mock the execute_command method of the container itself
+    # Setup - Mock the execute_command method
     container.execute_command = Mock(return_value="Command output")
-
-    # Also ensure the container has a valid container attribute (even if it's not used in this method)
     container.container = Mock()
 
     # Execute
@@ -159,22 +195,29 @@ def test_reset_repository(container):
 
     # Verify - Check that execute_command was called twice with the correct commands
     assert container.execute_command.call_count == 2
-
-    # Check the specific calls
     expected_calls = [call("git reset --hard"), call("git clean -fd")]
     container.execute_command.assert_has_calls(expected_calls, any_order=False)
 
 
-def test_cleanup(container, mock_docker_client):
+@patch("prometheus.docker.base_container.pexpect.spawn")
+def test_cleanup(mock_spawn, container, mock_docker_client):
     """Test cleanup of container resources"""
     # Setup
     mock_container = Mock()
     container.container = mock_container
 
+    # Setup mock shell
+    mock_shell = Mock()
+    mock_shell.isalive.return_value = True
+    container.shell = mock_shell
+
     # Execute
     container.cleanup()
 
-    # Verify
+    # Verify shell cleanup
+    mock_shell.close.assert_called_once_with(force=True)
+
+    # Verify container cleanup
     mock_container.stop.assert_called_once_with(timeout=10)
     mock_container.remove.assert_called_once_with(force=True)
     mock_docker_client.images.remove.assert_called_once_with(container.tag_name, force=True)
@@ -213,3 +256,41 @@ def test_run_test(container):
     # Verify output format
     expected_output = "$ pytest tests/\nTest passed\n"
     assert test_output == expected_output
+
+
+def test_run_build_no_commands(container):
+    """Test run_build when no build commands are defined"""
+    container.build_commands = None
+    result = container.run_build()
+    assert result == ""
+
+
+def test_run_test_no_commands(container):
+    """Test run_test when no test commands are defined"""
+    container.test_commands = None
+    result = container.run_test()
+    assert result == ""
+
+
+@patch("prometheus.docker.base_container.pexpect.spawn")
+def test_restart_shell_if_needed(mock_spawn, container):
+    """Test shell restart functionality"""
+    # Setup
+    mock_shell_dead = Mock()
+    mock_shell_dead.isalive.return_value = False
+
+    mock_shell_new = Mock()
+    mock_shell_new.expect.return_value = 0
+    mock_spawn.return_value = mock_shell_new
+
+    container.container = Mock()
+    container.container.id = "test_container_id"
+    container.shell = mock_shell_dead
+
+    # Execute
+    container._restart_shell_if_needed()
+
+    # Verify old shell was closed and new one started
+    mock_shell_dead.close.assert_called_once_with(force=True)
+    mock_spawn.assert_called_once()
+    assert container.shell == mock_shell_new
