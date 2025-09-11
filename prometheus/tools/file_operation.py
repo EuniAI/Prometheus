@@ -8,10 +8,7 @@ from pydantic import BaseModel, Field
 
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.utils.knowledge_graph_utils import format_knowledge_graph_data
-from prometheus.utils.logger_manager import get_thread_logger
 from prometheus.utils.str_util import pre_append_line_numbers
-
-logger, file_handler = get_thread_logger(__name__)
 
 
 @dataclass
@@ -64,7 +61,7 @@ class FileOperationTool:
     read_file_spec = ToolSpec(
         description="""\
         Read the content of a file with line numbers prepended from the codebase with a safety limit on the number of lines.
-        Returns up to the first 800 lines by default to prevent context issues with large files.
+        Returns up to the first 500 lines by default to prevent context issues with large files.
         Returns an error message if the file doesn't exist.
         """,
         input_schema=ReadFileInput,
@@ -129,7 +126,7 @@ class FileOperationTool:
         self.root_path = root_path
         self.kg = kg
 
-    def read_file(self, relative_path: str, n_lines: int = 800) -> str:
+    def read_file(self, relative_path: str, n_lines: int = 500) -> str:
         if os.path.isabs(relative_path):
             return f"relative_path: {relative_path} is a absolute path, not relative path."
 
@@ -245,7 +242,7 @@ class FileOperationTool:
         with file_path.open() as f:
             lines = f.readlines()
         # Limit to first 1000 lines to avoid context issues
-        selected_text_with_line_numbers = pre_append_line_numbers("".join(lines[:800]), 1)
+        selected_text_with_line_numbers = pre_append_line_numbers("".join(lines[:500]), 1)
 
         result_data = [
             {

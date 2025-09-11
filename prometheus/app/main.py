@@ -15,10 +15,10 @@ from prometheus.app.register_login_required_routes import (
     register_login_required_routes,
 )
 from prometheus.configuration.config import settings
-from prometheus.utils.logger_manager import get_thread_logger
+from prometheus.utils.logger_manager import get_logger
 
 # Create main thread logger with file handler - ONE LINE!
-logger, file_handler = get_thread_logger(__name__)
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
