@@ -24,7 +24,7 @@ class IssueNotVerifiedBugState(TypedDict):
 
     edit_patches: Annotated[Sequence[str], add]
 
-    deduplicated_patches: Sequence[str]
+    final_candidate_patches: Sequence[str]
 
     final_patch: str
 

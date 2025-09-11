@@ -1,10 +1,9 @@
-from typing import Sequence
+from typing import Dict, Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
-from prometheus.lang_graph.subgraphs.issue_not_verified_bug_state import IssueNotVerifiedBugState
 from prometheus.utils.issue_util import format_issue_info
 from prometheus.utils.logger_manager import get_thread_logger
 
@@ -120,8 +119,8 @@ I have generated the following patches, now please select the best patch among t
 {patches}
 """
 
-    def __init__(self, model: BaseChatModel, max_retries: int = 2):
-        self.max_retries = max_retries
+    def __init__(self, model: BaseChatModel, candidate_patch_key: str):
+        self.candidate_patch_key = candidate_patch_key
         prompt = ChatPromptTemplate.from_messages(
             [("system", self.SYS_PROMPT), ("human", "{human_prompt}")]
         )
@@ -130,7 +129,7 @@ I have generated the following patches, now please select the best patch among t
         self._logger, file_handler = get_thread_logger(__name__)
         self.majority_voting_times = 10
 
-    def format_human_message(self, patches: Sequence[str], state: IssueNotVerifiedBugState):
+    def format_human_message(self, patches: Sequence[str], state: Dict):
         patches_str = ""
         for index, patch in enumerate(patches):
             patches_str += f"Patch at index {index}:\n"
@@ -148,12 +147,11 @@ I have generated the following patches, now please select the best patch among t
             patches=patches_str,
         )
 
-    def __call__(self, state: IssueNotVerifiedBugState):
+    def __call__(self, state: Dict):
         # Determine candidate patches
-        if "tested_patch_result" in state and state["tested_patch_result"]:
-            patches = [result.patch for result in state["tested_patch_result"] if result.passed]
-        else:
-            patches = state["deduplicated_patches"]
+        patches = state[self.candidate_patch_key]
+        self._logger.debug(f"Total candidate patches: {len(patches)}")
+        self._logger.debug(f"Candidate patches: {patches}")
 
         # Handle the case with no candidate patches
         if not patches:

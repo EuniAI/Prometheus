@@ -14,6 +14,7 @@ from prometheus.lang_graph.nodes.bug_fix_verification_subgraph_node import (
 from prometheus.lang_graph.nodes.context_retrieval_subgraph_node import ContextRetrievalSubgraphNode
 from prometheus.lang_graph.nodes.edit_message_node import EditMessageNode
 from prometheus.lang_graph.nodes.edit_node import EditNode
+from prometheus.lang_graph.nodes.final_patch_selection_node import FinalPatchSelectionNode
 from prometheus.lang_graph.nodes.get_pass_regression_test_patch_subgraph_node import (
     GetPassRegressionTestPatchSubgraphNode,
 )
@@ -23,6 +24,7 @@ from prometheus.lang_graph.nodes.issue_bug_analyzer_message_node import IssueBug
 from prometheus.lang_graph.nodes.issue_bug_analyzer_node import IssueBugAnalyzerNode
 from prometheus.lang_graph.nodes.issue_bug_context_message_node import IssueBugContextMessageNode
 from prometheus.lang_graph.nodes.noop_node import NoopNode
+from prometheus.lang_graph.nodes.patch_normalization_node import PatchNormalizationNode
 from prometheus.lang_graph.nodes.run_existing_tests_subgraph_node import (
     RunExistingTestsSubgraphNode,
 )
@@ -98,20 +100,33 @@ class IssueVerifiedBugSubgraph:
         git_diff_node = GitDiffNode(git_repo, "edit_patch")
         git_reset_node = GitResetNode(git_repo)
 
-        noop_node = NoopNode()
-
         # Phase 5: Run Regression Tests if available
+        get_pass_regression_test_patch_branch_node = NoopNode()
         get_pass_regression_test_patch_subgraph_node = GetPassRegressionTestPatchSubgraphNode(
             model=base_model,
             container=container,
             git_repo=git_repo,
             testing_patch_key="edit_patch",
             is_testing_patch_list=False,
+            return_str_patch=False,
+            return_key="tested_patch_result",
         )
 
         # Phase 6: Re-run test case that reproduces the bug
         bug_fix_verification_subgraph_node = BugFixVerificationSubgraphNode(
             base_model, container, git_repo
+        )
+
+        # Select the best patch if the number of passed reproduction test patches >= candidate patches
+        final_patch_selection_branch_node = NoopNode()
+
+        # Patch Normalization Node
+        patch_normalization_node = PatchNormalizationNode(
+            "final_candidate_patches", "final_candidate_patches"
+        )
+
+        final_patch_selection_node = FinalPatchSelectionNode(
+            advanced_model, "final_candidate_patches"
         )
 
         # Phase 7: Optionally run existing tests
@@ -140,14 +155,21 @@ class IssueVerifiedBugSubgraph:
         workflow.add_node("edit_tools", edit_tools)
         workflow.add_node("git_diff_node", git_diff_node)
         workflow.add_node("git_reset_node", git_reset_node)
-        workflow.add_node("noop_node", noop_node)
+        workflow.add_node("bug_fix_verification_subgraph_node", bug_fix_verification_subgraph_node)
+
+        workflow.add_node("final_patch_selection_branch_node", final_patch_selection_branch_node)
+        workflow.add_node("patch_normalization_node", patch_normalization_node)
+        workflow.add_node("final_patch_selection_node", final_patch_selection_node)
+
+        workflow.add_node(
+            "get_pass_regression_test_patch_branch_node", get_pass_regression_test_patch_branch_node
+        )
 
         workflow.add_node(
             "get_pass_regression_test_patch_subgraph_node",
             get_pass_regression_test_patch_subgraph_node,
         )
 
-        workflow.add_node("bug_fix_verification_subgraph_node", bug_fix_verification_subgraph_node)
         workflow.add_node("run_existing_tests_branch_node", run_existing_tests_branch_node)
         workflow.add_node("run_existing_tests_subgraph_node", run_existing_tests_subgraph_node)
 
@@ -180,31 +202,50 @@ class IssueVerifiedBugSubgraph:
         workflow.add_conditional_edges(
             "git_reset_node",
             lambda state: bool(state["edit_patch"]),
-            {True: "noop_node", False: "issue_bug_analyzer_message_node"},
+            {True: "bug_fix_verification_subgraph_node", False: "issue_bug_analyzer_message_node"},
         )
 
+        # If reproduction test fails, loop back to reanalyze the bug
         workflow.add_conditional_edges(
-            "noop_node",
+            "bug_fix_verification_subgraph_node",
+            lambda state: bool(state["reproducing_test_fail_log"]),
+            {
+                True: "issue_bug_analyzer_message_node",
+                False: "final_patch_selection_branch_node",
+            },
+        )
+
+        # If the number of passed reproduction test patches >= candidate patches, select the best patch
+        workflow.add_conditional_edges(
+            "final_patch_selection_branch_node",
+            lambda state: len(state["final_candidate_patches"])
+            >= state["number_of_candidate_patch"],
+            {
+                True: "patch_normalization_node",
+                False: "get_pass_regression_test_patch_branch_node",
+            },
+        )
+
+        workflow.add_edge("patch_normalization_node", "final_patch_selection_node")
+        workflow.add_edge("final_patch_selection_node", END)
+
+        # If selected regression tests are required to run, run them
+        workflow.add_conditional_edges(
+            "get_pass_regression_test_patch_branch_node",
             lambda state: state["run_regression_test"],
             {
                 True: "get_pass_regression_test_patch_subgraph_node",
-                False: "bug_fix_verification_subgraph_node",
+                False: "run_existing_tests_branch_node",
             },
         )
+
         workflow.add_conditional_edges(
             "get_pass_regression_test_patch_subgraph_node",
             lambda state: state["tested_patch_result"][0].passed,
             {
-                True: "bug_fix_verification_subgraph_node",
+                True: "run_existing_tests_branch_node",
                 False: "issue_bug_analyzer_message_node",
             },
-        )
-
-        # If test still fails, loop back to reanalyze the bug
-        workflow.add_conditional_edges(
-            "bug_fix_verification_subgraph_node",
-            lambda state: bool(state["reproducing_test_fail_log"]),
-            {True: "issue_bug_analyzer_message_node", False: "run_existing_tests_branch_node"},
         )
 
         # Optionally run existing tests suite
@@ -229,20 +270,21 @@ class IssueVerifiedBugSubgraph:
         issue_title: str,
         issue_body: str,
         issue_comments: Sequence[Mapping[str, str]],
+        number_of_candidate_patch: int,
         run_regression_test: bool,
         run_existing_test: bool,
         reproduced_bug_file: str,
         reproduced_bug_commands: Sequence[str],
         reproduced_bug_patch: str,
         selected_regression_tests: Sequence[str],
-        recursion_limit: int = 200,
     ):
-        config = {"recursion_limit": recursion_limit}
+        config = {"recursion_limit": (number_of_candidate_patch + 3) * 75 + 75}
 
         input_state = {
             "issue_title": issue_title,
             "issue_body": issue_body,
             "issue_comments": issue_comments,
+            "number_of_candidate_patch": number_of_candidate_patch,
             "run_regression_test": run_regression_test,
             "run_existing_test": run_existing_test,
             "reproduced_bug_file": reproduced_bug_file,

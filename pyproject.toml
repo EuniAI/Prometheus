@@ -31,6 +31,7 @@ dependencies = [
   "tavily-python>=0.5.1",
   "langchain-mcp-adapters>=0.1.9",
   "httpx==0.28.1",
+  "pexpect==4.9.0"
 ]
 requires-python = ">= 3.11"
 

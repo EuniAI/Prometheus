@@ -1,3 +1,4 @@
+from operator import add
 from typing import Annotated, Mapping, Sequence, TypedDict
 
 from langchain_core.messages import BaseMessage
@@ -14,6 +15,9 @@ class IssueVerifiedBugState(TypedDict):
 
     max_refined_query_loop: int
     refined_query: str
+
+    number_of_candidate_patch: int
+    final_candidate_patches: Annotated[Sequence[TestedPatchResult], add]
 
     run_existing_test: bool
     run_regression_test: bool

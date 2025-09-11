@@ -116,6 +116,8 @@ class WebSearchTool:
                 "readthedocs.org",
             ]
 
+        self._logger.debug(f"Query: {query}")
+
         # Call the Tavily API
         try:
             response = self.tavily_client.search(

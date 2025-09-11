@@ -33,8 +33,8 @@ CRITICAL RULES:
 - Do NOT modify the core logic or parameters of the commands!
 - Do NOT attempt to fix bugs or modify test logic!
 - You MUST RUN ALL THE TESTS EXACTLY AS PROVIDED!
-- Do NOT stop util all tests are run!
-- DO NOT ASSUME ALL DEPENDENCIES ARE INSTALLED.!
+- Do NOT stop until all tests are run!
+- DO NOT ASSUME ALL DEPENDENCIES ARE INSTALLED!
 
 REMINDER:
 - Install dependencies if needed!
@@ -76,7 +76,9 @@ Selected Regression Tests:
 
     def format_human_message(self, state: RunRegressionTestsState) -> HumanMessage:
         return HumanMessage(
-            self.HUMAN_PROMPT.format(selected_regression_tests=state["selected_regression_tests"])
+            self.HUMAN_PROMPT.format(
+                selected_regression_tests="\n".join(state["selected_regression_tests"])
+            )
         )
 
     def __call__(self, state: RunRegressionTestsState):

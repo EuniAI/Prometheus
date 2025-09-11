@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 import docker
+import pexpect
 
+from prometheus.exceptions.docker_exception import DockerException
 from prometheus.utils.logger_manager import get_thread_logger
 
 
@@ -18,6 +20,8 @@ class BaseContainer(ABC):
     containers. It handles container lifecycle operations including building images, starting
     containers, updating files, and cleanup. The class is designed to be extended for specific
     container implementations that specifies the Dockerfile, how to build and how to run the test.
+
+    Now supports persistent shell for maintaining command execution context.
     """
 
     client: docker.DockerClient = docker.from_env()
@@ -27,6 +31,7 @@ class BaseContainer(ABC):
     project_path: Path
     timeout: int = 300  # Timeout for commands in seconds
     logger: logging.Logger
+    shell: Optional[pexpect.spawn] = None  # Persistent shell
 
     def __init__(
         self,
@@ -56,6 +61,7 @@ class BaseContainer(ABC):
         self._logger.debug(f"Using workdir: {self.workdir}")
 
         self.container = None
+        self.shell = None
 
     @abstractmethod
     def get_dockerfile_content(self) -> str:
@@ -103,6 +109,7 @@ class BaseContainer(ABC):
         """Start a Docker container from the built image.
 
         Starts a detached container with TTY enabled and mounts the Docker socket.
+        Also initializes the persistent shell.
         """
         self._logger.info(f"Starting container from image {self.tag_name}")
         self.container = self.client.containers.run(
@@ -113,6 +120,50 @@ class BaseContainer(ABC):
             environment={"PYTHONPATH": f"{self.workdir}:$PYTHONPATH"},
             volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
         )
+
+        # Initialize persistent shell
+        self._start_persistent_shell()
+
+    def _start_persistent_shell(self):
+        """Start a persistent bash shell inside the container using pexpect."""
+        if not self.container:
+            self._logger.error("Container must be started before initializing shell")
+            return
+
+        self._logger.info("Starting persistent shell for interactive mode...")
+        try:
+            command = f"docker exec -it {self.container.id} /bin/bash"
+            self.shell = pexpect.spawn(command, encoding="utf-8", timeout=self.timeout)
+
+            # Wait for the initial shell prompt
+            self.shell.expect([r"\$", r"#"], timeout=60)
+
+            self._logger.info("Persistent shell is ready")
+        except pexpect.exceptions.TIMEOUT:
+            self._logger.error(
+                "Timeout waiting for shell prompt. The container might be slow to start or misconfigured."
+            )
+            if self.shell:
+                self.shell.close(force=True)
+                self.shell = None
+            raise DockerException("Timeout waiting for shell prompt.")
+        except Exception as e:
+            self._logger.error(f"Failed to start persistent shell: {e}")
+            if self.shell:
+                self.shell.close(force=True)
+                self.shell = None
+            raise DockerException(f"Failed to start persistent shell: {e}")
+
+    def _restart_shell_if_needed(self):
+        """Restart the shell if it's not alive."""
+        if not self.shell or not self.shell.isalive():
+            self._logger.warning("Shell not found or died. Attempting to restart...")
+            if self.shell:
+                self.shell.close(force=True)
+            self._start_persistent_shell()
+
+        if self.shell is None:
+            raise DockerException("Failed to start or restart the persistent shell.")
 
     def is_running(self) -> bool:
         return bool(self.container)
@@ -156,6 +207,7 @@ class BaseContainer(ABC):
         self._logger.info("Files updated successfully")
 
     def run_build(self) -> str:
+        """Run build commands and return combined output."""
         if not self.build_commands:
             self._logger.error("No build commands defined")
             return ""
@@ -167,6 +219,7 @@ class BaseContainer(ABC):
         return command_output
 
     def run_test(self) -> str:
+        """Run test commands and return combined output."""
         if not self.test_commands:
             self._logger.error("No test commands defined")
             return ""
@@ -178,30 +231,70 @@ class BaseContainer(ABC):
         return command_output
 
     def execute_command(self, command: str) -> str:
-        """Execute a command in the running container.
+        """Execute a command in the running container using persistent shell.
 
         Args:
             command: Command to execute in the container.
 
         Returns:
-            str: Output of the command as a string.
+            str: Output of the command.
         """
-        timeout_msg = f"""
+        self._logger.debug(f"Executing command: {command}")
+
+        # Ensure shell is available
+        self._restart_shell_if_needed()
+
+        # Unique marker to identify command completion and exit code
+        marker = "---CMD_DONE---"
+        full_command = command.strip()
+        marker_command = f"echo {marker}$?"
+
+        try:
+            self.shell.sendline(full_command)
+            self.shell.sendline(marker_command)
+
+            # Wait for the marker with exit code
+            self.shell.expect(marker + r"(\d+)", timeout=self.timeout)
+            exit_code = int(self.shell.match.group(1))
+
+            # Get the output before the marker
+            output_before_marker = self.shell.before
+
+            # Clean up the output by removing command echoes
+            all_lines = output_before_marker.splitlines()
+            clean_lines = []
+            for line in all_lines:
+                stripped_line = line.strip()
+                # Ignore the line if it's an echo of our commands
+                if (
+                    stripped_line != full_command
+                    and marker_command not in stripped_line
+                    and line not in ["\x1b[?2004l", "\x1b[?2004h"]
+                ):
+                    clean_lines.append(line)
+
+            cleaned_output = "\n".join(clean_lines).strip()
+
+            # Wait for the next shell prompt to ensure the shell is ready
+            self.shell.expect([r"\$", r"#"], timeout=10)
+
+            self._logger.debug(f"Command exit code: {exit_code}")
+            self._logger.debug(f"Command output:\n{cleaned_output}")
+
+            return cleaned_output
+
+        except pexpect.exceptions.TIMEOUT:
+            timeout_msg = f"""
 *******************************************************************************
 {command} timeout after {self.timeout} seconds
 *******************************************************************************
 """
-        bash_cmd = ["/bin/bash", "-lc", command]
-        full_cmd = ["timeout", "-k", "5", f"{self.timeout}s", *bash_cmd]
-        self._logger.debug(f"Running command in container: {command}")
-        exec_result = self.container.exec_run(full_cmd, workdir=self.workdir)
-        exec_result_str = exec_result.output.decode("utf-8")
+            self._logger.error(f"Command '{command}' timed out after {self.timeout} seconds")
+            partial_output = getattr(self.shell, "before", "")
+            return f"Command '{command}' timed out after {self.timeout} seconds. Partial output:\n{partial_output}{timeout_msg}"
 
-        if exec_result.exit_code in (124, 137):
-            exec_result_str += timeout_msg
-
-        self._logger.debug(f"Command output:\n{exec_result_str}")
-        return exec_result_str
+        except Exception as e:
+            raise DockerException(f"Error executing command '{command}': {e}")
 
     def reset_repository(self):
         """Reset the git repository in the container to a clean state."""
@@ -212,9 +305,17 @@ class BaseContainer(ABC):
     def cleanup(self):
         """Clean up container resources and temporary files.
 
-        Stops and removes the container, removes the Docker image,
+        Stops the persistent shell, stops and removes the container, removes the Docker image,
         and deletes temporary project files.
         """
+        self._logger.info("Cleaning up container and temporary files")
+
+        # Close persistent shell first
+        if self.shell and self.shell.isalive():
+            self._logger.info("Closing persistent shell...")
+            self.shell.close(force=True)
+            self.shell = None
+
         self._logger.info("Cleaning up container and temporary files")
         if self.container:
             self.container.stop(timeout=10)
