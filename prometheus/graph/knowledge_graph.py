@@ -42,7 +42,7 @@ from prometheus.graph.graph_types import (
     Neo4jTextNode,
     TextNode,
 )
-from prometheus.utils.logger_manager import get_thread_logger
+from prometheus.utils.logger_manager import get_logger
 
 
 class KnowledgeGraph:
@@ -79,7 +79,7 @@ class KnowledgeGraph:
         self._next_node_id = root_node_id + len(self._knowledge_graph_nodes)
 
         self._file_graph_builder = FileGraphBuilder(max_ast_depth, chunk_size, chunk_overlap)
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = get_logger(__name__)
 
     async def build_graph(self, root_dir: Path):
         """Asynchronously builds knowledge graph for a codebase at a location.

@@ -1,5 +1,5 @@
 """
-Unified Log Manager
+Unified Log Manager - Improved Version
 
 This module provides a centralized logging management solution for the entire Prometheus project.
 All logger configuration and retrieval should be done through this module.
@@ -8,9 +8,11 @@ All logger configuration and retrieval should be done through this module.
 import logging
 import os
 import sys
+import threading
+import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 
 from prometheus.configuration.config import settings
 
@@ -94,6 +96,10 @@ class LoggerManager:
         self.log_level = getattr(settings, "LOGGING_LEVEL")
         self.issue_log_dir = Path(getattr(settings, "WORKING_DIRECTORY")) / "answer_issue_logs"
         if not self._initialized:
+            # Use Local storage to manage thread sessions
+            self.thread_sessions: Dict[int, str] = {}
+            self.session_lock = threading.Lock()
+
             self._setup_root_logger()
             self._initialized = True
 
@@ -131,6 +137,34 @@ class LoggerManager:
         # Log configuration information
         self._log_configuration()
 
+    def _get_or_create_session_id(self, thread_id: int) -> str:
+        """
+        Get or create a unique session ID for the given thread ID.
+
+        Args:
+            thread_id: Thread ID
+
+        Returns:
+            Unique session ID string
+        """
+        with self.session_lock:
+            if thread_id not in self.thread_sessions:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                unique_id = str(uuid.uuid4())[:8]
+                self.thread_sessions[thread_id] = f"{timestamp}_{unique_id}"
+            return self.thread_sessions[thread_id]
+
+    def clear_thread_session(self, thread_id: int):
+        """
+        Clear the session ID for the given thread ID.
+
+        Args:
+            thread_id: Thread ID
+        """
+        with self.session_lock:
+            if thread_id in self.thread_sessions:
+                del self.thread_sessions[thread_id]
+
     def _set_multi_threads_log_file_handler(
         self, thread_id: int, logger_name: str, force_new_file: bool = False
     ):
@@ -151,29 +185,14 @@ class LoggerManager:
         Returns:
             Path to the log file (existing earliest one or newly created)
         """
-        import glob
 
         if force_new_file:
-            # Always create a new log file with current timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[
-                :-3
-            ]  # Include milliseconds for uniqueness
-            return self.issue_log_dir / f"{timestamp}_{thread_id}.log"
+            self.clear_thread_session(thread_id)
 
-        # Original logic: find existing file or create new one
-        # Pattern to match log files for this thread_id
-        pattern = str(self.issue_log_dir / f"*_{thread_id}.log")
-        existing_logs = glob.glob(pattern)
+        session_id = self._get_or_create_session_id(thread_id)
+        log_file_path = self.issue_log_dir / f"{session_id}_{thread_id}.log"
 
-        if existing_logs:
-            # Sort by filename (which includes timestamp) to get chronological order
-            existing_logs.sort()
-            # Return the earliest (first) file
-            return Path(existing_logs[0])
-        else:
-            # No existing log file found, create a new one
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            return self.issue_log_dir / f"{timestamp}_{thread_id}.log"
+        return log_file_path
 
     def _log_configuration(self):
         """Log configuration information"""
@@ -207,10 +226,6 @@ class LoggerManager:
         Returns:
             Configured logger instance
         """
-        # # Ensure logger name starts with prometheus
-        # if not name.startswith("prometheus"):
-        #     name = f"prometheus.{name}"
-
         logger = logging.getLogger(name)
 
         # If it's a child logger, inherit root logger configuration
@@ -238,11 +253,6 @@ class LoggerManager:
         file_handler = logging.FileHandler(log_file_path, mode="a")
         file_handler.setLevel(getattr(logging, self.log_level))
         file_handler.setFormatter(self.file_formatter)
-
-        # # Get logger directly without going through get_logger to avoid recursion
-        # # Ensure logger name starts with prometheus
-        # if not logger_name.startswith("prometheus"):
-        #     logger_name = f"prometheus.{logger_name}"
 
         logger = logging.getLogger(logger_name)
 
@@ -304,8 +314,8 @@ def get_logger(name: str) -> logging.Logger:
         Configured logger instance
 
     Examples:
-        >>> logger, file_handler = get_thread_logger(__name__)
-        >>> logger, file_handler = get_thread_logger("prometheus.tools.web_search")
+        >>> logger = get_logger(__name__)
+        >>> logger = get_logger("prometheus.tools.web_search")
     """
     return logger_manager.get_logger(name)
 
@@ -329,7 +339,6 @@ def get_thread_logger(
 
     Args:
         module_name: Module name (usually __name__), if None, uses current module
-
         force_new_file: If True, always create a new log file with timestamp, even if existing files exist
 
     Returns:
@@ -354,5 +363,25 @@ def get_thread_logger(
     file_handler = logger_manager._set_multi_threads_log_file_handler(
         thread_id, logger_name, force_new_file
     )
+    print(logger_name)
     logger = get_logger(logger_name)
     return logger, file_handler
+
+
+def clear_current_thread_session():
+    """
+    Clear the current thread's session to ensure next log file is new
+
+    Examples:
+        >>> logger, file_handler = get_thread_logger(__name__)
+        >>> try:
+        >>>     # Do some work
+        >>>     logger.info("Processing...")
+        >>> finally:
+        >>>     remove_multi_threads_log_file_handler(file_handler, logger.name)
+        >>>     clear_current_thread_session()  # Clear session for next time
+    """
+    import threading
+
+    thread_id = threading.get_ident()
+    logger_manager.clear_thread_session(thread_id)

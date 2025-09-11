@@ -10,7 +10,11 @@ from prometheus.git.git_repository import GitRepository
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.graphs.issue_graph import IssueGraph
 from prometheus.lang_graph.graphs.issue_state import IssueType
-from prometheus.utils.logger_manager import get_thread_logger, remove_multi_threads_log_file_handler
+from prometheus.utils.logger_manager import (
+    clear_current_thread_session,
+    get_thread_logger,
+    remove_multi_threads_log_file_handler,
+)
 
 
 class IssueService(BaseService):
@@ -134,3 +138,4 @@ class IssueService(BaseService):
         finally:
             # Remove multi-thread file handler
             remove_multi_threads_log_file_handler(file_handler, logger.name)
+            clear_current_thread_session()
