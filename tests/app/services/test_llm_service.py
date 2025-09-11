@@ -34,9 +34,7 @@ def test_llm_service_init(mock_custom_chat_openai, mock_chat_anthropic):
     service = LLMService(
         advanced_model_name="gpt-4",
         base_model_name="claude-2.1",
-        advanced_model_max_output_tokens=8000,
         advanced_model_temperature=0.0,
-        base_model_max_output_tokens=8000,
         base_model_temperature=0.0,
         openai_format_api_key="openai-key",
         openai_format_base_url="https://api.openai.com/v1",
@@ -51,14 +49,12 @@ def test_llm_service_init(mock_custom_chat_openai, mock_chat_anthropic):
         api_key="openai-key",
         base_url="https://api.openai.com/v1",
         temperature=0.0,
-        max_tokens=8000,
         max_retries=3,
     )
     mock_chat_anthropic.assert_called_once_with(
         model_name="claude-2.1",
         api_key="anthropic-key",
         temperature=0.0,
-        max_tokens_to_sample=8000,
         max_retries=3,
     )
 
@@ -69,7 +65,6 @@ def test_get_openai_format_model(mock_custom_chat_openai):
         model_name="openrouter/model",
         openai_format_api_key="openrouter-key",
         openai_format_base_url="https://openrouter.ai/api/v1",
-        max_output_tokens=16000,
         temperature=0.0,
     )
 
@@ -79,7 +74,6 @@ def test_get_openai_format_model(mock_custom_chat_openai):
         api_key="openrouter-key",
         base_url="https://openrouter.ai/api/v1",
         temperature=0.0,
-        max_tokens=16000,
         max_retries=3,
     )
 
@@ -90,7 +84,6 @@ def test_get_model_claude(mock_chat_anthropic):
         model_name="claude-2.1",
         anthropic_api_key="anthropic-key",
         temperature=0.0,
-        max_output_tokens=8000,
     )
 
     # Verify
@@ -98,7 +91,6 @@ def test_get_model_claude(mock_chat_anthropic):
         model_name="claude-2.1",
         api_key="anthropic-key",
         temperature=0.0,
-        max_tokens_to_sample=8000,
         max_retries=3,
     )
 
@@ -109,7 +101,6 @@ def test_get_model_gemini(mock_chat_google):
         model_name="gemini-pro",
         gemini_api_key="gemini-key",
         temperature=0.0,
-        max_output_tokens=8000,
     )
 
     # Verify
@@ -117,7 +108,6 @@ def test_get_model_gemini(mock_chat_google):
         model="gemini-pro",
         api_key="gemini-key",
         temperature=0.0,
-        max_tokens=8000,
         max_retries=3,
     )
 

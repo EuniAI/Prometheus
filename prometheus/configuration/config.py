@@ -43,10 +43,8 @@ class Settings(BaseSettings):
 
     # Model parameters
     ADVANCED_MODEL_TEMPERATURE: Optional[float] = None
-    ADVANCED_MODEL_MAX_OUTPUT_TOKENS: Optional[int] = None
 
     BASE_MODEL_TEMPERATURE: Optional[float] = None
-    BASE_MODEL_MAX_OUTPUT_TOKENS: Optional[int] = None
 
     # Database
     DATABASE_URL: str
