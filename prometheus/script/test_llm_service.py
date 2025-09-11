@@ -8,9 +8,7 @@ def test_model_response():
     llm_service = LLMService(
         settings.ADVANCED_MODEL,
         settings.BASE_MODEL,
-        settings.ADVANCED_MODEL_MAX_OUTPUT_TOKENS,
         settings.ADVANCED_MODEL_TEMPERATURE,
-        settings.BASE_MODEL_MAX_OUTPUT_TOKENS,
         settings.BASE_MODEL_TEMPERATURE,
         settings.OPENAI_FORMAT_API_KEY,
         settings.OPENAI_FORMAT_BASE_URL,
