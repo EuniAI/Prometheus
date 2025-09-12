@@ -363,7 +363,6 @@ def get_thread_logger(
     file_handler = logger_manager._set_multi_threads_log_file_handler(
         thread_id, logger_name, force_new_file
     )
-    print(logger_name)
     logger = get_logger(logger_name)
     return logger, file_handler
 

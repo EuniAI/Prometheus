@@ -1,3 +1,5 @@
+import logging
+import threading
 from typing import Dict
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -5,7 +7,6 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from prometheus.docker.base_container import BaseContainer
 from prometheus.git.git_repository import GitRepository
 from prometheus.lang_graph.subgraphs.run_existing_tests_subgraph import RunExistingTestsSubgraph
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class RunExistingTestsSubgraphNode:
@@ -17,7 +18,7 @@ class RunExistingTestsSubgraphNode:
         testing_patch_key: str,
         existing_test_fail_log_key: str,
     ):
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.subgraph = RunExistingTestsSubgraph(
             base_model=model, container=container, git_repo=git_repo
         )

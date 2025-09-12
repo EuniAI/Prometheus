@@ -1,9 +1,11 @@
+import logging
+import threading
+
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from prometheus.lang_graph.subgraphs.issue_bug_state import IssueBugState
 from prometheus.utils.issue_util import format_issue_info
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueBugResponderNode:
@@ -47,7 +49,7 @@ Verification:
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
         self.model = model
 
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
     def format_human_message(self, state: IssueBugState) -> HumanMessage:
         verification_messages = []

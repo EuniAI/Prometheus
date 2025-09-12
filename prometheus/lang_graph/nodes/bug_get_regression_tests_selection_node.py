@@ -1,3 +1,6 @@
+import logging
+import threading
+
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
@@ -6,7 +9,6 @@ from prometheus.lang_graph.subgraphs.bug_get_regression_tests_state import (
     BugGetRegressionTestsState,
 )
 from prometheus.utils.issue_util import format_issue_info
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class RegressionTestStructuredOutPut(BaseModel):
@@ -89,7 +91,7 @@ You MUST select {number_of_selected_regression_tests} regression tests that are 
         )
         structured_llm = model.with_structured_output(RegressionTestsStructuredOutPut)
         self.model = prompt | structured_llm
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
     def format_human_message(self, state: BugGetRegressionTestsState):
         return self.HUMAN_PROMPT.format(

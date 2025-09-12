@@ -1,9 +1,13 @@
+import functools
+import logging
+import threading
+
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import SystemMessage
+from langchain_core.tools import StructuredTool
 
 from prometheus.lang_graph.subgraphs.issue_question_state import IssueQuestionState
-from prometheus.utils.issue_util import format_issue_info
-from prometheus.utils.logger_manager import get_thread_logger
+from prometheus.tools.web_search import WebSearchTool
 
 
 class IssueQuestionAnalyzerNode:
@@ -27,38 +31,33 @@ Important:
 Communicate in a clear, technical manner focused on accurate analysis and practical suggestions
 rather than implementation details.
 """
-    HUMAN_PROMPT = """
-    Here is a Github issue description:
-    -- BEGIN ISSUE --
-    {issue_info}
-    -- END ISSUE --
-    
-    Here is the relevant code context and documentation needed to understand and answer this issue:
-    --- BEGIN CONTEXT --
-    {question_context}
-    --- END CONTEXT --
-    
-    Based on the above information, please provide a detailed answer to the question.
-    """
 
     def __init__(self, model: BaseChatModel):
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
-        self.model = model
-        self._logger, file_handler = get_thread_logger(__name__)
+        self.web_search_tool = WebSearchTool()
+        self.tools = self._init_tools()
+        self.model_with_tools = model.bind_tools(self.tools)
+
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
+
+    def _init_tools(self):
+        """Initializes tools for the node."""
+        tools = []
+
+        web_search_fn = functools.partial(self.web_search_tool.web_search)
+        web_search_tool = StructuredTool.from_function(
+            func=web_search_fn,
+            name=self.web_search_tool.web_search.__name__,
+            description=self.web_search_tool.web_search_spec.description,
+            args_schema=self.web_search_tool.web_search_spec.input_schema,
+        )
+        tools.append(web_search_tool)
+
+        return tools
 
     def __call__(self, state: IssueQuestionState):
-        human_prompt = HumanMessage(
-            self.HUMAN_PROMPT.format(
-                issue_info=format_issue_info(
-                    state["issue_title"], state["issue_body"], state["issue_comments"]
-                ),
-                question_context="\n\n".join(
-                    [str(context) for context in state["question_context"]]
-                ),
-            )
-        )
-        message_history = [self.system_prompt, human_prompt]
-        response = self.model.invoke(message_history)
+        message_history = [self.system_prompt] + state["issue_question_analyzer_messages"]
+        response = self.model_with_tools.invoke(message_history)
 
         self._logger.debug(response)
-        return {"question_response": response.content}
+        return {"issue_question_analyzer_messages": [response]}

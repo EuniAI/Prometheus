@@ -1,3 +1,5 @@
+import logging
+import threading
 from typing import Optional, Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -8,7 +10,6 @@ from prometheus.git.git_repository import GitRepository
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.subgraphs.bug_reproduction_subgraph import BugReproductionSubgraph
 from prometheus.lang_graph.subgraphs.issue_bug_state import IssueBugState
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class BugReproductionSubgraphNode:
@@ -21,7 +22,7 @@ class BugReproductionSubgraphNode:
         git_repo: GitRepository,
         test_commands: Optional[Sequence[str]],
     ):
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.git_repo = git_repo
         self.bug_reproduction_subgraph = BugReproductionSubgraph(
             advanced_model=advanced_model,
