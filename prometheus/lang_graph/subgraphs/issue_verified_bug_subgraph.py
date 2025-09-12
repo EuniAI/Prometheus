@@ -296,7 +296,7 @@ class IssueVerifiedBugSubgraph:
             "reproduced_bug_commands": reproduced_bug_commands,
             "reproduced_bug_patch": reproduced_bug_patch,
             "selected_regression_tests": selected_regression_tests,
-            "max_refined_query_loop": 5,
+            "max_refined_query_loop": 4,
         }
 
         output_state = self.subgraph.invoke(input_state, config)
