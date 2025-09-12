@@ -264,16 +264,13 @@ class BaseContainer(ABC):
             all_lines = output_before_marker.splitlines()
             clean_lines = []
             for line in all_lines:
-                stripped_line = line.strip()
                 # Ignore the line if it's an echo of our commands
-                if (
-                    stripped_line != full_command
-                    and marker_command not in stripped_line
-                    and line not in ["\x1b[?2004l", "\x1b[?2004h"]
-                ):
+                if marker_command not in line and full_command not in line:
                     clean_lines.append(line)
 
-            cleaned_output = "\n".join(clean_lines).strip()
+            cleaned_output = (
+                "\n".join(clean_lines).strip().replace("\x1b[?2004l", "").replace("\x1b[?2004h", "")
+            )
 
             # Wait for the next shell prompt to ensure the shell is ready
             self.shell.expect([r"\$", r"#"], timeout=10)
