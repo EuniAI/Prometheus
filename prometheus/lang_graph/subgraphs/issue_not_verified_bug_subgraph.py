@@ -171,7 +171,7 @@ class IssueNotVerifiedBugSubgraph:
         run_regression_test: bool,
         selected_regression_tests: Sequence[str],
     ):
-        config = {"recursion_limit": number_of_candidate_patch * 60 + 60}
+        config = {"recursion_limit": number_of_candidate_patch * 75 + 60}
 
         input_state = {
             "issue_title": issue_title,
