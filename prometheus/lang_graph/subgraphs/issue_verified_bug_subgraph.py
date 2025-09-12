@@ -278,13 +278,18 @@ class IssueVerifiedBugSubgraph:
         reproduced_bug_patch: str,
         selected_regression_tests: Sequence[str],
     ):
-        config = {"recursion_limit": (number_of_candidate_patch + 3) * 75 + 75}
+        """
+        Invoke the verified bug fix subgraph.
+        """
+        # Set recursion limit based on number of candidate patches
+        # (The number of candidate patches is halved for cost efficiency)
+        config = {"recursion_limit": (number_of_candidate_patch // 2 + 3) * 75 + 75}
 
         input_state = {
             "issue_title": issue_title,
             "issue_body": issue_body,
             "issue_comments": issue_comments,
-            "number_of_candidate_patch": number_of_candidate_patch,
+            "number_of_candidate_patch": number_of_candidate_patch // 2,
             "run_regression_test": run_regression_test,
             "run_existing_test": run_existing_test,
             "reproduced_bug_file": reproduced_bug_file,
