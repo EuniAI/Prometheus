@@ -1,5 +1,7 @@
+import logging
+import threading
+
 from prometheus.git.git_repository import GitRepository
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class GitResetNode:
@@ -8,7 +10,7 @@ class GitResetNode:
         git_repo: GitRepository,
     ):
         self.git_repo = git_repo
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
     def __call__(self, _):
         self._logger.debug("Resetting the git repository")

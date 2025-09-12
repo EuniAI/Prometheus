@@ -1,3 +1,5 @@
+import logging
+import threading
 from typing import Dict, Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -6,7 +8,6 @@ from langgraph.errors import GraphRecursionError
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.subgraphs.context_retrieval_subgraph import ContextRetrievalSubgraph
 from prometheus.models.context import Context
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class ContextRetrievalSubgraphNode:
@@ -18,7 +19,7 @@ class ContextRetrievalSubgraphNode:
         query_key_name: str,
         context_key_name: str,
     ):
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.context_retrieval_subgraph = ContextRetrievalSubgraph(
             model=model,
             kg=kg,

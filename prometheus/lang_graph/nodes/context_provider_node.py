@@ -6,6 +6,8 @@ with structured tools to systematically search and analyze the codebase Knowledg
 """
 
 import functools
+import logging
+import threading
 from typing import Dict
 
 from langchain.tools import StructuredTool
@@ -15,7 +17,6 @@ from langchain_core.messages import SystemMessage
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.tools.file_operation import FileOperationTool
 from prometheus.tools.graph_traversal import GraphTraversalTool
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class ContextProviderNode:
@@ -118,7 +119,7 @@ PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
         )
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
     def _init_tools(self):
         """

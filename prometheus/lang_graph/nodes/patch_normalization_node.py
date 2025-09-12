@@ -4,12 +4,12 @@ This module implements simplified patch normalization and direct selection funct
 Provides standardized patch candidates with direct best patch selection.
 """
 
+import logging
 import re
+import threading
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Sequence
-
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 @dataclass
@@ -37,7 +37,7 @@ class PatchNormalizationNode:
     """
 
     def __init__(self, input_patch_key: str, return_key: str):
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.return_key = return_key
         self.input_patch_key = input_patch_key
 

@@ -1,9 +1,11 @@
+import logging
+import threading
+
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel
 
 from prometheus.lang_graph.subgraphs.run_existing_tests_state import RunExistingTestsState
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class RunExistingTestsStructureOutput(BaseModel):
@@ -53,7 +55,7 @@ Return False if ANY test failed or if tests couldn't run properly.
         )
         structured_llm = model.with_structured_output(RunExistingTestsStructureOutput)
         self.model = prompt | structured_llm
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
     def __call__(self, state: RunExistingTestsState):
         # Get human message from the state

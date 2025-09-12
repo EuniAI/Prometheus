@@ -1,4 +1,6 @@
 import functools
+import logging
+import threading
 
 from langchain.tools import StructuredTool
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -7,7 +9,6 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from prometheus.docker.base_container import BaseContainer
 from prometheus.lang_graph.subgraphs.run_regression_tests_state import RunRegressionTestsState
 from prometheus.tools.container_command import ContainerCommandTool
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class RunRegressionTestsNode:
@@ -58,7 +59,7 @@ Selected Regression Tests:
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
     def _init_tools(self):
         tools = []

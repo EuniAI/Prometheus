@@ -1,3 +1,5 @@
+import logging
+import threading
 from dataclasses import dataclass
 from typing import Annotated
 
@@ -6,7 +8,6 @@ from tavily import InvalidAPIKeyError, TavilyClient, UsageLimitExceededError
 
 from prometheus.configuration.config import settings
 from prometheus.exceptions.web_search_tool_exception import WebSearchToolException
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 @dataclass
@@ -75,7 +76,7 @@ class WebSearchTool:
     def __init__(self):
         """Initialize the web search tool."""
         # Load environment variables from .env file
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
         tavily_api_key = settings.TAVILY_API_KEY
         if tavily_api_key is None:

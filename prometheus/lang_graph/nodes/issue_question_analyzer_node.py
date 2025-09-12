@@ -1,4 +1,6 @@
 import functools
+import logging
+import threading
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage
@@ -6,7 +8,6 @@ from langchain_core.tools import StructuredTool
 
 from prometheus.lang_graph.subgraphs.issue_question_state import IssueQuestionState
 from prometheus.tools.web_search import WebSearchTool
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueQuestionAnalyzerNode:
@@ -37,7 +38,7 @@ rather than implementation details.
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
 
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
     def _init_tools(self):
         """Initializes tools for the node."""

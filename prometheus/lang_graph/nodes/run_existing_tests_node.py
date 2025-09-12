@@ -1,6 +1,8 @@
+import logging
+import threading
+
 from prometheus.docker.base_container import BaseContainer
 from prometheus.lang_graph.subgraphs.run_existing_tests_state import RunExistingTestsState
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class RunExistingTestsNode:
@@ -9,7 +11,7 @@ class RunExistingTestsNode:
     """
 
     def __init__(self, container: BaseContainer):
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.container = container
 
     def __call__(self, state: RunExistingTestsState):

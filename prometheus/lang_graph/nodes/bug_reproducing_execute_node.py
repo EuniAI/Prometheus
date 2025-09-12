@@ -1,4 +1,6 @@
 import functools
+import logging
+import threading
 from pathlib import Path
 from typing import Optional, Sequence
 
@@ -10,7 +12,6 @@ from prometheus.docker.base_container import BaseContainer
 from prometheus.lang_graph.subgraphs.bug_reproduction_state import BugReproductionState
 from prometheus.tools.container_command import ContainerCommandTool
 from prometheus.utils.issue_util import format_test_commands
-from prometheus.utils.logger_manager import get_thread_logger
 from prometheus.utils.patch_util import get_updated_files
 
 
@@ -56,7 +57,7 @@ User provided test commands:
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
     def _init_tools(self):
         tools = []

@@ -1,9 +1,10 @@
+import logging
+import threading
 from typing import Dict
 
 from langchain_core.messages import HumanMessage
 
 from prometheus.utils.issue_util import format_issue_info
-from prometheus.utils.logger_manager import get_thread_logger
 
 
 class IssueQuestionAnalyzerMessageNode:
@@ -34,7 +35,7 @@ Based on the above information, please provide a detailed answer to the question
 """
 
     def __init__(self):
-        self._logger, file_handler = get_thread_logger(__name__)
+        self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
     def __call__(self, state: Dict):
         human_message = self.FIRST_HUMAN_PROMPT.format(
