@@ -51,19 +51,22 @@ class GitRepository:
             self.default_branch = self.repo.active_branch.name
 
     async def from_clone_repository(
-        self, https_url: str, github_access_token: str, target_directory: Path
+        self, https_url: str, github_access_token: str | None, target_directory: Path
     ):
         """Clone a remote repository using HTTPS authentication.
 
         Args:
           https_url: HTTPS URL of the remote repository.
-          github_access_token: GitHub access token for authentication.
+          github_access_token: GitHub access token for authentication. None for public repositories.
           target_directory: Directory where the repository will be cloned.
 
         Returns:
             Repo: GitPython Repo object representing the cloned repository.
         """
-        https_url = https_url.replace("https://", f"https://x-access-token:{github_access_token}@")
+        # Only modify the URL with token authentication if a token is provided
+        if github_access_token:
+            https_url = https_url.replace("https://", f"https://x-access-token:{github_access_token}@")
+        
         repo_name = https_url.split("/")[-1].split(".")[0]
         local_path = target_directory / repo_name
         if local_path.exists():
