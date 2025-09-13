@@ -32,6 +32,7 @@ Your goal is to analyze each test and select appropriate regression tests based 
 
 1. The test is relevant to the issue at hand, fixing the bug could affect this test
 2. The test cases that most likely to break existing functionality if this issue is fixed or new changes apply.
+3. Do NOT select any test cases that may be skipped during normal test runs!
 
 Analysis Process:
 1. First, understand the issue from the provided issue info
@@ -71,6 +72,7 @@ Remember:
 - Always analyze all available tests thoroughly
 - Provide clear, step-by-step reasoning for your selection
 - Select the tests that best balances the prioritized criteria
+- Do NOT select any test cases that may be skipped during normal test runs!
 """
 
     HUMAN_PROMPT = """\
