@@ -96,9 +96,9 @@ async def upload_github_repository(
         saved_path = await repository_service.clone_github_repo(
             github_token, upload_repository_request.https_url, upload_repository_request.commit_id
         )
-    except git.exc.GitCommandError as e:
+    except git.exc.GitCommandError:
         raise ServerException(
-            code=400, message=f"Unable to clone {upload_repository_request.https_url}: {str(e)}"
+            code=400, message=f"Unable to clone {upload_repository_request.https_url}"
         )
 
     # Build and save the knowledge graph from the cloned repository
