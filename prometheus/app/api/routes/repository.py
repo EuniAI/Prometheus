@@ -15,32 +15,26 @@ from prometheus.app.services.repository_service import RepositoryService
 from prometheus.app.services.user_service import UserService
 from prometheus.configuration.config import settings
 from prometheus.exceptions.server_exception import ServerException
+from prometheus.utils.github_utils import is_repository_public
 
 router = APIRouter()
 
 
-async def get_github_token(request: Request, github_token: str) -> str:
-    """Retrieve GitHub token from the request or user profile."""
+async def get_github_token(request: Request, github_token: str | None = None) -> str | None:
+    """Retrieve GitHub token from the request or user profile.
+
+    Returns:
+        str | None: GitHub token if available, None for public repositories
+    """
     # If the token is provided in the request, use it directly
     if github_token:
         return github_token
-    # If the token is not provided, fetch it from the user profile if logged in
-    # Check if the user is authenticated
-    if not settings.ENABLE_AUTHENTICATION:
-        # If the user is not authenticated, raise an exception
-        raise ServerException(
-            code=400, message="GitHub token is required, please provide it or log in"
-        )
-    # If the user is authenticated, get the user service and fetch the token
-    user_service: UserService = request.app.state.service["user_service"]
-    user = await user_service.get_user_by_id(request.state.user_id)
-    github_token = user.github_token if user else None
 
-    # If the token is still not available, raise an exception
-    if not github_token:
-        raise ServerException(
-            code=400, message="Either provide a GitHub token or set it in your user profile"
-        )
+    # If the user is authenticated, get the user service and fetch the token
+    if settings.ENABLE_AUTHENTICATION:
+        user_service: UserService = request.app.state.service["user_service"]
+        user = await user_service.get_user_by_id(request.state.user_id)
+        github_token = user.github_token if user else None
     return github_token
 
 
@@ -86,8 +80,16 @@ async def upload_github_repository(
                 message=f"You have reached the maximum number of repositories ({settings.DEFAULT_USER_REPOSITORY_LIMIT}). Please delete some repositories before uploading new ones.",
             )
 
-    # Get the GitHub token
+    # Get the GitHub token (may be None for public repositories)
     github_token = await get_github_token(request, upload_repository_request.github_token)
+
+    # Check if the repository is public or private
+    is_repository_public_ = await is_repository_public(upload_repository_request.https_url)
+    if not is_repository_public_ and not github_token:
+        raise ServerException(
+            code=400,
+            message="This appears to be a private repository. Please provide a GitHub token.",
+        )
 
     # Clone the repository
     try:
@@ -96,7 +98,7 @@ async def upload_github_repository(
         )
     except git.exc.GitCommandError:
         raise ServerException(
-            code=400, message=f"Unable to clone {upload_repository_request.https_url}."
+            code=400, message=f"Unable to clone {upload_repository_request.https_url}"
         )
 
     # Build and save the knowledge graph from the cloned repository

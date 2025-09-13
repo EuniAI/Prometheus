@@ -14,7 +14,7 @@ class UploadRepositoryRequest(BaseModel):
     )
     github_token: str | None = Field(
         default=None,
-        description="Optional GitHub token for repository clone",
+        description="GitHub token for private repository clone. Optional for public repositories.",
         max_length=100,
     )
 

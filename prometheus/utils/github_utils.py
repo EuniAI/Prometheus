@@ -55,3 +55,35 @@ async def get_github_issue(repo: str, issue_number: int, github_token: str) -> D
         "state": issue_data["state"],
         "html_url": issue_data["html_url"],
     }
+
+
+async def is_repository_public(https_url: str) -> bool:
+    """
+    Check if a GitHub repository is public by making an unauthenticated request.
+
+    Args:
+        https_url: HTTPS URL of the GitHub repository
+
+    Returns:
+        bool: True if the repository is public, False if private or not found
+    """
+    # Extract owner and repo from HTTPS URL
+    # Example: https://github.com/owner/repo.git -> owner/repo
+    url_parts = https_url.replace("https://github.com/", "").replace(".git", "")
+    owner, repo = url_parts.split("/")
+    # Make unauthenticated request to check repository visibility
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"https://api.github.com/repos/{owner}/{repo}",
+            headers={"Accept": "application/vnd.github.v3+json"},
+        )
+
+        if response.status_code == 200:
+            # Repository exists and is accessible without authentication (public)
+            return True
+        elif response.status_code == 404:
+            # Repository not found or private (requires authentication)
+            return False
+        else:
+            # Other error, assume private for safety
+            return False

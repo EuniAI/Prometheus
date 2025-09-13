@@ -58,7 +58,7 @@ class RepositoryService(BaseService):
         return new_path
 
     async def clone_github_repo(
-        self, github_token: str, https_url: str, commit_id: Optional[str] = None
+        self, github_token: str | None, https_url: str, commit_id: Optional[str] = None
     ) -> Path:
         """Clones a GitHub repository to the local workspace.
 
@@ -67,7 +67,7 @@ class RepositoryService(BaseService):
         the operation may be skipped.
 
         Args:
-            github_token: GitHub access token for authentication.
+            github_token: GitHub access token for authentication. None for public repositories.
             https_url: HTTPS URL of the GitHub repository.
             commit_id: Optional specific commit to check out.
 
