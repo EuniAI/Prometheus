@@ -118,6 +118,11 @@ class KnowledgeGraph:
             if file.is_dir():
                 self._logger.info(f"Processing directory {file}")
                 for child_file in sorted(file.iterdir()):
+                    # Skip if the file does not exist (broken symlink).
+                    if not child_file.exists():
+                        self._logger.info(f"Skip parsing {child_file} because it does not exist")
+                        continue
+
                     # Skip if the child is not a file or it is not supported by the file graph builder.
                     if child_file.is_file() and not self._file_graph_builder.supports_file(
                         child_file
