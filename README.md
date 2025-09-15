@@ -247,3 +247,14 @@ For questions or support, please open an issue in
 the [GitHub repository](https://github.com/EuniAI/Prometheus/issues).
 
 You can also contact us via email at `business@euni.ai`
+
+---
+
+## Acknowledge
+
+
+<div align="center">
+  <img src="./docs/static/images/delysium_logo.svg" alt="Logo" width="150">
+</div>
+
+We thank [Delysium](https://delysium.com) for their support in organizing LLM-related resources, architecture design, and optimization, which greatly strengthened our research infrastructure and capabilities.
