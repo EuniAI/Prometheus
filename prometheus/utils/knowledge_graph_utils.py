@@ -125,7 +125,7 @@ def _analyze_context_relationship(context1: Context, context2: Context) -> str:
     """
      analyze the relationship between two contexts.
 
-    返回值:
+    returns:
     - "duplicate": Same content and line numbers
     - "contained": context1 is contained in context2
     - "contains": context1 contains context2
