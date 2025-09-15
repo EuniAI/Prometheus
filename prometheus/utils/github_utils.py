@@ -14,10 +14,15 @@ async def get_github_issue(repo: str, issue_number: int, github_token: str) -> D
         issue_number (int): The issue number to retrieve.
         github_token (str): GitHub personal access token for authentication.
     """
-    github_headers = {
-        "Authorization": f"token {github_token}",
-        "Accept": "application/vnd.github.v3+json",
-    }
+    if github_token:
+        github_headers = {
+            "Authorization": f"token {github_token}",
+            "Accept": "application/vnd.github.v3+json",
+        }
+    else:
+        github_headers = {
+            "Accept": "application/vnd.github.v3+json",
+        }
 
     async with httpx.AsyncClient(headers=github_headers) as client:
         issue_url = f"https://api.github.com/repos/{repo}/issues/{issue_number}"
@@ -27,6 +32,8 @@ async def get_github_issue(repo: str, issue_number: int, github_token: str) -> D
         issue_response, comments_response = await asyncio.gather(
             client.get(issue_url), client.get(comments_url)
         )
+        if issue_response.status_code == 401:
+            raise GithubException("Invalid GitHub token.")
 
         if issue_response.status_code != 200:
             raise GithubException(
