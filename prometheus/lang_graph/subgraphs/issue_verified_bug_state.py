@@ -34,7 +34,6 @@ class IssueVerifiedBugState(TypedDict):
 
     issue_bug_analyzer_messages: Annotated[Sequence[BaseMessage], add_messages]
     edit_messages: Annotated[Sequence[BaseMessage], add_messages]
-
     edit_patch: str
 
     reproducing_test_fail_log: str

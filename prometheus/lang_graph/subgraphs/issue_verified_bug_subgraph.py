@@ -1,4 +1,5 @@
 import functools
+import math
 from typing import Mapping, Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -126,7 +127,7 @@ class IssueVerifiedBugSubgraph:
         )
 
         final_patch_selection_node = FinalPatchSelectionNode(
-            advanced_model, "final_candidate_patches"
+            advanced_model, "final_candidate_patches", "edit_patch"
         )
 
         # Phase 7: Optionally run existing tests
@@ -283,13 +284,16 @@ class IssueVerifiedBugSubgraph:
         """
         # Set recursion limit based on number of candidate patches
         # (The number of candidate patches is halved for cost efficiency)
-        config = {"recursion_limit": (number_of_candidate_patch // 2 + 3) * 75 + 75}
+
+        number_of_candidate_patch_for_verified = math.ceil(number_of_candidate_patch / 2)
+
+        config = {"recursion_limit": (number_of_candidate_patch_for_verified + 3) * 75}
 
         input_state = {
             "issue_title": issue_title,
             "issue_body": issue_body,
             "issue_comments": issue_comments,
-            "number_of_candidate_patch": number_of_candidate_patch // 2,
+            "number_of_candidate_patch": number_of_candidate_patch_for_verified,
             "run_regression_test": run_regression_test,
             "run_existing_test": run_existing_test,
             "reproduced_bug_file": reproduced_bug_file,

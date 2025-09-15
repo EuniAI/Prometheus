@@ -80,7 +80,7 @@ class IssueNotVerifiedBugSubgraph:
 
         # Final patch selection node
         final_patch_selection_node = FinalPatchSelectionNode(
-            advanced_model, "final_candidate_patches"
+            advanced_model, "final_candidate_patches", "final_patch"
         )
 
         workflow = StateGraph(IssueNotVerifiedBugState)

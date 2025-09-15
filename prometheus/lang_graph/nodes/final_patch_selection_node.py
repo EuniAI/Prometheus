@@ -120,8 +120,9 @@ I have generated the following patches, now please select the best patch among t
 {patches}
 """
 
-    def __init__(self, model: BaseChatModel, candidate_patch_key: str):
+    def __init__(self, model: BaseChatModel, candidate_patch_key: str, final_patch_key: str):
         self.candidate_patch_key = candidate_patch_key
+        self.final_patch_key = final_patch_key
         prompt = ChatPromptTemplate.from_messages(
             [("system", self.SYS_PROMPT), ("human", "{human_prompt}")]
         )
@@ -162,7 +163,7 @@ I have generated the following patches, now please select the best patch among t
         # Handle the case with only one candidate patch
         elif len(patches) == 1:
             self._logger.info("Only one candidate patch available, selecting it by default.")
-            return {"final_patch": patches[0]}
+            return {self.final_patch_key: patches[0]}
 
         # Formalize Human Message
         human_prompt = self.format_human_message(patches, state)
@@ -188,7 +189,7 @@ I have generated the following patches, now please select the best patch among t
                     f"FinalPatchSelectionNode early stopping at turn {turn + 1} with result: {result},"
                     f"selected patch index: {selected_patch_index}"
                 )
-                return {"final_patch": patches[selected_patch_index]}
+                return {self.final_patch_key: patches[selected_patch_index]}
 
         # Select the maximum voted patch index
         selected_patch_index = result.index(max(result))
@@ -196,4 +197,4 @@ I have generated the following patches, now please select the best patch among t
             f"FinalPatchSelectionNode voting results: {result}, "
             f"selected patch index: {selected_patch_index}"
         )
-        return {"final_patch": patches[selected_patch_index]}
+        return {self.final_patch_key: patches[selected_patch_index]}
