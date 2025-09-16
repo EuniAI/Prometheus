@@ -255,30 +255,6 @@ class BaseContainer(ABC):
 
             # Wait for the marker with exit code
             self.shell.expect(marker + r"(\d+)", timeout=self.timeout)
-            exit_code = int(self.shell.match.group(1))
-
-            # Get the output before the marker
-            output_before_marker = self.shell.before
-
-            # Clean up the output by removing command echoes
-            all_lines = output_before_marker.splitlines()
-            clean_lines = []
-            for line in all_lines:
-                # Ignore the line if it's an echo of our commands
-                if marker_command not in line and full_command not in line:
-                    clean_lines.append(line)
-
-            cleaned_output = (
-                "\n".join(clean_lines).strip().replace("\x1b[?2004l", "").replace("\x1b[?2004h", "")
-            )
-
-            # Wait for the next shell prompt to ensure the shell is ready
-            self.shell.expect([r"\$", r"#"], timeout=10)
-
-            self._logger.debug(f"Command exit code: {exit_code}")
-            self._logger.debug(f"Command output:\n{cleaned_output}")
-
-            return cleaned_output
 
         except pexpect.exceptions.TIMEOUT:
             timeout_msg = f"""
@@ -288,10 +264,43 @@ class BaseContainer(ABC):
 """
             self._logger.error(f"Command '{command}' timed out after {self.timeout} seconds")
             partial_output = getattr(self.shell, "before", "")
-            return f"Command '{command}' timed out after {self.timeout} seconds. Partial output:\n{partial_output}{timeout_msg}"
 
+            # Restart the shell to prevent cascade failures
+            self._logger.warning(
+                "Restarting shell due to command timeout to prevent cascade failures"
+            )
+            if self.shell:
+                self.shell.close(force=True)
+            self._start_persistent_shell()
+
+            return f"Command '{command}' timed out after {self.timeout} seconds. Partial output:\n{partial_output}{timeout_msg}"
         except Exception as e:
             raise DockerException(f"Error executing command '{command}': {e}")
+
+        exit_code = int(self.shell.match.group(1))
+
+        # Get the output before the marker
+        output_before_marker = self.shell.before
+
+        # Clean up the output by removing command echoes
+        all_lines = output_before_marker.splitlines()
+
+        clean_lines = []
+        for line in all_lines:
+            stripped_line = line.strip()
+            # Ignore the line if it's an echo of the original command OR our marker command
+            if stripped_line != full_command and marker_command not in stripped_line:
+                clean_lines.append(line)
+        # 3. Join the clean lines back together
+        cleaned_output = "\n".join(clean_lines)
+
+        # Wait for the next shell prompt to ensure the shell is ready
+        self.shell.expect([r"\$", r"#"], timeout=20)
+
+        self._logger.debug(f"Command exit code: {exit_code}")
+        self._logger.debug(f"Command output:\n{cleaned_output}")
+
+        return cleaned_output
 
     def reset_repository(self):
         """Reset the git repository in the container to a clean state."""
