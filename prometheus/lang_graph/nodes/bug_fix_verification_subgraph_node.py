@@ -55,7 +55,7 @@ class BugFixVerificationSubgraphNode:
 
         return {
             "reproducing_test_fail_log": output_state["reproducing_test_fail_log"],
-            "final_candidate_patches": [state["edit_patch"]]
+            "pass_reproduction_test_patches": [state["edit_patch"]]
             if not bool(output_state["reproducing_test_fail_log"])
             else [],
         }

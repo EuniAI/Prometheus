@@ -17,7 +17,8 @@ class IssueVerifiedBugState(TypedDict):
     refined_query: str
 
     number_of_candidate_patch: int
-    final_candidate_patches: Annotated[Sequence[TestedPatchResult], add]
+    final_candidate_patches: Sequence[str]
+    pass_reproduction_test_patches: Annotated[Sequence[str], add]
 
     run_existing_test: bool
     run_regression_test: bool

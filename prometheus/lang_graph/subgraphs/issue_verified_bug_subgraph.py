@@ -123,7 +123,7 @@ class IssueVerifiedBugSubgraph:
 
         # Patch Normalization Node
         patch_normalization_node = PatchNormalizationNode(
-            "final_candidate_patches", "final_candidate_patches"
+            "pass_reproduction_test_patches", "final_candidate_patches"
         )
 
         final_patch_selection_node = FinalPatchSelectionNode(
@@ -219,7 +219,7 @@ class IssueVerifiedBugSubgraph:
         # If the number of passed reproduction test patches >= candidate patches, select the best patch
         workflow.add_conditional_edges(
             "final_patch_selection_branch_node",
-            lambda state: len(state["final_candidate_patches"])
+            lambda state: len(state["pass_reproduction_test_patches"])
             >= state["number_of_candidate_patch"],
             {
                 True: "patch_normalization_node",
