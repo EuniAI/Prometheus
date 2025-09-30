@@ -118,6 +118,10 @@ Bug Context:
 
 I have generated the following patches, now please select the best patch among them:
 {patches}
+
+Remember to provide structured output with two fields:
+- reasoning: A clear step-by-step explanation of your selection process
+- patch_index: The index of the selected patch (must be valid within the given range)
 """
 
     def __init__(self, model: BaseChatModel, candidate_patch_key: str, final_patch_key: str):
