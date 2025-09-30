@@ -65,6 +65,7 @@ Example output:
 ```
 
 Your task is to summarize the relevant contexts to a given query and return it in the specified format.
+REMEMBER: Every context object must have ALL four fields (reasoning, relative_path, start_line, end_line).
 """
 
 HUMAN_MESSAGE = """\
@@ -81,6 +82,7 @@ The context or file content that you have seen so far (Some of the context may b
 --- END CONTEXT ---
 
 REMEMBER: Your task is to summarize the relevant contexts to a given query and return it in the specified format!
+EVERY context object MUST include: reasoning, relative_path, start_line, and end_line.
 """
 
 HUMAN_MESSAGE_WITH_REFINEMENT_QUERY = """\
@@ -103,6 +105,7 @@ The context or file content that you have seen so far (Some of the context may b
 --- END CONTEXT ---
 
 REMEMBER: Your task is to summarize the relevant contexts to a given query and the refinement query, and return your response in the specified format!
+EVERY context object MUST include: reasoning, relative_path, start_line, and end_line.
 """
 
 
