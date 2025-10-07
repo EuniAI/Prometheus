@@ -216,6 +216,14 @@ We welcome contributions! Please see our [contributing guidelines](CONTRIBUTING.
 - Submit feature requests and improvements via Pull Requests
 - Join discussions on [Discord](https://discord.gg/jDG4wqkKZj)
 
+We're grateful to all our amazing contributors who have made this project what it is today!
+
+<a href="https://github.com/EuniAI/Prometheus/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=EuniAI/Prometheus&r="  width="400px"/>
+</a>
+
+If you have any questions or encounter issues, please feel free to reach out. For quick queries, you can also check our `Issues` page for common questions and solutions.
+
 ---
 
 ## 📜 License
