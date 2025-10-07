@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from fastapi import APIRouter
 
@@ -18,7 +18,7 @@ router = APIRouter()
     response_model=Response[Dict],
 )
 async def get_github_issue_(
-    repo: str, issue_number: int, github_token: str | None
+    repo: str, issue_number: int, github_token: Optional[str] = None
 ) -> Response[Dict]:
     """
     Get GitHub issue details including title, body, and comments.
@@ -26,7 +26,7 @@ async def get_github_issue_(
     Args:
         repo (str): The GitHub repository in the format "owner/repo".
         issue_number (int): The issue number to retrieve.
-        github_token (str): The GitHub token to use.
+        github_token (Optional[str]): The GitHub token to use. Optional for public repositories.
 
     Returns:
         Response[Dict]: A response object containing issue details.
