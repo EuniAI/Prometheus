@@ -16,12 +16,14 @@ class IssueClassificationSubgraphNode:
         model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
+        repository_id: int,
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.issue_classification_subgraph = IssueClassificationSubgraph(
             model=model,
             kg=kg,
             local_path=local_path,
+            repository_id=repository_id,
         )
 
     def __call__(self, state: IssueState):

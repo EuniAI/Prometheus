@@ -22,6 +22,7 @@ class IssueQuestionSubgraphNode:
         base_model: BaseChatModel,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
+        repository_id: int,
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.issue_question_subgraph = IssueQuestionSubgraph(
@@ -29,6 +30,7 @@ class IssueQuestionSubgraphNode:
             base_model=base_model,
             kg=kg,
             git_repo=git_repo,
+            repository_id=repository_id,
         )
 
     def __call__(self, state: IssueState):

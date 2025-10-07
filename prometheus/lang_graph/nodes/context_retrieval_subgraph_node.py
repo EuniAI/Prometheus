@@ -18,12 +18,14 @@ class ContextRetrievalSubgraphNode:
         local_path: str,
         query_key_name: str,
         context_key_name: str,
+        repository_id: int,
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.context_retrieval_subgraph = ContextRetrievalSubgraph(
             model=model,
             kg=kg,
             local_path=local_path,
+            repository_id=repository_id,
         )
         self.query_key_name = query_key_name
         self.context_key_name = context_key_name

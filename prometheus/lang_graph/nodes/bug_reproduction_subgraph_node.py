@@ -20,6 +20,7 @@ class BugReproductionSubgraphNode:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
+        repository_id: int,
         test_commands: Optional[Sequence[str]],
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
@@ -30,6 +31,7 @@ class BugReproductionSubgraphNode:
             container=container,
             kg=kg,
             git_repo=git_repo,
+            repository_id=repository_id,
             test_commands=test_commands,
         )
 

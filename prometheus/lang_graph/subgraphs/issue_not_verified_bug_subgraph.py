@@ -33,6 +33,7 @@ class IssueNotVerifiedBugSubgraph:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
         container: BaseContainer,
+        repository_id: int,
     ):
         issue_bug_context_message_node = IssueBugContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
@@ -41,6 +42,7 @@ class IssueNotVerifiedBugSubgraph:
             local_path=git_repo.playground_path,
             query_key_name="bug_fix_query",
             context_key_name="bug_fix_context",
+            repository_id=repository_id,
         )
 
         issue_bug_analyzer_message_node = IssueBugAnalyzerMessageNode()

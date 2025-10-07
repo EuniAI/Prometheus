@@ -28,33 +28,24 @@ class MemoryStorageNode:
         Returns:
             Empty state update (storage is side-effect only)
         """
-        refined_query = state.get("refined_query")
-        new_contexts = state.get("new_contexts", [])
+        refined_query = state["refined_query"]
+        new_contexts = state["new_contexts"]
 
-        if not refined_query or not refined_query.essential_query:
-            self._logger.info("No refined query available, skipping memory storage")
-            return {}
-
-        if not new_contexts:
-            self._logger.info("No new contexts to store")
-            return {}
+        self._logger.info(
+            f"Storing {len(new_contexts)} contexts to memory for query: {refined_query.essential_query}"
+        )
 
         try:
-            self._logger.info(
-                f"Storing {len(new_contexts)} contexts to memory for query: {refined_query.essential_query}"
-            )
-
             store_memory(
                 repository_id=self.repository_id,
                 essential_query=refined_query.essential_query,
                 extra_requirements=refined_query.extra_requirements or "",
                 purpose=refined_query.purpose or "",
-                contexts=new_contexts,
+                contexts=list(new_contexts),
             )
-
-            self._logger.info("Successfully stored contexts to memory")
         except Exception as e:
             self._logger.error(f"Failed to store to memory: {e}")
             # Don't fail the entire flow if memory storage fails
 
-        return {}
+        self._logger.info("Successfully stored contexts to memory")
+        return None

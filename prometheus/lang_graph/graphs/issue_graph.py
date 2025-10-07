@@ -30,6 +30,7 @@ class IssueGraph:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
         container: BaseContainer,
+        repository_id: int,
         test_commands: Optional[Sequence[str]] = None,
     ):
         self.git_repo = git_repo
@@ -42,6 +43,7 @@ class IssueGraph:
             model=base_model,
             kg=kg,
             local_path=git_repo.playground_path,
+            repository_id=repository_id,
         )
 
         # Subgraph node for handling bug issues
@@ -51,6 +53,7 @@ class IssueGraph:
             container=container,
             kg=kg,
             git_repo=git_repo,
+            repository_id=repository_id,
             test_commands=test_commands,
         )
 
@@ -60,6 +63,7 @@ class IssueGraph:
             base_model=base_model,
             kg=kg,
             git_repo=git_repo,
+            repository_id=repository_id,
         )
 
         # Create the state graph for the issue handling workflow

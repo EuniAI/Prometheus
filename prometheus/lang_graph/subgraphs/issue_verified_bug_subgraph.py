@@ -56,6 +56,7 @@ class IssueVerifiedBugSubgraph:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
+        repository_id: int,
     ):
         """
         Initialize the verified bug fix subgraph.
@@ -77,6 +78,7 @@ class IssueVerifiedBugSubgraph:
             local_path=git_repo.playground_path,
             query_key_name="bug_fix_query",
             context_key_name="bug_fix_context",
+            repository_id=repository_id,
         )
 
         # Phase 2: Analyze the bug and generate hypotheses

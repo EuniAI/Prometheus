@@ -146,6 +146,9 @@ class ContextExtractionNode:
         Extract relevant code contexts from the codebase based on the refined query and existing context.
         The final contexts are with line numbers.
         """
+        if not state["explored_context"]:
+            self._logger.info("No explored_context available, skipping context extraction")
+            return {"new_contexts": []}
 
         # Get human message
         human_message = self.format_human_message(state)

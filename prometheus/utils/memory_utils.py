@@ -112,7 +112,7 @@ class AthenaMemoryClient:
 
         result = response.json()
         self._logger.debug(f"Successfully retrieved {len(result.get('data', []))} memories")
-        return result
+        return result["data"]
 
     def delete_repository_memory(self, repository_id: int) -> dict[str, Any]:
         """

@@ -110,7 +110,7 @@ If additional context is needed:
 
     def format_refine_message(self, state: ContextRetrievalState):
         original_query = state["query"]
-        context = "\n\n".join([str(context) for context in state["context"]])
+        context = "\n\n".join([str(context) for context in state.get("context", [])])
         return self.REFINE_PROMPT.format(
             file_tree=self.file_tree,
             original_query=original_query,

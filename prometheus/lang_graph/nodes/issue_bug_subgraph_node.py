@@ -24,6 +24,7 @@ class IssueBugSubgraphNode:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
+        repository_id: int,
         test_commands: Optional[Sequence[str]] = None,
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
@@ -34,6 +35,7 @@ class IssueBugSubgraphNode:
             container=container,
             kg=kg,
             git_repo=git_repo,
+            repository_id=repository_id,
             test_commands=test_commands,
         )
 

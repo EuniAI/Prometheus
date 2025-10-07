@@ -40,8 +40,9 @@ class MemoryRetrievalNode:
         except Exception as e:
             self._logger.error(f"Failed to retrieve from memory: {e}")
             # On error, return empty list to continue with normal flow
-            return {"memory_contexts": []}
+            return {"explored_context": []}
 
+        self._logger.debug(f"Retrieved contexts: {results}")
         # Extract contexts from the result
         memory_contexts = []
         for memory in results:
