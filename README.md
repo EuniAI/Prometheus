@@ -25,7 +25,7 @@
 
 <br/>
 
-## Overview
+## 📖 Overview
 
 Prometheus is a research-backed, production-ready platform that leverages **unified knowledge graphs** and **multi-agent systems** to perform intelligent operations on multilingual codebases. Built on LangGraph state machines, it orchestrates specialized AI agents to automatically classify issues, reproduce bugs, retrieve relevant context, and generate validated patches.
 
@@ -42,7 +42,7 @@ Prometheus is a research-backed, production-ready platform that leverages **unif
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 Prometheus implements a hierarchical multi-agent system:
 
@@ -89,15 +89,15 @@ See **[Architecture Documentation](docs/Multi-Agent-Architecture.md)** for detai
 
 ---
 
-## Quick Start
+## ⚡ Quick Start
 
-### Prerequisites
+### ✅ Prerequisites
 
 - **Docker** and **Docker Compose**
 - **Python 3.11+** (for local development)
 - **API Keys**: OpenAI, Anthropic, or Google Gemini
 
-### Installation
+### 📦 Installation
 
 1. **Clone the repository**
    ```bash
@@ -137,9 +137,9 @@ See **[Architecture Documentation](docs/Multi-Agent-Architecture.md)** for detai
 
 ---
 
-## Development
+## 💻 Development
 
-### Local Setup
+### 🛠️ Local Setup
 
 ```bash
 # Install dependencies
@@ -151,7 +151,7 @@ pip install .[test]
 uvicorn prometheus.app.main:app --host 0.0.0.0 --port 9002 --reload
 ```
 
-### Testing
+### 🧪 Testing
 
 ```bash
 # Run tests (excluding git-dependent tests)
@@ -163,7 +163,7 @@ coverage html
 open htmlcov/index.html
 ```
 
-### Database Setup
+### 🗄️ Database Setup
 
 **PostgreSQL** (required for state checkpointing):
 ```bash
@@ -190,7 +190,7 @@ Verify at [http://localhost:7474](http://localhost:7474)
 
 ---
 
-## Research & Citation
+## 📚 Research & Citation
 
 Prometheus is based on peer-reviewed research on unified knowledge graphs for multilingual code analysis.
 
@@ -208,7 +208,7 @@ Prometheus is based on peer-reviewed research on unified knowledge graphs for mu
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 We welcome contributions! Please see our [contributing guidelines](CONTRIBUTING.md) for details.
 
@@ -218,7 +218,7 @@ We welcome contributions! Please see our [contributing guidelines](CONTRIBUTING.
 
 ---
 
-## License
+## 📜 License
 
 This project is dual-licensed:
 - **Community Edition**: Licensed under the [GNU General Public License v3.0 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html).  
@@ -230,7 +230,7 @@ This project is dual-licensed:
 
 ---
 
-## Support
+## 💬 Support
 
 - **Documentation**: [Multi-Agent Architecture](docs/Multi-Agent-Architecture.md) | [GitHub Issue Debug Guide](docs/GitHub-Issue-Debug-Guide.md)
 - **Community**: [Discord Server](https://discord.gg/jDG4wqkKZj)
@@ -239,7 +239,12 @@ This project is dual-licensed:
 
 ---
 
-## Acknowledgments
+## 🌟 Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=EuniAI/Prometheus&type=Date)](https://www.star-history.com/#EuniAI/Prometheus&Date)
+
+---
+
+## 🙏 Acknowledgments
 
 <div align="center">
   <img src="./docs/static/images/delysium_logo.svg" alt="Delysium Logo" width="150">
