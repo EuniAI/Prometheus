@@ -29,6 +29,8 @@ governed by a state machine to ensure code quality through automated reviews, bu
 
 ## 🚀 Features
 
+📖 **[Multi-Agent Architecture Documentation](docs/Multi-Agent-Architecture.md)**
+
 - **Codebase Analysis**: Answer questions about your codebase and provide insights.
 - **Issue Resolution**: Automatically resolve issues in your repository.
 - **Pull Request Reviews**: Perform intelligent reviews of pull requests to ensure code quality.
