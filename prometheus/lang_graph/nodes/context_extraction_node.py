@@ -11,11 +11,6 @@ from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetri
 from prometheus.models.context import Context
 from prometheus.utils.file_utils import read_file_with_line_numbers
 from prometheus.utils.knowledge_graph_utils import deduplicate_contexts
-from prometheus.utils.lang_graph_util import (
-    extract_human_queries,
-    extract_last_tool_messages,
-    transform_tool_messages_to_str,
-)
 
 SYS_PROMPT = """\
 You are a context summary agent that summarizes code contexts which is relevant to a given query.
@@ -68,33 +63,15 @@ Your task is to summarize the relevant contexts to a given query and return it i
 """
 
 HUMAN_MESSAGE = """\
-This is the original user query:
+This is the query you need to answer:
 
---- BEGIN ORIGINAL QUERY ---
-{original_query}
---- END ORIGINAL QUERY ---
+--- BEGIN QUERY ---
+{query}
+--- END QUERY ---
 
-The context or file content that you have seen so far (Some of the context may be IRRELEVANT to the query!!!):
+{extra_requirements}
 
---- BEGIN CONTEXT ---
-{context}
---- END CONTEXT ---
-
-REMEMBER: Your task is to summarize the relevant contexts to a given query and return it in the specified format!
-"""
-
-HUMAN_MESSAGE_WITH_REFINEMENT_QUERY = """\
-This is the original user query:
-
---- BEGIN ORIGINAL QUERY ---
-{original_query}
---- END ORIGINAL QUERY ---
-
-This is the refinement query. Please consider it together with the original query. It's really IMPORTANT!!!
-
---- BEGIN REFINEMENT QUERY ---
-{refinement_query}
---- END REFINEMENT QUERY ---
+{purpose}
 
 The context or file content that you have seen so far (Some of the context may be IRRELEVANT to the query!!!):
 
@@ -102,7 +79,7 @@ The context or file content that you have seen so far (Some of the context may b
 {context}
 --- END CONTEXT ---
 
-REMEMBER: Your task is to summarize the relevant contexts to a given query and the refinement query, and return your response in the specified format!
+REMEMBER: Your task is to summarize the relevant contexts to the given query and return it in the specified format!
 """
 
 
@@ -140,43 +117,38 @@ class ContextExtractionNode:
         self.root_path = root_path
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
-    def __call__(self, state: ContextRetrievalState):
-        """
-        Extract relevant code contexts from the codebase based on the user query and existing context.
-        The final contexts are with line numbers.
-        """
-        self._logger.info("Starting context extraction process")
-        # Get Context List with existing context
-        final_context = state.get("context", [])
+    def format_human_message(self, state: ContextRetrievalState):
+        refined_query = state["refined_query"]
+        explored_context = state["explored_context"]
 
-        # Transform the tool messages to a single string
-        full_context_str = transform_tool_messages_to_str(
-            extract_last_tool_messages(state["context_provider_messages"])
+        query_str = refined_query.essential_query
+        extra_requirements_str = (
+            f"--- BEGIN EXTRA REQUIREMENTS ---\n{refined_query.extra_requirements}\n--- END EXTRA REQUIREMENTS ---"
+            if refined_query.extra_requirements
+            else ""
+        )
+        purpose_str = (
+            f"--- BEGIN PURPOSE ---\n{refined_query.purpose}\n--- END PURPOSE ---"
+            if refined_query.purpose
+            else ""
         )
 
-        # return existing context if no new context is available
-        if not full_context_str:
-            self._logger.debug(
-                "No context available from tool messages, returning existing context"
-            )
-            return {"context": final_context}
-
-        # Get last user query or refinement query
-        last_human_query = extract_human_queries(state["context_provider_messages"])[0]
-
         # Format the human message
-        # If there is no refinement query, use the original query only
-        if last_human_query.strip() == state["query"].strip():
-            human_message = HUMAN_MESSAGE.format(
-                original_query=state["query"],
-                context=full_context_str,
-            )
-        else:
-            human_message = HUMAN_MESSAGE_WITH_REFINEMENT_QUERY.format(
-                original_query=state["query"],
-                refinement_query=last_human_query,
-                context=full_context_str,
-            )
+        return HUMAN_MESSAGE.format(
+            query=query_str,
+            extra_requirements=extra_requirements_str,
+            purpose=purpose_str,
+            context="\n\n".join([str(context) for context in explored_context]),
+        )
+
+    def __call__(self, state: ContextRetrievalState):
+        """
+        Extract relevant code contexts from the codebase based on the refined query and existing context.
+        The final contexts are with line numbers.
+        """
+
+        # Get human message
+        human_message = self.format_human_message(state)
 
         # Log the human message for debugging
         self._logger.debug(human_message)
@@ -184,7 +156,10 @@ class ContextExtractionNode:
         # Summarize the context based on the last messages and system prompt
         response = self.model.invoke({"human_prompt": human_message})
         self._logger.debug(f"Model response: {response}")
+
+        new_contexts = []
         context_list = response.context
+
         for context_ in context_list:
             if context_.start_line < 1 or context_.end_line < 1:
                 self._logger.warning(
@@ -216,9 +191,7 @@ class ContextExtractionNode:
                 content=content,
             )
 
-            final_context = final_context + [context]
+            new_contexts.append(context)
 
-        # Deduplicate contexts before returning
-        final_context = deduplicate_contexts(final_context)
-        self._logger.info(f"Context extraction complete, returning context {final_context}")
-        return {"context": final_context}
+        # return the new contexts after deduplication
+        return {"new_contexts": deduplicate_contexts(new_contexts)}

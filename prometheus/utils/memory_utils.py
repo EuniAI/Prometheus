@@ -1,6 +1,6 @@
 import logging
 import threading
-from typing import Any, List
+from typing import Any, Dict, List
 
 import requests
 
@@ -13,8 +13,8 @@ class AthenaMemoryClient:
     """Client for interacting with Athena semantic memory service."""
 
     def __init__(
-            self,
-            base_url: str,
+        self,
+        base_url: str,
     ):
         """
         Initialize Athena memory client.
@@ -27,12 +27,12 @@ class AthenaMemoryClient:
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
     def store_memory(
-            self,
-            repository_id: int,
-            essential_query: str,
-            extra_requirements: str,
-            purpose: str,
-            contexts: List[Context],
+        self,
+        repository_id: int,
+        essential_query: str,
+        extra_requirements: str,
+        purpose: str,
+        contexts: List[Context],
     ) -> dict[str, Any]:
         """
         Store content in semantic memory.
@@ -57,7 +57,7 @@ class AthenaMemoryClient:
             "query": {
                 "essential_query": essential_query,
                 "extra_requirements": extra_requirements,
-                "purpose": purpose
+                "purpose": purpose,
             },
             "contexts": contexts,
         }
@@ -74,10 +74,10 @@ class AthenaMemoryClient:
         return result
 
     def retrieve_memory(
-            self,
-            repository_id: int,
-            query: Query,
-    ) -> dict[str, Any]:
+        self,
+        repository_id: int,
+        query: Query,
+    ) -> List[Dict[str, Any]]:
         """
         Retrieve content from semantic memory using a query.
 
@@ -111,7 +111,7 @@ class AthenaMemoryClient:
             raise
 
         result = response.json()
-        self._logger.debug(f"Successfully retrieved {len(result.get('results', []))} memories")
+        self._logger.debug(f"Successfully retrieved {len(result.get('data', []))} memories")
         return result
 
     def delete_repository_memory(self, repository_id: int) -> dict[str, Any]:
@@ -148,11 +148,11 @@ athena_client = AthenaMemoryClient(
 
 
 def store_memory(
-        repository_id: int,
-        essential_query: str,
-        extra_requirements: str,
-        purpose: str,
-        contexts: List[Context],
+    repository_id: int,
+    essential_query: str,
+    extra_requirements: str,
+    purpose: str,
+    contexts: List[Context],
 ) -> dict[str, Any]:
     """
     Store contexts to semantic memory for a repository.
@@ -180,9 +180,9 @@ def store_memory(
 
 
 def retrieve_memory(
-        repository_id: int,
-        query: Query,
-) -> dict[str, Any]:
+    repository_id: int,
+    query: Query,
+) -> List[Dict[str, Any]]:
     """
     Retrieve contexts from semantic memory using a query.
 
@@ -213,24 +213,3 @@ def delete_repository_memory(repository_id: int) -> dict[str, Any]:
         requests.RequestException: If the request fails
     """
     return athena_client.delete_repository_memory(repository_id=repository_id)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
