@@ -9,7 +9,7 @@ volumes:
 services:
   neo4j:
     image: neo4j
-    container_name: neo4j_container
+    container_name: prometheus_neo4j_container
     networks:
       - prometheus_network
     environment:
@@ -29,7 +29,7 @@ services:
 
   postgres:
     image: postgres
-    container_name: postgres_container
+    container_name: prometheus_postgres_container
     networks:
       - prometheus_network
     environment:
