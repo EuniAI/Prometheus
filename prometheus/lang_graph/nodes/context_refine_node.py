@@ -136,7 +136,7 @@ IMPORTANT:
         if previous_refined_queries:
             previous_queries = "\n\n".join(
                 [
-                    f"Previous refined query {i+1}:\nEssential Query: {q.essential_query}\n"
+                    f"Previous refined query {i + 1}:\nEssential Query: {q.essential_query}\n"
                     f"Extra Requirements: {q.extra_requirements}\nPurpose: {q.purpose}"
                     for i, q in enumerate(previous_refined_queries)
                 ]

@@ -45,4 +45,7 @@ class AddResultContextNode:
         )
 
         # Sort contexts before returning and record previous queries
-        return {"context": sort_contexts(deduplicated_contexts), "previous_refined_queries": [state["refined_query"]]}
+        return {
+            "context": sort_contexts(deduplicated_contexts),
+            "previous_refined_queries": [state["refined_query"]],
+        }
