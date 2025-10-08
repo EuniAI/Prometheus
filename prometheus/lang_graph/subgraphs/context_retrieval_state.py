@@ -1,3 +1,4 @@
+from operator import add
 from typing import Annotated, Sequence, TypedDict
 
 from langchain_core.messages import BaseMessage
@@ -13,6 +14,7 @@ class ContextRetrievalState(TypedDict):
 
     context_provider_messages: Annotated[Sequence[BaseMessage], add_messages]
     refined_query: Query
+    previous_refined_queries: Annotated[Sequence[Query], add]
 
     context: Sequence[Context]  # Final contexts to return
 

@@ -42,20 +42,34 @@ DO NOT request additional context if:
 2. The additional context would only provide nice-to-have but non-essential details
 3. The information is redundant with what's already available
 
+When generating new queries, please review the previous queries to AVOID asking for the SAME or very similar information.
+Try to explore DIFFERENT aspects of the codebase rather than repeating similar requests, as these queries have already been asked and satisfied.
+
 Provide your analysis in a structured format matching the ContextRefineStructuredOutput model.
 
- Output Structure:
+Output Structure:
+  - **reasoning**: Your step-by-step reasoning about whether more context is needed and why.
   - **query**: The main request for additional context (one sentence). Set to empty string "" if no additional context is needed.
   - **extra_requirements** (optional): Fallback instructions if the primary request cannot be fully satisfied.
   - **purpose** (optional): Brief explanation of why this context is needed and how it will help complete the task. Use when it helps clarify the intent.
 
-Example output:
+Example output1:
 ```json
 {{
     "reasoning": "The current context lacks the test file content and shared test data definitions needed to extract the 8 relevant test cases.",
     "query": "Please provide the full content of sklearn/feature_extraction/tests/test_text.py",
     "extra_requirements": "If sending the full file is too large, please include at minimum: (a) the import statements at the top of the file, and (b) the definitions of ALL_FOOD_DOCS and JUNK_FOOD_DOCS, along with their line numbers.",
     "purpose": "I need to extract the 8 relevant test cases with their exact line numbers and include all necessary imports and shared test data."
+}}
+```
+
+Example output2:
+```json
+{{
+    "reasoning": "1. The current context includes the main function implementation but lacks details on helper functions it calls.\n2. The query requires understanding of how data is processed, which is not fully covered in the provided context.\n3. The documentation for the main function is missing, which could provide insights into its intended behavior.\n4. Therefore, additional context is needed to fully understand and address the user's query.",
+    "query":  "Please provide the implementation details of the helper functions called within the main function, as well as any relevant documentation that explains the overall data processing workflow.",
+    "extra_requirements": "",
+    "purpose": ""
 }}
 ```
 
@@ -73,6 +87,8 @@ This is the original user query:
 --- BEGIN ORIGINAL QUERY ---
 {original_query}
 --- END ORIGINAL QUERY ---
+
+{previous_queries}
 
 All aggregated context for the queries:
 --- BEGIN AGGREGATED CONTEXT ---
@@ -94,6 +110,9 @@ Only request additional context if essential information is missing. Ensure you'
 If additional context is needed:
 - Be specific about what you're looking for
 - Consider both code and documentation that might be relevant
+
+IMPORTANT:
+- Try to avoid asking for the SAME or very similar information as previous queries, because these queries have already been asked and satisfied.
 """
 
     def __init__(self, model: BaseChatModel, kg: KnowledgeGraph):
@@ -111,10 +130,27 @@ If additional context is needed:
     def format_refine_message(self, state: ContextRetrievalState):
         original_query = state["query"]
         context = "\n\n".join([str(context) for context in state.get("context", [])])
+
+        # Include previous refined queries if available
+        previous_refined_queries = state.get("previous_refined_queries", [])
+        if previous_refined_queries:
+            previous_queries = "\n\n".join(
+                [
+                    f"Previous refined query {i+1}:\nEssential Query: {q.essential_query}\n"
+                    f"Extra Requirements: {q.extra_requirements}\nPurpose: {q.purpose}"
+                    for i, q in enumerate(previous_refined_queries)
+                ]
+            )
+            previous_queries = f"These are the previously asked refined queries:\n--- BEGIN PREVIOUS QUERY ---\n{previous_queries}\n--- END PREVIOUS QUERY ---"
+        else:
+            previous_queries = ""
+
+        # Format the refine prompt
         return self.REFINE_PROMPT.format(
             file_tree=self.file_tree,
             original_query=original_query,
             context=context,
+            previous_queries=previous_queries,
         )
 
     def __call__(self, state: ContextRetrievalState):

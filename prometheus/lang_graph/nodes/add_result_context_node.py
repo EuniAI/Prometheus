@@ -44,5 +44,5 @@ class AddResultContextNode:
             f"(removed {len(combined_contexts) - len(deduplicated_contexts)} duplicates)"
         )
 
-        # Sort contexts before returning
-        return {"context": sort_contexts(deduplicated_contexts)}
+        # Sort contexts before returning and record previous queries
+        return {"context": sort_contexts(deduplicated_contexts), "previous_refined_queries": [state["refined_query"]]}
