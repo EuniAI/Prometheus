@@ -18,6 +18,7 @@ class IssueClassificationSubgraph:
         model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
+        repository_id: int,
     ):
         issue_classification_context_message_node = IssueClassificationContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
@@ -26,6 +27,7 @@ class IssueClassificationSubgraph:
             local_path=local_path,
             query_key_name="issue_classification_query",
             context_key_name="issue_classification_context",
+            repository_id=repository_id,
         )
         issue_classifier_node = IssueClassifierNode(model)
 

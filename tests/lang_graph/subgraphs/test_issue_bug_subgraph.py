@@ -43,6 +43,7 @@ def test_issue_bug_subgraph_basic_initialization(mock_container, mock_kg, mock_g
         container=mock_container,
         kg=mock_kg,
         git_repo=mock_git_repo,
+        repository_id=1,
     )
 
     # Verify the subgraph was created
@@ -61,6 +62,7 @@ def test_issue_bug_subgraph_with_commands(mock_container, mock_kg, mock_git_repo
         container=mock_container,
         kg=mock_kg,
         git_repo=mock_git_repo,
+        repository_id=1,
         test_commands=test_commands,
     )
 

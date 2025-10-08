@@ -65,5 +65,8 @@ class Settings(BaseSettings):
     # tool for Websearch
     TAVILY_API_KEY: str
 
+    # Athena semantic memory service
+    ATHENA_BASE_URL: str
+
 
 settings = Settings()

@@ -65,6 +65,7 @@ async def test_answer_issue_with_general_container(issue_service, monkeypatch):
     result = issue_service.answer_issue(
         repository=repository,
         knowledge_graph=knowledge_graph,
+        repository_id=1,
         issue_title="Test Issue",
         issue_body="Test Body",
         issue_comments=[],
@@ -89,6 +90,7 @@ async def test_answer_issue_with_general_container(issue_service, monkeypatch):
         kg=knowledge_graph,
         git_repo=repository,
         container=mock_container,
+        repository_id=1,
         test_commands=None,
     )
     assert result == ("test_patch", True, True, True, "test_response", IssueType.BUG)
@@ -126,6 +128,7 @@ async def test_answer_issue_with_user_defined_container(issue_service, monkeypat
     result = issue_service.answer_issue(
         repository=repository,
         knowledge_graph=knowledge_graph,
+        repository_id=1,
         issue_title="Test Issue",
         issue_body="Test Body",
         issue_comments=[],

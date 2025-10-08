@@ -28,6 +28,7 @@ class IssueBugSubgraph:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
+        repository_id: int,
         test_commands: Optional[Sequence[str]] = None,
     ):
         # Construct bug reproduction node
@@ -37,6 +38,7 @@ class IssueBugSubgraph:
             container=container,
             kg=kg,
             git_repo=git_repo,
+            repository_id=repository_id,
             test_commands=test_commands,
         )
         # Construct bug regression tests subgraph node
@@ -46,6 +48,7 @@ class IssueBugSubgraph:
             container=container,
             kg=kg,
             git_repo=git_repo,
+            repository_id=repository_id,
         )
 
         # Construct issue bug verified subgraph nodes
@@ -55,6 +58,7 @@ class IssueBugSubgraph:
             container=container,
             kg=kg,
             git_repo=git_repo,
+            repository_id=repository_id,
         )
         # Construct issue not verified bug subgraph node
         issue_not_verified_bug_subgraph_node = IssueNotVerifiedBugSubgraphNode(
@@ -63,6 +67,7 @@ class IssueBugSubgraph:
             kg=kg,
             git_repo=git_repo,
             container=container,
+            repository_id=repository_id,
         )
         # Construct issue bug responder node
         issue_bug_responder_node = IssueBugResponderNode(base_model)

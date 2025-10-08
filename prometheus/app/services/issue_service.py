@@ -34,6 +34,7 @@ class IssueService(BaseService):
         self,
         knowledge_graph: KnowledgeGraph,
         repository: GitRepository,
+        repository_id: int,
         issue_title: str,
         issue_body: str,
         issue_comments: Sequence[Mapping[str, str]],
@@ -54,6 +55,7 @@ class IssueService(BaseService):
 
         Args:
             repository (GitRepository): The Git repository instance.
+            repository_id (int): The repository ID.
             knowledge_graph (KnowledgeGraph): The knowledge graph instance.
             issue_title (str): The title of the issue.
             issue_body (str): The body of the issue.
@@ -113,6 +115,7 @@ class IssueService(BaseService):
             kg=knowledge_graph,
             git_repo=repository,
             container=container,
+            repository_id=repository_id,
             test_commands=test_commands,
         )
 

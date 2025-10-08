@@ -36,6 +36,7 @@ def test_issue_classification_subgraph_basic_initialization(mock_kg, mock_git_re
         model=fake_model,
         kg=mock_kg,
         local_path=mock_git_repo.playground_path,
+        repository_id=1,
     )
 
     # Verify the subgraph was created

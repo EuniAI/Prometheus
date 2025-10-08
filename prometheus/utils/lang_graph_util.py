@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Sequence
+from typing import Callable, Dict, List, Sequence
 
 from langchain_core.messages import (
     AIMessage,
@@ -8,6 +8,7 @@ from langchain_core.messages import (
 )
 from langchain_core.output_parsers import StrOutputParser
 
+from prometheus.models.context import Context
 from prometheus.utils.knowledge_graph_utils import knowledge_graph_data_for_context_generator
 
 
@@ -66,7 +67,16 @@ def extract_last_tool_messages(messages: Sequence[BaseMessage]) -> Sequence[Tool
     return tool_messages
 
 
-def transform_tool_messages_to_str(messages: Sequence[ToolMessage]) -> str:
+def transform_tool_messages_to_context(messages: Sequence[ToolMessage]) -> List[Context]:
+    """
+    Transform tool messages to Context objects and return them in explored_context.
+
+    Args:
+        messages: Sequence of ToolMessage objects that may contain artifacts
+
+    Returns:
+        Dictionary with 'explored_context' key containing list of Context objects
+    """
     # Aggregate all artifacts from the tool messages
     total_artifacts = []
     for message in messages:
@@ -74,12 +84,8 @@ def transform_tool_messages_to_str(messages: Sequence[ToolMessage]) -> str:
         if message.artifact:
             total_artifacts.extend(message.artifact)
 
-    # Convert the aggregated artifacts to a string representation
-    result = ""
-    for context in knowledge_graph_data_for_context_generator(total_artifacts):
-        result += str(context)
-        result += "\n"
-    return result
+    # Convert the aggregated artifacts to Context objects using the knowledge graph generator
+    return list(knowledge_graph_data_for_context_generator(total_artifacts))
 
 
 def get_last_message_content(messages: Sequence[BaseMessage]) -> str:

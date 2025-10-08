@@ -21,6 +21,7 @@ class IssueNotVerifiedBugSubgraphNode:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
         container: BaseContainer,
+        repository_id: int,
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
@@ -30,6 +31,7 @@ class IssueNotVerifiedBugSubgraphNode:
             kg=kg,
             git_repo=git_repo,
             container=container,
+            repository_id=repository_id,
         )
         self.git_repo = git_repo
 
