@@ -53,6 +53,7 @@ def test_issue_graph_basic_initialization(
         kg=mock_kg,
         git_repo=mock_git_repo,
         container=mock_container,
+        repository_id=1,
     )
 
     assert graph.graph is not None
