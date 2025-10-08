@@ -83,6 +83,7 @@ The file tree of the codebase:
 Available AST node types for code structure search: {ast_node_types}
 
 PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
+DO NOT DO ANYTHING ELSE BESIDES ANSWERING THE QUERY!
 """
 
     def __init__(

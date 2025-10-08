@@ -9,6 +9,13 @@ from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetri
 class AddContextRefinedQueryMessageNode:
     """Node for converting refined query to string and adding it to context_provider_messages."""
 
+    HUMAN_PROMPT = """
+Please search for code and documentations that can help to answer the following query.
+{query_message}
+DO NOT do anything else other than searching for relevant code and documentations that can help to answer the query!
+Your every action must be searching for relevant code and documentations that can help to answer the query!
+"""
+
     def __init__(self):
         """Initialize the add context refined query message node."""
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
