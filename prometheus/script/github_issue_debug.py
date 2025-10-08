@@ -116,7 +116,7 @@ class GitHubIssueDebugger:
             "issue_title": issue_data["title"],
             "issue_body": issue_data["body"],
             "issue_comments": issue_data["comments"],
-            "issue_type": "bug",
+            "issue_type": "auto",
             "run_build": config.get("run_build", False),
             "run_existing_test": config.get("run_test", False),
             "run_regression_test": config.get("run_regression_test", True),

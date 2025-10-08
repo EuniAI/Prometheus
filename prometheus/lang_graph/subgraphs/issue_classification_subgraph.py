@@ -59,7 +59,7 @@ class IssueClassificationSubgraph:
             "issue_title": issue_title,
             "issue_body": issue_body,
             "issue_comments": issue_comments,
-            "max_refined_query_loop": 3,
+            "max_refined_query_loop": 2,
         }
 
         output_state = self.subgraph.invoke(
