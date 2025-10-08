@@ -16,6 +16,9 @@ from prometheus.lang_graph.nodes.context_refine_node import ContextRefineNode
 from prometheus.lang_graph.nodes.memory_retrieval_node import MemoryRetrievalNode
 from prometheus.lang_graph.nodes.memory_storage_node import MemoryStorageNode
 from prometheus.lang_graph.nodes.reset_messages_node import ResetMessagesNode
+from prometheus.lang_graph.nodes.transform_tool_messages_to_context_node import (
+    TransformToolMessagesToContextNode,
+)
 from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetrievalState
 from prometheus.models.context import Context
 
@@ -104,6 +107,7 @@ class ContextRetrievalSubgraph:
             name="context_provider_tools",
             messages_key="context_provider_messages",
         )
+        transform_tool_messages_to_context_node = TransformToolMessagesToContextNode()
 
         # Step 8: Reset messages for next iteration
         reset_context_provider_messages_node = ResetMessagesNode("context_provider_messages")
@@ -123,6 +127,9 @@ class ContextRetrievalSubgraph:
         workflow.add_node("context_provider_node", context_provider_node)
         workflow.add_node("context_provider_tools", context_provider_tools)
         workflow.add_node(
+            "transform_tool_messages_to_context_node", transform_tool_messages_to_context_node
+        )
+        workflow.add_node(
             "reset_context_provider_messages_node", reset_context_provider_messages_node
         )
 
@@ -133,7 +140,8 @@ class ContextRetrievalSubgraph:
         # After refine: Check if we have a valid query, if yes try memory first
         workflow.add_conditional_edges(
             "context_refine_node",
-            lambda state: bool(state["refined_query"]),
+            lambda state: bool(state["refined_query"])
+            and bool(state["refined_query"].essential_query.strip()),
             {True: "memory_retrieval_node", False: END},
         )
 
@@ -163,8 +171,10 @@ class ContextRetrievalSubgraph:
         workflow.add_conditional_edges(
             "context_provider_node",
             functools.partial(tools_condition, messages_key="context_provider_messages"),
-            {"tools": "context_provider_tools", END: "context_extraction_node"},
+            {"tools": "context_provider_tools", END: "transform_tool_messages_to_context_node"},
         )
+        # After KG provider (no tools): Transform tool messages to contexts
+        workflow.add_edge("transform_tool_messages_to_context_node", "context_extraction_node")
 
         # After executing tools: Loop back to provider (may call more tools)
         workflow.add_edge("context_provider_tools", "context_provider_node")
@@ -186,7 +196,7 @@ class ContextRetrievalSubgraph:
         """
         # Set the recursion limit based on the maximum number of refined query loops
         max_refined_query_loop = max_refined_query_loop + 1
-        config = {"recursion_limit": max_refined_query_loop * 75}
+        config = {"recursion_limit": max_refined_query_loop * 40}
 
         input_state = {
             "query": query,

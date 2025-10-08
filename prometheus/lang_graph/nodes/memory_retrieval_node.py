@@ -47,8 +47,8 @@ class MemoryRetrievalNode:
         memory_contexts = []
         for memory in results:
             for context in memory["memory_context_contexts"]:
-                memory_contexts.append(Context.from_dict(context))
-
+                memory_contexts.append(Context(**context))
+        self._logger.info(f"Retrieved {len(results)} memories from memory")
         self._logger.info(f"Retrieved {len(memory_contexts)} contexts from memory")
 
         # Deduplicate contexts before returning

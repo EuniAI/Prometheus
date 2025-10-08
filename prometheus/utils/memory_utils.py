@@ -59,7 +59,7 @@ class AthenaMemoryClient:
                 "extra_requirements": extra_requirements,
                 "purpose": purpose,
             },
-            "contexts": contexts,
+            "contexts": [context.model_dump() for context in contexts],
         }
 
         self._logger.debug(f"Storing memory for repository {repository_id}")
