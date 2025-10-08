@@ -2,7 +2,7 @@ import logging
 import threading
 
 from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetrievalState
-from prometheus.utils.knowledge_graph_utils import deduplicate_contexts
+from prometheus.utils.knowledge_graph_utils import deduplicate_contexts, sort_contexts
 
 
 class AddResultContextNode:
@@ -44,4 +44,5 @@ class AddResultContextNode:
             f"(removed {len(combined_contexts) - len(deduplicated_contexts)} duplicates)"
         )
 
-        return {"context": deduplicated_contexts}
+        # Sort contexts before returning
+        return {"context": sort_contexts(deduplicated_contexts)}

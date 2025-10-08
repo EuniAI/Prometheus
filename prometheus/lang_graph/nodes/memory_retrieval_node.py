@@ -3,7 +3,7 @@ import threading
 
 from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetrievalState
 from prometheus.models.context import Context
-from prometheus.utils.knowledge_graph_utils import deduplicate_contexts
+from prometheus.utils.knowledge_graph_utils import deduplicate_contexts, sort_contexts
 from prometheus.utils.memory_utils import retrieve_memory
 
 
@@ -52,4 +52,4 @@ class MemoryRetrievalNode:
         self._logger.info(f"Retrieved {len(memory_contexts)} contexts from memory")
 
         # Deduplicate contexts before returning
-        return {"explored_context": deduplicate_contexts(memory_contexts)}
+        return {"explored_context": sort_contexts(deduplicate_contexts(memory_contexts))}

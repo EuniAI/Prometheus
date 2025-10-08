@@ -164,3 +164,23 @@ def _analyze_context_relationship(context1: Context, context2: Context) -> str:
 
     # For all other cases (including partial overlaps), return separate
     return "separate"
+
+
+def sort_contexts(contexts: List[Context]) -> List[Context]:
+    """
+    Sort a list of Context objects by relative_path, then by start_line_number and end_line_number.
+
+    Args:
+        contexts: List of Context objects to sort
+
+    Returns:
+        Sorted list of Context objects
+    """
+    return sorted(
+        contexts,
+        key=lambda ctx: (
+            ctx.relative_path,
+            ctx.start_line_number if ctx.start_line_number is not None else float("inf"),
+            ctx.end_line_number if ctx.end_line_number is not None else float("inf"),
+        ),
+    )

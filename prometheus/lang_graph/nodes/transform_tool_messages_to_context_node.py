@@ -2,7 +2,7 @@ import logging
 import threading
 
 from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetrievalState
-from prometheus.utils.knowledge_graph_utils import deduplicate_contexts
+from prometheus.utils.knowledge_graph_utils import deduplicate_contexts, sort_contexts
 from prometheus.utils.lang_graph_util import (
     extract_last_tool_messages,
     transform_tool_messages_to_context,
@@ -42,4 +42,4 @@ class TransformToolMessagesToContextNode:
             self._logger.info("No contexts extracted from tool messages")
             return {"explored_context": []}
 
-        return {"explored_context": deduplicate_contexts(explored_context)}
+        return {"explored_context": sort_contexts(deduplicate_contexts(explored_context))}
