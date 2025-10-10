@@ -22,7 +22,8 @@ class IssueClassificationSubgraph:
     ):
         issue_classification_context_message_node = IssueClassificationContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
-            model=model,
+            base_model=model,
+            advanced_model=model,
             kg=kg,
             local_path=local_path,
             query_key_name="issue_classification_query",

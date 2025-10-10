@@ -68,7 +68,8 @@ class ContextRetrievalSubgraph:
 
     def __init__(
         self,
-        model: BaseChatModel,
+        base_model: BaseChatModel,
+        advanced_model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
         repository_id: int,
@@ -77,19 +78,20 @@ class ContextRetrievalSubgraph:
         Initializes the context retrieval subgraph.
 
         Args:
-            model (BaseChatModel): The LLM used for context selection and refinement.
+            base_model (BaseChatModel): The LLM used for context selection and refinement.
+            advanced_model (BaseChatModel): The LLM used for advanced tasks like query refinement and context extraction.
             kg (KnowledgeGraph): Knowledge graph instance
             local_path (str): Local path to the codebase for context extraction.
             repository_id (int): Repository ID for memory storage
         """
         # Step 1: Refine query into structured format
-        context_refine_node = ContextRefineNode(model=model, kg=kg)
+        context_refine_node = ContextRefineNode(model=advanced_model, kg=kg)
 
         # Step 2: Retrieve contexts from semantic memory (Athena)
         memory_retrieval_node = MemoryRetrievalNode(repository_id=repository_id)
 
         # Step 3: Extract relevant contexts from explored_context
-        context_extraction_node = ContextExtractionNode(model=model, root_path=local_path)
+        context_extraction_node = ContextExtractionNode(model=advanced_model, root_path=local_path)
 
         # Step 4: Store new contexts to memory
         memory_storage_node = MemoryStorageNode(repository_id=repository_id)
@@ -101,7 +103,7 @@ class ContextRetrievalSubgraph:
         add_context_refined_query_message_node = AddContextRefinedQueryMessageNode()
 
         # Step 7: Query knowledge graph (Neo4j) using LLM tools
-        context_provider_node = ContextProviderNode(model=model, kg=kg, local_path=local_path)
+        context_provider_node = ContextProviderNode(model=base_model, kg=kg, local_path=local_path)
         context_provider_tools = ToolNode(
             tools=context_provider_node.tools,
             name="context_provider_tools",

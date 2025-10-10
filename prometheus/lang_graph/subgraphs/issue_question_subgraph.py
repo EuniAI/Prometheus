@@ -37,7 +37,8 @@ class IssueQuestionSubgraph:
         # Step 1: Retrieve relevant context based on the issue details
         issue_question_context_message_node = IssueQuestionContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
-            model=base_model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             kg=kg,
             local_path=git_repo.playground_path,
             query_key_name="question_query",

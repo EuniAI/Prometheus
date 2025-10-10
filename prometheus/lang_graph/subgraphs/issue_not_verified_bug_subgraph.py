@@ -37,7 +37,8 @@ class IssueNotVerifiedBugSubgraph:
     ):
         issue_bug_context_message_node = IssueBugContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
-            model=base_model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             kg=kg,
             local_path=git_repo.playground_path,
             query_key_name="bug_fix_query",

@@ -13,7 +13,8 @@ from prometheus.models.context import Context
 class ContextRetrievalSubgraphNode:
     def __init__(
         self,
-        model: BaseChatModel,
+        base_model: BaseChatModel,
+        advanced_model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
         query_key_name: str,
@@ -22,7 +23,8 @@ class ContextRetrievalSubgraphNode:
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.context_retrieval_subgraph = ContextRetrievalSubgraph(
-            model=model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             kg=kg,
             local_path=local_path,
             repository_id=repository_id,

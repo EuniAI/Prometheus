@@ -55,6 +55,7 @@ class BugGetRegressionTestsSubgraph:
         # Step 2: Retrieve relevant code/documentation context from the knowledge graph
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
             base_model,
+            advanced_model,
             kg,
             git_repo.playground_path,
             "select_regression_query",
