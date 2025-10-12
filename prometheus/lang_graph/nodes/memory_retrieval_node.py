@@ -23,12 +23,13 @@ class MemoryRetrievalNode:
     def __call__(self, state: ContextRetrievalState):
         """
         Retrieve contexts from memory using the refined query.
+        Memory contexts are directly added to new_contexts (deduplicated and sorted).
 
         Args:
             state: Current state containing the refined query
 
         Returns:
-            State update with memory_contexts
+            State update with new_contexts containing deduplicated and sorted memory contexts
         """
         refined_query = state["refined_query"]
 
@@ -40,7 +41,7 @@ class MemoryRetrievalNode:
         except Exception as e:
             self._logger.error(f"Failed to retrieve from memory: {e}")
             # On error, return empty list to continue with normal flow
-            return {"explored_context": []}
+            return {"new_contexts": []}
 
         self._logger.debug(f"Retrieved contexts: {results}")
         # Extract contexts from the result
@@ -51,5 +52,9 @@ class MemoryRetrievalNode:
         self._logger.info(f"Retrieved {len(results)} memories from memory")
         self._logger.info(f"Retrieved {len(memory_contexts)} contexts from memory")
 
-        # Deduplicate contexts before returning
-        return {"explored_context": sort_contexts(deduplicate_contexts(memory_contexts))}
+        # Deduplicate and sort contexts before returning as new_contexts
+        deduplicated_sorted = sort_contexts(deduplicate_contexts(memory_contexts))
+        self._logger.info(
+            f"After deduplication and sorting: {len(deduplicated_sorted)} contexts from memory"
+        )
+        return {"new_contexts": deduplicated_sorted}

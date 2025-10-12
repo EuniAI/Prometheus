@@ -32,11 +32,10 @@ class ContextRetrievalSubgraph:
     Workflow:
         1. Refine query into structured format (essential_query, extra_requirements, purpose)
         2. Try to retrieve from semantic memory (Athena)
-        3. Extract relevant contexts from memory results
-        4. If found → Store to memory and refine again (loop)
+        3. If found → Merge to result_context (deduplicated & sorted) and refine again (loop)
            If not found → Fall back to Knowledge Graph retrieval
-        5. KG retrieval: Query Neo4j → Extract contexts → Store to memory
-        6. Loop back to refinement until max iterations
+        4. KG retrieval: Query Neo4j → Extract contexts → Store to memory
+        5. Loop back to refinement until max iterations
 
     Flow Diagram:
                                     ┌──────────────┐
@@ -47,23 +46,30 @@ class ContextRetrievalSubgraph:
                                     ┌──────▼───────┐              │
                                     │   Memory     │              │
                                     │  Retrieval   │              │
+                                    │(returns      │              │
+                                    │new_contexts) │              │
                                     └──────┬───────┘              │
                                            │                      │
-                                    ┌──────▼───────┐              │
-                                    │   Extract    │◄─────┐       │
-                                    │  Contexts    │      │       │
-                                    └──────┬───────┘      │       │
-                                           │              │       │
-                              ┌────────────┴────────┐     │       │
-                              │                     │     │       │
-                         [has contexts?]            │     │       │
-                              │                     │     │       │
-                    ┌─────────▼─────┐       ┌───────▼─────┴───┐   │
-                    │  Store +      │       │   KG Provider   │   │
-                    │  Merge        │       │   (with tools)  │   │
-                    └─────────┬─────┘       └─────────────────┘   │
-                              │                                   │
-                              └───────────────────────────────────┘
+                              ┌────────────┴────────┐             │
+                              │                     │             │
+                         [has contexts?]            │             │
+                              │                     │             │
+                    ┌─────────▼─────┐       ┌───────▼─────────┐   │
+                    │  Merge to     │       │   KG Provider   │   │
+                    │  result       │       │   (with tools)  │   │
+                    └─────────┬─────┘       └─────────┬───────┘   │
+                              │                       │           │
+                              │                  ┌────▼──────┐    │
+                              │                  │  Extract  │    │
+                              │                  │ Contexts  │    │
+                              │                  └────┬──────┘    │
+                              │                       │           │
+                              │                  ┌────▼──────┐    │
+                              │                  │  Store to │    │
+                              │                  │  Memory   │    │
+                              │                  └────┬──────┘    │
+                              │                       │           │
+                              └───────────────────────┴───────────┘
     """
 
     def __init__(
@@ -147,20 +153,16 @@ class ContextRetrievalSubgraph:
             {True: "memory_retrieval_node", False: END},
         )
 
-        # After memory retrieval: Always extract contexts
-        workflow.add_edge("memory_retrieval_node", "context_extraction_node")
-
-        # After extraction: Check if we found new contexts
-        # Yes → Store to memory and loop back (memory hit)
+        # After memory retrieval: Check if we found new contexts
+        # Yes → Merge to result_context and loop back (memory hit)
         # No → Fall back to KG retrieval (memory miss)
         workflow.add_conditional_edges(
-            "context_extraction_node",
+            "memory_retrieval_node",
             lambda state: len(state["new_contexts"]) > 0,
-            {True: "memory_storage_node", False: "reset_context_provider_messages_node"},
+            {True: "add_result_context_node", False: "reset_context_provider_messages_node"},
         )
 
-        # Memory hit path: Store → Merge → Refine again
-        workflow.add_edge("memory_storage_node", "add_result_context_node")
+        # Memory hit path: Merge → Refine again (no storage for memory contexts)
         workflow.add_edge("add_result_context_node", "context_refine_node")
 
         # Memory miss path: Reset → Convert query → KG provider
@@ -175,8 +177,10 @@ class ContextRetrievalSubgraph:
             functools.partial(tools_condition, messages_key="context_provider_messages"),
             {"tools": "context_provider_tools", END: "transform_tool_messages_to_context_node"},
         )
-        # After KG provider (no tools): Transform tool messages to contexts
+        # After KG provider (no tools): Transform tool messages → Extract contexts → Store → Merge
         workflow.add_edge("transform_tool_messages_to_context_node", "context_extraction_node")
+        workflow.add_edge("context_extraction_node", "memory_storage_node")
+        workflow.add_edge("memory_storage_node", "add_result_context_node")
 
         # After executing tools: Loop back to provider (may call more tools)
         workflow.add_edge("context_provider_tools", "context_provider_node")
