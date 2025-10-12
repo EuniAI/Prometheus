@@ -26,7 +26,7 @@ You are an expert programming assistant specialized in evaluating and selecting 
 4. STYLE COHERENCE: The patch should maintain consistent coding style with the surrounding code
 
 Analysis Process:
-1. First, understand the issue from the provided issue_info and bug_context
+1. First, understand the issue from the provided issue_info and context
 2. Examine each patch carefully, considering:
    - Does it fix the root cause of the issue?
    - Does it maintain existing behavior (if appropriate)?
@@ -49,7 +49,7 @@ Body: Method throws NullPointerException when user ID is not found
 Comments: - Occurs in production environment
           - Affects customer-facing API
 
-Bug Context:
+Context:
 ```java
 // File: src/main/java/com/example/service/UserService.java
 public User getUser(String userId) {
@@ -113,8 +113,8 @@ Remember:
     HUMAN_PROMPT = """\
 {issue_info}
 
-Bug Context:
-{bug_fix_context}
+Context:
+{context}
 
 I have generated the following patches, now please select the best patch among them:
 {patches}
@@ -124,9 +124,12 @@ Remember to provide structured output with two fields:
 - patch_index: The index of the selected patch (must be valid within the given range)
 """
 
-    def __init__(self, model: BaseChatModel, candidate_patch_key: str, final_patch_key: str):
+    def __init__(
+        self, model: BaseChatModel, candidate_patch_key: str, final_patch_key: str, context_key: str
+    ):
         self.candidate_patch_key = candidate_patch_key
         self.final_patch_key = final_patch_key
+        self.context_key = context_key
         prompt = ChatPromptTemplate.from_messages(
             [("system", self.SYS_PROMPT), ("human", "{human_prompt}")]
         )
@@ -149,7 +152,7 @@ Remember to provide structured output with two fields:
             issue_info=format_issue_info(
                 state["issue_title"], state["issue_body"], state["issue_comments"]
             ),
-            bug_fix_context="\n\n".join([str(context) for context in state["bug_fix_context"]]),
+            context="\n\n".join([str(context) for context in state[self.context_key]]),
             patches=patches_str,
         )
 

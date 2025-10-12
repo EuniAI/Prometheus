@@ -9,7 +9,9 @@ from prometheus.models.context import Context
 
 @pytest.fixture
 def edit_node():
-    return EditMessageNode()
+    return EditMessageNode(
+        context_key="bug_fix_context", analyzer_message_key="issue_bug_analyzer_messages"
+    )
 
 
 @pytest.fixture
