@@ -40,6 +40,7 @@ class IssueGraph:
 
         # Subgraph nodes for issue classification
         issue_classification_subgraph_node = IssueClassificationSubgraphNode(
+            advanced_model=advanced_model,
             model=base_model,
             kg=kg,
             local_path=git_repo.playground_path,
