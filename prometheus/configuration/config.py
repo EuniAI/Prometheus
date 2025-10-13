@@ -1,5 +1,5 @@
 from typing import List, Literal, Optional
-
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -43,7 +43,6 @@ class Settings(BaseSettings):
 
     # Model parameters
     ADVANCED_MODEL_TEMPERATURE: Optional[float] = None
-
     BASE_MODEL_TEMPERATURE: Optional[float] = None
 
     # Database
@@ -65,15 +64,12 @@ class Settings(BaseSettings):
     # tool for Websearch
     TAVILY_API_KEY: str
 
-    # GitHub App settings
-    github_app_id: Optional[str] = None
-    github_webhook_secret: Optional[str] = None
-    github_private_key: Optional[str] = None
-    github_bot_handle: Optional[str] = None
-    github_org_name: Optional[str] = None
-
-    # JWT settings (check if this should be prometheus_jwt_secret_key instead)
-    PROMETHEUS_JWT_SECRET_KEY: Optional[str] = None
+    # GitHub App settings (using Field to specify exact env var names)
+    github_app_id: Optional[str] = Field(None, env='GITHUB_APP_ID')
+    github_webhook_secret: Optional[str] = Field(None, env='GITHUB_WEBHOOK_SECRET')
+    github_private_key: Optional[str] = Field(None, env='GITHUB_PRIVATE_KEY')
+    github_bot_handle: Optional[str] = Field(None, env='GITHUB_BOT_HANDLE')
+    github_org_name: Optional[str] = Field(None, env='GITHUB_ORG_NAME')
 
 
 settings = Settings()
