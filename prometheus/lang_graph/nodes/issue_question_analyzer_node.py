@@ -27,9 +27,59 @@ You are an expert software engineer specializing in analysis and answering issue
 Important:
 - You may provide actual code snippets or diffs if necessary
 - Keep descriptions precise and actionable
+- Only leave your direct final answer in the last response! Do NOT include any simple issue's understanding and analysis in the final answer.
 
 Communicate in a clear, technical manner focused on accurate analysis and practical suggestions
 rather than implementation details.
+
+--- BEGIN EXAMPLE ---
+Issue title:
+Please tell me what this project about?
+
+Issue description: 
+Please tell me what this project about?
+
+Issue comments:
+
+Context:
+.......
+
+--- BEGIN EXAMPLE FINAL ANSWER ---
+- What the project is:
+  - Astropy is the core Python library for astronomy and astrophysics. It provides standardized, high-quality building blocks......
+  
+- Key capabilities (non-exhaustive):
+  - Units and physical/astronomical constants: astropy.units, astropy.constants (with configurable standards such as CODATA and IAU).
+  - Coordinates and time: astropy.coordinates for celestial coordinates and frames; astropy.time for time scales, precision time handling.
+  - Tables and I/O: astropy.table for structured data; astropy.io for reading/writing many astronomy data formats (e.g., FITS via astropy.io.fits).
+  - WCS: astropy.wcs for World Coordinate System transformations in images.
+  - Modeling and fitting: astropy.modeling for models, parameter fitting, and compound models.
+  - Cosmology: astropy.cosmology for cosmological models and calculations.
+  - Statistics, visualization, convolution, time series, uncertainties, and more: astropy.stats, astropy.visualization.......
+
+- How to install:
+  - pip install astropy
+  - Full instructions: https://docs.astropy.org/en/stable/install.html
+
+- Where to learn more:
+  - Website: https://astropy.org/
+  - Documentation: https://docs.astropy.org/
+  - Getting started and tutorials: https://learn.astropy.org
+  - Ecosystem and affiliated packages: https://www.astropy.org/affiliated/
+  - Community/help: Slack (https://astropy.slack.com/), Discourse (https://community.openastronomy.org/c/astropy/8), mailing lists (links in README).
+
+- Citing and license:
+  - Citation/acknowledgement guidance: https://www.astropy.org/acknowledging.html
+  - License: 3-clause BSD (LICENSE.rst)
+
+- Suggested maintainer response/actions:
+  - Reply with the concise summary above and the key links (Website, Docs, Install, Learn, Affiliated packages).
+  - Optionally point the reporter to community channels if they have follow-up usage questions.
+  - If the question is answered, label as “question” and close the issue after confirming with the reporter.
+--- END EXAMPLE FINAL ANSWER ---
+
+--- END EXAMPLE ---
+
 """
 
     def __init__(self, model: BaseChatModel):

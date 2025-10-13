@@ -54,7 +54,9 @@ class IssueNotVerifiedBugSubgraph:
             messages_key="issue_bug_analyzer_messages",
         )
 
-        edit_message_node = EditMessageNode()
+        edit_message_node = EditMessageNode(
+            context_key="bug_fix_context", analyzer_message_key="issue_bug_analyzer_messages"
+        )
         edit_node = EditNode(advanced_model, git_repo.playground_path, kg)
         edit_tools = ToolNode(
             tools=edit_node.tools,
@@ -83,7 +85,7 @@ class IssueNotVerifiedBugSubgraph:
 
         # Final patch selection node
         final_patch_selection_node = FinalPatchSelectionNode(
-            advanced_model, "final_candidate_patches", "final_patch"
+            advanced_model, "final_candidate_patches", "final_patch", "bug_fix_context"
         )
 
         workflow = StateGraph(IssueNotVerifiedBugState)
