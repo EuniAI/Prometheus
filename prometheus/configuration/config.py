@@ -65,5 +65,15 @@ class Settings(BaseSettings):
     # tool for Websearch
     TAVILY_API_KEY: str
 
+    # GitHub App settings
+    github_app_id: Optional[str] = None
+    github_webhook_secret: Optional[str] = None
+    github_private_key: Optional[str] = None
+    github_bot_handle: Optional[str] = None
+    github_org_name: Optional[str] = None
+
+    # JWT settings (check if this should be prometheus_jwt_secret_key instead)
+    PROMETHEUS_JWT_SECRET_KEY: Optional[str] = None
+
 
 settings = Settings()
