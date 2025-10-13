@@ -7,7 +7,10 @@ class GitHubSettings(BaseSettings):
     """GitHub App configuration settings."""
     
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", env_prefix="GITHUB_"
+        env_file=".env", 
+        env_file_encoding="utf-8", 
+        env_prefix="GITHUB_",
+        extra='ignore'
     )
     
     # GitHub App credentials
