@@ -36,6 +36,7 @@ class IssueFeatureSubgraphNode:
             container=container,
             repository_id=repository_id,
         )
+        self.git_repo = git_repo
 
     def __call__(self, state: IssueState):
         # Ensure the container is built and started
@@ -67,6 +68,7 @@ class IssueFeatureSubgraphNode:
                 "issue_response": "Failed to generate a feature implementation due to recursion limits.",
             }
         finally:
+            self.git_repo.reset_repository()
             self.container.cleanup()
 
         self._logger.info(f"Generated patch:\n{output_state['final_patch']}")
@@ -76,8 +78,8 @@ class IssueFeatureSubgraphNode:
         # We return the final patch as edit_patch to maintain compatibility with IssueState
         return {
             "edit_patch": output_state["final_patch"],
-            "passed_regression_test": False,  # Will be updated based on actual test results
+            "passed_regression_test": output_state["passed_regression_test"],
             "passed_reproducing_test": False,  # Not applicable for features
             "passed_existing_test": False,  # Not applicable in this simplified workflow
-            "issue_response": "Feature implementation completed. Patch generated successfully.",
+            "issue_response": output_state["issue_response"],
         }

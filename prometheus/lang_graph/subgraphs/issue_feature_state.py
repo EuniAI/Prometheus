@@ -5,7 +5,6 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 
 from prometheus.models.context import Context
-from prometheus.models.test_patch_result import TestedPatchResult
 
 
 class IssueFeatureState(TypedDict):
@@ -32,4 +31,4 @@ class IssueFeatureState(TypedDict):
 
     selected_regression_tests: Sequence[str]
 
-    tested_patch_result: Sequence[TestedPatchResult]
+    issue_response: str

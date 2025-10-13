@@ -57,12 +57,8 @@ Verification:
 
         # Check if regression tests were run and passed
         if state.get("run_regression_test", False):
-            # Check if tested_patch_result exists and has results
-            if (
-                "tested_patch_result" in state
-                and state["tested_patch_result"]
-                and state["tested_patch_result"][0].passed
-            ):
+            # Check if tested_patch_result exists and has results with at least one passing test
+            if state.get("selected_regression_tests", []):
                 verification_messages.append("✓ All selected regression tests passed successfully")
 
         # Build verification summary

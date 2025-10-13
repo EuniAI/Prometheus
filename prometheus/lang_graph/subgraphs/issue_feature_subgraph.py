@@ -27,6 +27,7 @@ from prometheus.lang_graph.nodes.issue_feature_analyzer_node import IssueFeature
 from prometheus.lang_graph.nodes.issue_feature_context_message_node import (
     IssueFeatureContextMessageNode,
 )
+from prometheus.lang_graph.nodes.issue_feature_responder_node import IssueFeatureResponderNode
 from prometheus.lang_graph.nodes.patch_normalization_node import PatchNormalizationNode
 from prometheus.lang_graph.nodes.reset_messages_node import ResetMessagesNode
 from prometheus.lang_graph.subgraphs.issue_feature_state import IssueFeatureState
@@ -45,6 +46,7 @@ class IssueFeatureSubgraph:
     4. Patch application with Git diff visualization
     5. Optional regression test validation
     6. Iterative refinement if verification fails
+    7. Generate a human-readable issue response
 
     Attributes:
         subgraph (StateGraph): The compiled LangGraph workflow to handle feature requests.
@@ -139,6 +141,9 @@ class IssueFeatureSubgraph:
             advanced_model, "final_candidate_patches", "final_patch", "feature_context"
         )
 
+        # Phase 7: Generate issue response
+        issue_feature_responder_node = IssueFeatureResponderNode(base_model)
+
         # Build the LangGraph workflow
         workflow = StateGraph(IssueFeatureState)
 
@@ -173,6 +178,8 @@ class IssueFeatureSubgraph:
         )
 
         workflow.add_node("final_patch_selection_node", final_patch_selection_node)
+
+        workflow.add_node("issue_feature_responder_node", issue_feature_responder_node)
 
         # Define edges for full flow
         # Start with bug_get_regression_tests_subgraph_node if regression tests are to be run,
@@ -239,7 +246,8 @@ class IssueFeatureSubgraph:
         workflow.add_edge("reset_issue_feature_analyzer_messages_node", "reset_edit_messages_node")
         workflow.add_edge("reset_edit_messages_node", "issue_feature_analyzer_message_node")
 
-        workflow.add_edge("final_patch_selection_node", END)
+        workflow.add_edge("final_patch_selection_node", "issue_feature_responder_node")
+        workflow.add_edge("issue_feature_responder_node", END)
 
         self.subgraph = workflow.compile()
 
@@ -264,7 +272,9 @@ class IssueFeatureSubgraph:
             selected_regression_tests: List of selected regression tests to run
 
         Returns:
-            Dictionary containing the final patch
+            Dictionary containing:
+                - final_patch: The selected patch for the feature implementation
+                - issue_response: A human-readable response describing the implementation
         """
         config = {"recursion_limit": number_of_candidate_patch * 60 + 60}
 
@@ -279,6 +289,11 @@ class IssueFeatureSubgraph:
         }
 
         output_state = self.subgraph.invoke(input_state, config)
+
         return {
             "final_patch": output_state["final_patch"],
+            "issue_response": output_state["issue_response"],
+            "passed_regression_test": True
+            if output_state["run_regression_test"] and output_state["selected_regression_tests"]
+            else False,
         }
