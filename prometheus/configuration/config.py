@@ -1,12 +1,16 @@
 from typing import List, Literal, Optional
-from pydantic import Field, field_validator
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import json
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", env_prefix="PROMETHEUS_"
+        env_file=".env", 
+        env_file_encoding="utf-8", 
+        env_prefix="PROMETHEUS_", 
+        extra='ignore',
+        env_ignore_empty=True
     )
     # General settings
     version: str = "1.2"
