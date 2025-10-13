@@ -52,6 +52,13 @@ jobs:
       # Tavily API key
       PROMETHEUS_TAVILY_API_KEY: tavily_api_key
 
+      # GitHub App settings
+      GITHUB_APP_ID: your_github_app_id
+      GITHUB_WEBHOOK_SECRET: your_webhook_secret
+      GITHUB_PRIVATE_KEY: your_github_private_key_content
+      GITHUB_BOT_HANDLE=: euni-bot
+      GITHUB_ORG_NAME: your_org_name
+
       # DATABASE settings
       PROMETHEUS_DATABASE_URL: postgresql://postgres:password@localhost:5432/postgres?sslmode=disable
 
