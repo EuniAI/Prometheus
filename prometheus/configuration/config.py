@@ -1,6 +1,7 @@
 from typing import List, Literal, Optional
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import json
 
 
 class Settings(BaseSettings):
@@ -13,7 +14,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Prometheus"
 
     ENVIRONMENT: Literal["local", "production"]
-    BACKEND_CORS_ORIGINS: List[str]
+    BACKEND_CORS_ORIGINS: List[str] = ["*"]
     ENABLE_AUTHENTICATION: bool
 
     # Logging
@@ -70,6 +71,15 @@ class Settings(BaseSettings):
     github_private_key: Optional[str] = Field(None, env='GITHUB_PRIVATE_KEY')
     github_bot_handle: Optional[str] = Field(None, env='GITHUB_BOT_HANDLE')
     github_org_name: Optional[str] = Field(None, env='GITHUB_ORG_NAME')
+
+    @field_validator('BACKEND_CORS_ORIGINS', mode='before')
+    def validate_cors_origins(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return [v]  # If not valid JSON, treat as single origin
+        return v
 
 
 settings = Settings()
