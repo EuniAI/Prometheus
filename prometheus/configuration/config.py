@@ -65,13 +65,6 @@ class Settings(BaseSettings):
     # tool for Websearch
     TAVILY_API_KEY: str
 
-    # GitHub App settings (using Field to specify exact env var names)
-    github_app_id: Optional[str] = Field(None, env='GITHUB_APP_ID')
-    github_webhook_secret: Optional[str] = Field(None, env='GITHUB_WEBHOOK_SECRET')
-    github_private_key: Optional[str] = Field(None, env='GITHUB_PRIVATE_KEY')
-    github_bot_handle: Optional[str] = Field(None, env='GITHUB_BOT_HANDLE')
-    github_org_name: Optional[str] = Field(None, env='GITHUB_ORG_NAME')
-
     @field_validator('BACKEND_CORS_ORIGINS', mode='before')
     def validate_cors_origins(cls, v):
         if isinstance(v, str):
