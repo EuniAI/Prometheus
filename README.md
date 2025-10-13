@@ -32,6 +32,7 @@ Prometheus is a research-backed, production-ready platform that leverages **unif
 ### Key Capabilities
 
 - **Automated Issue Resolution**: End-to-end bug fixing with reproduction, patch generation, and multi-level validation
+- **Feature Implementation Pipeline**: Context-aware feature request analysis, implementation planning, and code generation with optional regression testing
 - **Intelligent Context Retrieval**: Graph-based semantic search over codebase structure, AST, and documentation
 - **Multi-Agent Orchestration**: Coordinated workflow between classification, reproduction, and resolution agents
 - **Knowledge Graph Integration**: Neo4j-powered unified representation of code structure and semantics
@@ -55,26 +56,27 @@ Prometheus implements a hierarchical multi-agent system:
                 │  (bug/question/feature/doc)     │
                 └─────────────┬───────────────────┘
                               |
-              ┌───────────────┴───────────────┐
-              |                               |
-              v                               v
-    ┌──────────────────┐            ┌──────────────────┐
-    │   Bug Pipeline   │            │ Question Pipeline│
-    └────────┬─────────┘            └────────┬─────────┘
-             |                               |
-             v                               v
-    ┌──────────────────┐            ┌──────────────────┐
-    │ Bug Reproduction │            │ Context Retrieval│
-    │      Agent       │            │      Agent       │
-    └────────┬─────────┘            └────────┬─────────┘
-             |                               |
-             v                               v
-    ┌──────────────────┐            ┌──────────────────┐
-    │ Issue Resolution │            │ Question Analysis│
-    │      Agent       │            │      Agent       │
-    └────────┬─────────┘            └────────┬─────────┘
-             |                               |
-             └───────────────┬───────────────┘
+              ┌───────────────┼───────────────┐
+              |               |               |
+              v               v               v
+    ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+    │Bug Pipeline  │  │Feature       │  │Question      │
+    │              │  │Pipeline      │  │Pipeline      │
+    └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+           |                 |                 |
+           v                 v                 v
+    ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+    │Bug           │  │Feature       │  │Context       │
+    │Reproduction  │  │Analysis      │  │Retrieval     │
+    └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+           |                 |                 |
+           v                 v                 v
+    ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+    │Issue         │  │Patch         │  │Question      │
+    │Resolution    │  │Generation    │  │Analysis      │
+    └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+           |                 |                 |
+           └─────────────────┼─────────────────┘
                              v
                       Response Generation
 ```
