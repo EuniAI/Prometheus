@@ -30,12 +30,15 @@ def test_issue_classification_subgraph_basic_initialization(mock_kg, mock_git_re
     """Test that IssueClassificationSubgraph initializes correctly with basic components."""
     # Initialize fake model with empty responses
     fake_model = FakeListChatWithToolsModel(responses=[])
+    fake_advanced_model = FakeListChatWithToolsModel(responses=[])
 
     # Initialize the subgraph with required parameters
     subgraph = IssueClassificationSubgraph(
+        advanced_model=fake_advanced_model,
         model=fake_model,
         kg=mock_kg,
         local_path=mock_git_repo.playground_path,
+        repository_id=1,
     )
 
     # Verify the subgraph was created

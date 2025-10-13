@@ -33,14 +33,17 @@ class IssueNotVerifiedBugSubgraph:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
         container: BaseContainer,
+        repository_id: int,
     ):
         issue_bug_context_message_node = IssueBugContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
-            model=base_model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             kg=kg,
             local_path=git_repo.playground_path,
             query_key_name="bug_fix_query",
             context_key_name="bug_fix_context",
+            repository_id=repository_id,
         )
 
         issue_bug_analyzer_message_node = IssueBugAnalyzerMessageNode()
@@ -51,7 +54,9 @@ class IssueNotVerifiedBugSubgraph:
             messages_key="issue_bug_analyzer_messages",
         )
 
-        edit_message_node = EditMessageNode()
+        edit_message_node = EditMessageNode(
+            context_key="bug_fix_context", analyzer_message_key="issue_bug_analyzer_messages"
+        )
         edit_node = EditNode(advanced_model, git_repo.playground_path, kg)
         edit_tools = ToolNode(
             tools=edit_node.tools,
@@ -80,7 +85,7 @@ class IssueNotVerifiedBugSubgraph:
 
         # Final patch selection node
         final_patch_selection_node = FinalPatchSelectionNode(
-            advanced_model, "final_candidate_patches", "final_patch"
+            advanced_model, "final_candidate_patches", "final_patch", "bug_fix_context"
         )
 
         workflow = StateGraph(IssueNotVerifiedBugState)
@@ -171,7 +176,7 @@ class IssueNotVerifiedBugSubgraph:
         run_regression_test: bool,
         selected_regression_tests: Sequence[str],
     ):
-        config = {"recursion_limit": number_of_candidate_patch * 75 + 60}
+        config = {"recursion_limit": number_of_candidate_patch * 60 + 60}
 
         input_state = {
             "issue_title": issue_title,

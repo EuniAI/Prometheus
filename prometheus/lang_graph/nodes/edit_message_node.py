@@ -14,15 +14,15 @@ class EditMessageNode:
 {issue_info}
 --- END ISSUE INFO ---
 
-Bug Context Found:
---- BEGIN BUG FIX CONTEXT ---
-{bug_fix_context}
---- END BUG FIX CONTEXT ---
+Context Found:
+--- BEGIN CONTEXT ---
+{context}
+--- END CONTEXT ---
 
-Bug analyzer agent has analyzed the issue and provided instruction on how to fix it:
---- BEGIN BUG ANALYZER MESSAGE ---
-{bug_analyzer_message}
---- END BUG ANALYZER MESSAGE ---
+Analyzer agent has analyzed the issue and provided instruction on the issue:
+--- BEGIN ANALYZER MESSAGE ---
+{analyzer_message}
+--- END ANALYZER MESSAGE ---
 
 Please implement these changes precisely, following the exact specifications from the analyzer.
 """
@@ -33,17 +33,18 @@ The edit that you generated following error:
 {edit_error}
 --- END EDIT ERROR ---
 
-Bug analyzer agent has analyzed the issue and provided instruction on how to fix it:
---- BEGIN BUG ANALYZER MESSAGE ---
-{bug_analyzer_message}
---- END BUG ANALYZER MESSAGE ---
+Analyzer agent has analyzed the issue and provided instruction on the issue:
+--- BEGIN ANALYZER MESSAGE ---
+{analyzer_message}
+--- END ANALYZER MESSAGE ---
 
-Please implement these revised changes carefully, ensuring you address the
-specific issues that caused the previous error.
+Please implement these revised changes carefully, ensuring you address the specific issues that caused the previous error.
 """
 
-    def __init__(self):
+    def __init__(self, context_key: str, analyzer_message_key: str):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
+        self.context_key = context_key
+        self.analyzer_message_key = analyzer_message_key
 
     def format_human_message(self, state: Dict):
         edit_error = ""
@@ -58,9 +59,7 @@ specific issues that caused the previous error.
             return HumanMessage(
                 self.FOLLOWUP_HUMAN_PROMPT.format(
                     edit_error=edit_error,
-                    bug_analyzer_message=get_last_message_content(
-                        state["issue_bug_analyzer_messages"]
-                    ),
+                    analyzer_message=get_last_message_content(state[self.analyzer_message_key]),
                 )
             )
 
@@ -69,8 +68,8 @@ specific issues that caused the previous error.
                 issue_info=format_issue_info(
                     state["issue_title"], state["issue_body"], state["issue_comments"]
                 ),
-                bug_fix_context="\n\n".join([str(context) for context in state["bug_fix_context"]]),
-                bug_analyzer_message=get_last_message_content(state["issue_bug_analyzer_messages"]),
+                context="\n\n".join([str(context) for context in state[self.context_key]]),
+                analyzer_message=get_last_message_content(state[self.analyzer_message_key]),
             )
         )
 

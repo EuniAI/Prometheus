@@ -21,6 +21,7 @@ class BugGetRegressionTestsSubgraphNode:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
+        repository_id: int,
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.subgraph = BugGetRegressionTestsSubgraph(
@@ -29,6 +30,7 @@ class BugGetRegressionTestsSubgraphNode:
             container=container,
             kg=kg,
             git_repo=git_repo,
+            repository_id=repository_id,
         )
 
     def __call__(self, state: Dict):

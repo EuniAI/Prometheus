@@ -56,6 +56,7 @@ class IssueVerifiedBugSubgraph:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
+        repository_id: int,
     ):
         """
         Initialize the verified bug fix subgraph.
@@ -72,11 +73,13 @@ class IssueVerifiedBugSubgraph:
         # Phase 1: Retrieve context related to the bug
         issue_bug_context_message_node = IssueBugContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
-            model=base_model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             kg=kg,
             local_path=git_repo.playground_path,
             query_key_name="bug_fix_query",
             context_key_name="bug_fix_context",
+            repository_id=repository_id,
         )
 
         # Phase 2: Analyze the bug and generate hypotheses
@@ -89,7 +92,9 @@ class IssueVerifiedBugSubgraph:
         )
 
         # Phase 3: Generate code edits and optionally apply toolchains
-        edit_message_node = EditMessageNode()
+        edit_message_node = EditMessageNode(
+            context_key="bug_fix_context", analyzer_message_key="issue_bug_analyzer_messages"
+        )
         edit_node = EditNode(advanced_model, git_repo.playground_path, kg)
         edit_tools = ToolNode(
             tools=edit_node.tools,
@@ -127,7 +132,7 @@ class IssueVerifiedBugSubgraph:
         )
 
         final_patch_selection_node = FinalPatchSelectionNode(
-            advanced_model, "final_candidate_patches", "edit_patch"
+            advanced_model, "final_candidate_patches", "edit_patch", "bug_fix_context"
         )
 
         # Phase 7: Optionally run existing tests
@@ -287,7 +292,7 @@ class IssueVerifiedBugSubgraph:
 
         number_of_candidate_patch_for_verified = math.ceil(number_of_candidate_patch / 2)
 
-        config = {"recursion_limit": (number_of_candidate_patch_for_verified + 3) * 75}
+        config = {"recursion_limit": (number_of_candidate_patch_for_verified + 2) * 60}
 
         input_state = {
             "issue_title": issue_title,

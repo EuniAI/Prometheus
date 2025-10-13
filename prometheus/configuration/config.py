@@ -8,7 +8,7 @@ class Settings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", env_prefix="PROMETHEUS_"
     )
     # General settings
-    version: str = "1.2"
+    version: str = "1.3"
     BASE_URL: str = f"/v{version}"
     PROJECT_NAME: str = "Prometheus"
 
@@ -64,6 +64,9 @@ class Settings(BaseSettings):
 
     # tool for Websearch
     TAVILY_API_KEY: str
+
+    # Athena semantic memory service
+    ATHENA_BASE_URL: str
 
 
 settings = Settings()

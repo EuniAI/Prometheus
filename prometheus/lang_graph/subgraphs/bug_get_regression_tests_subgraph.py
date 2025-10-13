@@ -35,6 +35,7 @@ class BugGetRegressionTestsSubgraph:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
+        repository_id: int,
     ):
         """
         Initialize the run regression tests pipeline with all necessary parts.
@@ -45,6 +46,7 @@ class BugGetRegressionTestsSubgraph:
             container: Docker-based sandbox for running code.
             kg: Codebase knowledge graph used for context retrieval.
             git_repo: Git repository interface for codebase manipulation.
+            repository_id: Repository ID for memory storage.
         """
 
         # Step 1: Generate initial system messages based on issue data
@@ -53,10 +55,12 @@ class BugGetRegressionTestsSubgraph:
         # Step 2: Retrieve relevant code/documentation context from the knowledge graph
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
             base_model,
+            advanced_model,
             kg,
             git_repo.playground_path,
             "select_regression_query",
             "select_regression_context",
+            repository_id,
         )
         # Step 3: Select relevant regression tests based on the issue and retrieved context
         bug_get_regression_tests_selection_node = BugGetRegressionTestsSelectionNode(

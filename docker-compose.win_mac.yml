@@ -6,7 +6,7 @@ services:
   neo4j:
     image: neo4j
     platform: linux/amd64
-    container_name: neo4j_container
+    container_name: prometheus_neo4j_container
     environment:
       - NEO4J_AUTH=neo4j/password
       - NEO4J_PLUGINS=["apoc"]

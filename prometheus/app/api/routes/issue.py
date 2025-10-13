@@ -103,6 +103,7 @@ async def answer_issue(issue: IssueRequest, request: Request) -> Response[IssueR
         issue_service.answer_issue,
         repository=git_repository,
         knowledge_graph=knowledge_graph,
+        repository_id=repository.id,
         issue_title=issue.issue_title,
         issue_body=issue.issue_body,
         issue_comments=issue.issue_comments if issue.issue_comments else [],

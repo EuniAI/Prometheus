@@ -1,142 +1,173 @@
 <a name="readme-top"></a>
 
 <div align="center">
-  <img src="./docs/static/images/icon.jpg" alt="Logo" width="200">
+  <img src="./docs/static/images/icon.jpg" alt="Prometheus Logo" width="200">
   <h1 align="center">Prometheus</h1>
+  <p align="center">
+    <strong>AI-Powered Codebase Intelligence Platform</strong>
+  </p>
+  <p align="center">
+    Automated issue resolution, intelligent code analysis, and multi-agent orchestration for modern software development
+  </p>
 </div>
-
 
 <div align="center">
   <a href="https://github.com/EuniAI/Prometheus/graphs/contributors"><img src="https://img.shields.io/github/contributors/EuniAI/Prometheus?style=for-the-badge&color=blue" alt="Contributors"></a>
   <a href="https://github.com/EuniAI/Prometheus/stargazers"><img src="https://img.shields.io/github/stars/EuniAI/Prometheus?style=for-the-badge&color=blue" alt="Stargazers"></a>
   <a href="https://www.arxiv.org/abs/2507.19942"><img src="https://img.shields.io/badge/Paper-arXiv-red?style=for-the-badge&logo=arxiv" alt="Paper"></a>
   <br/>
-    <a href="https://github.com/EuniAI/Prometheus/blob/main/CREDITS.md"><img src="https://img.shields.io/badge/Project-Credits-blue?style=for-the-badge&color=FFE165&logo=github&logoColor=white" alt="Credits"></a>
+  <a href="https://github.com/EuniAI/Prometheus/blob/main/CREDITS.md"><img src="https://img.shields.io/badge/Project-Credits-blue?style=for-the-badge&color=FFE165&logo=github&logoColor=white" alt="Credits"></a>
   <a href="https://discord.gg/jDG4wqkKZj"><img src="https://img.shields.io/badge/Discord-Join%20Us-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
 
   <br/>
   <hr>
 </div>
 
+<br/>
 
-![Code Coverage](https://github.com/EuniAI/Prometheus/raw/coverage-badge/coverage.svg)
+## 📖 Overview
 
-# Prometheus
+Prometheus is a research-backed, production-ready platform that leverages **unified knowledge graphs** and **multi-agent systems** to perform intelligent operations on multilingual codebases. Built on LangGraph state machines, it orchestrates specialized AI agents to automatically classify issues, reproduce bugs, retrieve relevant context, and generate validated patches.
 
-Prometheus is a FastAPI-based backend service designed to perform intelligent codebase-level operations, including
-answering questions, resolving issues, and reviewing pull requests. At its core, it implements a multi-agent approach
-governed by a state machine to ensure code quality through automated reviews, build verification, and test execution.
+### Key Capabilities
 
-## 🚀 Features
+- **Automated Issue Resolution**: End-to-end bug fixing with reproduction, patch generation, and multi-level validation
+- **Feature Implementation Pipeline**: Context-aware feature request analysis, implementation planning, and code generation with optional regression testing
+- **Intelligent Context Retrieval**: Graph-based semantic search over codebase structure, AST, and documentation
+- **Multi-Agent Orchestration**: Coordinated workflow between classification, reproduction, and resolution agents
+- **Knowledge Graph Integration**: Neo4j-powered unified representation of code structure and semantics
+- **Containerized Execution**: Docker-isolated testing and validation environment
+- **Question Answering**: Natural language queries with tool-augmented LLM agents
 
-- **Codebase Analysis**: Answer questions about your codebase and provide insights.
-- **Issue Resolution**: Automatically resolve issues in your repository.
-- **Pull Request Reviews**: Perform intelligent reviews of pull requests to ensure code quality.
-- **Multi-Agent System**: Uses a state machine to coordinate multiple agents for efficient task execution.
-- **Integration with External Services**: Seamlessly connects with other services in the `EuniAI` organization.
-
-
-
-```bibtex
-@misc{Prometheus-code-agent-2025,
-      title={Prometheus: Unified Knowledge Graphs for Issue Resolution in Multilingual Codebases}, 
-      author={Zimin Chen and Yue Pan and Siyu Lu and Jiayi Xu and Claire Le Goues and Martin Monperrus and He Ye},
-      year={2025},
-      eprint={2507.19942},
-      archivePrefix={arXiv},
-      primaryClass={cs.SE},
-      url={https://arxiv.org/abs/2507.19942}, 
-}
-```
-
-## ⚙️ Quick Start
-
-### ✅ Prerequisites
-
-- Docker
-- Docker Compose
-- API keys (e.g. OpenAI, Anthropic, Google Gemini)
+📖 **[Multi-Agent Architecture](docs/Multi-Agent-Architecture.md)** | 📄 **[Research Paper](https://arxiv.org/abs/2507.19942)**
 
 ---
 
-### 📦 Setup
+## 🏗️ Architecture
 
-1. #### Clone the repository:
+Prometheus implements a hierarchical multi-agent system:
+
+```
+                              User Issue
+                                  |
+                                  v
+                ┌─────────────────────────────────┐
+                │  Issue Classification Agent     │
+                │  (bug/question/feature/doc)     │
+                └─────────────┬───────────────────┘
+                              |
+              ┌───────────────┼───────────────┐
+              |               |               |
+              v               v               v
+    ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+    │Bug Pipeline  │  │Feature       │  │Question      │
+    │              │  │Pipeline      │  │Pipeline      │
+    └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+           |                 |                 |
+           v                 v                 v
+    ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+    │Bug           │  │Feature       │  │Context       │
+    │Reproduction  │  │Analysis      │  │Retrieval     │
+    └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+           |                 |                 |
+           v                 v                 v
+    ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+    │Issue         │  │Patch         │  │Question      │
+    │Resolution    │  │Generation    │  │Analysis      │
+    └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+           |                 |                 |
+           └─────────────────┼─────────────────┘
+                             v
+                      Response Generation
+```
+
+**Core Components**:
+- **Knowledge Graph**: Tree-sitter-based AST and semantic code representation in Neo4j
+- **LangGraph State Machines**: Coordinated multi-agent workflows with checkpointing
+- **Docker Containers**: Isolated build and test execution environments
+- **LLM Integration**: Multi-tier model strategy (GPT-4, Claude, Gemini support)
+
+See **[Architecture Documentation](docs/Multi-Agent-Architecture.md)** for details.
+
+---
+
+## ⚡ Quick Start
+
+### ✅ Prerequisites
+
+- **Docker** and **Docker Compose**
+- **Python 3.11+** (for local development)
+- **API Keys**: OpenAI, Anthropic, or Google Gemini
+
+### 📦 Installation
+
+1. **Clone the repository**
    ```bash
    git clone https://github.com/EuniAI/Prometheus.git
    cd Prometheus
    ```
 
-2. #### Copy the `example.env` file to `.env` and update it with your API keys and other required configurations:
-
+2. **Configure environment**
    ```bash
-   mv example.env .env
+   cp example.env .env
+   # Edit .env with your API keys
    ```
 
-   > You need to provide a secure `JWT_SECRET_KEY` in the `.env` file.
-   > You can generate a strong key by running the following command:
-
+3. **Generate JWT secret** (required for authentication)
    ```bash
    python -m prometheus.script.generate_jwt_token
+   # Copy output to .env as PROMETHEUS_JWT_SECRET_KEY
    ```
 
-   This will print a secure token you can copy and paste into your `.env` file
-
-3. #### Create the working directory to store logs and cloned repositories:
-
+4. **Create working directory**
    ```bash
-   mkdir working_dir
+   mkdir -p working_dir
    ```
 
-4. #### Start the services using Docker Compose:
+5. **Start services**
+   ```bash
+   # Linux
+   docker-compose up --build
 
-    - **Linux (includes PostgreSQL)**:
-      ```bash
-      docker-compose up --build
-      ```
+   # macOS/Windows (requires manual PostgreSQL setup)
+   docker-compose -f docker-compose.win_mac.yml up --build
+   ```
 
-    - **macOS / Windows**:
-
-      > ⚠️ `docker-compose.win_mac.yml` does **not include PostgreSQL**.If you don't have PostgreSQL on your device,
-      you may have to start the PostgreSQL container manually **before starting services** by following the "Database
-      Setup" section below.
-
-      ```bash
-      docker-compose -f docker-compose.win_mac.yml up --build
-      ```
-
-5. #### Access Prometheus:
-    - Service: [http://localhost:9002/v1.2](http://localhost:9002/v1.2)
-    - OpenAPI Docs: [http://localhost:9002/docs](http://localhost:9002/docs)
-
-6. #### Upload Your Codebase:
-
-   You can upload a GitHub repository to Prometheus using the following API endpoint:
-
-   - **Endpoint:** `POST /repository/upload/`
-     - **Request Body:** JSON object matching the `UploadRepositoryRequest` schema (see [API Documents](http://127.0.0.1:9002/docs#/repository/repository-upload_github_repository))
-
-   This will clone the specified repository (defaulting to the latest commit on the main branch) into Prometheus.
-
-7. #### 📝 Answer Repository Issues
-
-   You can ask Prometheus to analyze and answer a specific issue in your codebase using the `/issue/answer/` API endpoint.
-   
-   - **Endpoint:** `POST /issue/answer/`
-     - **Request Body:** JSON object matching the `IssueRequest` schema (see [API Documents](http://127.0.0.1:9002/docs#/issue/issue-answer_issue))
-     - **Response:** Returns the generated patch, test/build results, and a summary response.
+6. **Access the platform**
+   - API: [http://localhost:9002/v1.2](http://localhost:9002/v1.2)
+   - Interactive Docs: [http://localhost:9002/docs](http://localhost:9002/docs)
 
 ---
 
-## 🗄️ Database Setup
+## 💻 Development
 
-### PostgreSQL
+### 🛠️ Local Setup
 
-> ⚠️ If you're using `docker-compose.win_mac.yml`, you may have to manually start PostgreSQL before launching
-> Prometheus:
+```bash
+# Install dependencies
+pip install hatchling
+pip install .
+pip install .[test]
 
-Run the following command to start a PostgreSQL container:
+# Run development server
+uvicorn prometheus.app.main:app --host 0.0.0.0 --port 9002 --reload
+```
 
+### 🧪 Testing
+
+```bash
+# Run tests (excluding git-dependent tests)
+coverage run --source=prometheus -m pytest -v -s -m "not git"
+
+# Generate coverage report
+coverage report -m
+coverage html
+open htmlcov/index.html
+```
+
+### 🗄️ Database Setup
+
+**PostgreSQL** (required for state checkpointing):
 ```bash
 docker run -d \
   -p 5432:5432 \
@@ -146,89 +177,58 @@ docker run -d \
   postgres
 ```
 
-### Neo4j
-
-Run the following command to start a Neo4j container:
-
+**Neo4j** (required for knowledge graph):
 ```bash
 docker run -d \
-  -p 7474:7474 \
-  -p 7687:7687 \
+  -p 7474:7474 -p 7687:7687 \
   -e NEO4J_AUTH=neo4j/password \
   -e NEO4J_PLUGINS='["apoc"]' \
   -e NEO4J_dbms_memory_heap_initial__size=4G \
   -e NEO4J_dbms_memory_heap_max__size=8G \
-  -e NEO4J_dbms_memory_pagecache_size=4G \
   neo4j
 ```
 
-Verify Neo4J at: [http://localhost:7474](http://localhost:7474)
+Verify at [http://localhost:7474](http://localhost:7474)
 
 ---
 
-## 🧪 Development
+## 📚 Research & Citation
 
-### Requirements
+Prometheus is based on peer-reviewed research on unified knowledge graphs for multilingual code analysis.
 
-* Python 3.11+
-
-### Steps
-
-1. Install dependencies:
-
-   ```bash
-   pip install hatchling
-   pip install .
-   pip install .[test]
-   ```
-
-2. Run tests:
-
-   ```bash
-   coverage run --source=prometheus -m pytest -v -s -m "not git"
-   ```
-
-3. Generate coverage report:
-
-   ```bash
-   coverage report -m
-   ```
-4. Generate HTML report:
-
-   ```bash
-   coverage html
-   open htmlcov/index.html
-   ```
-
-5. Start dev server:
-
-   ```bash
-   uvicorn prometheus.app.main:app --host 0.0.0.0 --port 9002
-   ```
+```bibtex
+@misc{prometheus2025,
+  title={Prometheus: Unified Knowledge Graphs for Issue Resolution in Multilingual Codebases},
+  author={Zimin Chen and Yue Pan and Siyu Lu and Jiayi Xu and Claire Le Goues and Martin Monperrus and He Ye},
+  year={2025},
+  eprint={2507.19942},
+  archivePrefix={arXiv},
+  primaryClass={cs.SE},
+  url={https://arxiv.org/abs/2507.19942}
+}
+```
 
 ---
 
-## 🛠️ Scripts
-- **Generate JWT Token**:  
-  ```bash
-  python -m prometheus.script.generate_jwt_token
-  ```
-- **GitHub Issue Debug Guide**:  
-  A script to help debug GitHub issues using Prometheus.  
-  See the full guide in [docs/GitHub-Issue-Debug-Guide.md](docs/GitHub-Issue-Debug-Guide.md).
+## 🤝 Contributing
 
-- **Create Superuser**:  
-  ```bash
-  python -m prometheus.script.create_superuser --username <username> --email <email> --password <password> --github_token <your_github_token>
-  ```
-- **Test LLM Service**:
-- ```bash
-  python -m prometheus.script.test_llm_service
-  ```
+We welcome contributions! Please see our [contributing guidelines](CONTRIBUTING.md) for details.
+
+- Report bugs via [GitHub Issues](https://github.com/EuniAI/Prometheus/issues)
+- Submit feature requests and improvements via Pull Requests
+- Join discussions on [Discord](https://discord.gg/jDG4wqkKZj)
+
+We're grateful to all our amazing contributors who have made this project what it is today!
+
+<a href="https://github.com/EuniAI/Prometheus/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=EuniAI/Prometheus&r="  width="400px"/>
+</a>
+
+If you have any questions or encounter issues, please feel free to reach out. For quick queries, you can also check our `Issues` page for common questions and solutions.
 
 ---
 
-## 📄 License
+## 📜 License
 
 This project is dual-licensed:
 - **Community Edition**: Licensed under the [GNU General Public License v3.0 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html).  
@@ -238,23 +238,35 @@ This project is dual-licensed:
 - **Commercial Edition**: For organizations that wish to use this software in **proprietary, closed-source, or commercial settings**,  
   a separate commercial license is available. Please contact **EUNI.AI Team** to discuss licensing terms.
 
+---
+
+## 💬 Support
+
+- **Documentation**: [Multi-Agent Architecture](docs/Multi-Agent-Architecture.md) | [GitHub Issue Debug Guide](docs/GitHub-Issue-Debug-Guide.md)
+- **Community**: [Discord Server](https://discord.gg/jDG4wqkKZj)
+- **Email**: business@euni.ai
+- **Issues**: [GitHub Issues](https://github.com/EuniAI/Prometheus/issues)
 
 ---
 
-## 📬 Contact
-
-For questions or support, please open an issue in
-the [GitHub repository](https://github.com/EuniAI/Prometheus/issues).
-
-You can also contact us via email at `business@euni.ai`
+## 🌟 Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=EuniAI/Prometheus&type=Date)](https://www.star-history.com/#EuniAI/Prometheus&Date)
 
 ---
 
-## Acknowledge
-
+## 🙏 Acknowledgments
 
 <div align="center">
-  <img src="./docs/static/images/delysium_logo.svg" alt="Logo" width="150">
+  <img src="./docs/static/images/delysium_logo.svg" alt="Delysium Logo" width="150">
 </div>
 
 We thank [Delysium](https://delysium.com) for their support in organizing LLM-related resources, architecture design, and optimization, which greatly strengthened our research infrastructure and capabilities.
+
+---
+
+<div align="center">
+  <p>Made with ❤️ by the <a href="https://euni.ai/">EuniAI</a> Team</p>
+  <p>
+    <a href="#readme-top">Back to top ↑</a>
+  </p>
+</div>

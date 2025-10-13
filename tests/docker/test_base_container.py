@@ -57,13 +57,26 @@ def test_get_dockerfile_content(container):
 
 def test_build_docker_image(container, mock_docker_client):
     """Test building Docker image"""
+    # Setup mock for api.build to return an iterable of log entries
+    mock_build_logs = [
+        {"stream": "Step 1/3 : FROM python:3.9"},
+        {"stream": "Step 2/3 : WORKDIR /app"},
+        {"stream": "Step 3/3 : COPY . /app/"},
+        {"stream": "Successfully built abc123"},
+    ]
+    mock_docker_client.api.build.return_value = iter(mock_build_logs)
+
     # Execute
     container.build_docker_image()
 
     # Verify
     assert (container.project_path / "prometheus.Dockerfile").exists()
-    mock_docker_client.images.build.assert_called_once_with(
-        path=str(container.project_path), dockerfile="prometheus.Dockerfile", tag=container.tag_name
+    mock_docker_client.api.build.assert_called_once_with(
+        path=str(container.project_path),
+        dockerfile="prometheus.Dockerfile",
+        tag=container.tag_name,
+        rm=True,
+        decode=True,
     )
 
 

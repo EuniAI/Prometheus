@@ -32,15 +32,18 @@ class IssueQuestionSubgraph:
         base_model: BaseChatModel,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
+        repository_id: int,
     ):
         # Step 1: Retrieve relevant context based on the issue details
         issue_question_context_message_node = IssueQuestionContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
-            model=base_model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             kg=kg,
             local_path=git_repo.playground_path,
             query_key_name="question_query",
             context_key_name="question_context",
+            repository_id=repository_id,
         )
 
         # Step 2: Send issue question analyze message

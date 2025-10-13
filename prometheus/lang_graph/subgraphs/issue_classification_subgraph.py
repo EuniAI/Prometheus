@@ -15,19 +15,23 @@ from prometheus.lang_graph.subgraphs.issue_classification_state import IssueClas
 class IssueClassificationSubgraph:
     def __init__(
         self,
+        advanced_model: BaseChatModel,
         model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
+        repository_id: int,
     ):
         issue_classification_context_message_node = IssueClassificationContextMessageNode()
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
-            model=model,
+            base_model=model,
+            advanced_model=advanced_model,
             kg=kg,
             local_path=local_path,
             query_key_name="issue_classification_query",
             context_key_name="issue_classification_context",
+            repository_id=repository_id,
         )
-        issue_classifier_node = IssueClassifierNode(model)
+        issue_classifier_node = IssueClassifierNode(advanced_model)
 
         workflow = StateGraph(IssueClassificationState)
         workflow.add_node(

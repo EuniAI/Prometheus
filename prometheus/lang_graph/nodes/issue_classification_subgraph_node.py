@@ -13,15 +13,19 @@ from prometheus.lang_graph.subgraphs.issue_classification_subgraph import (
 class IssueClassificationSubgraphNode:
     def __init__(
         self,
+        advanced_model: BaseChatModel,
         model: BaseChatModel,
         kg: KnowledgeGraph,
         local_path: str,
+        repository_id: int,
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.issue_classification_subgraph = IssueClassificationSubgraph(
+            advanced_model=advanced_model,
             model=model,
             kg=kg,
             local_path=local_path,
+            repository_id=repository_id,
         )
 
     def __call__(self, state: IssueState):

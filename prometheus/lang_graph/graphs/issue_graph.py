@@ -11,6 +11,7 @@ from prometheus.lang_graph.nodes.issue_bug_subgraph_node import IssueBugSubgraph
 from prometheus.lang_graph.nodes.issue_classification_subgraph_node import (
     IssueClassificationSubgraphNode,
 )
+from prometheus.lang_graph.nodes.issue_feature_subgraph_node import IssueFeatureSubgraphNode
 from prometheus.lang_graph.nodes.issue_question_subgraph_node import IssueQuestionSubgraphNode
 from prometheus.lang_graph.nodes.noop_node import NoopNode
 
@@ -30,6 +31,7 @@ class IssueGraph:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
         container: BaseContainer,
+        repository_id: int,
         test_commands: Optional[Sequence[str]] = None,
     ):
         self.git_repo = git_repo
@@ -39,9 +41,11 @@ class IssueGraph:
 
         # Subgraph nodes for issue classification
         issue_classification_subgraph_node = IssueClassificationSubgraphNode(
+            advanced_model=advanced_model,
             model=base_model,
             kg=kg,
             local_path=git_repo.playground_path,
+            repository_id=repository_id,
         )
 
         # Subgraph node for handling bug issues
@@ -51,6 +55,7 @@ class IssueGraph:
             container=container,
             kg=kg,
             git_repo=git_repo,
+            repository_id=repository_id,
             test_commands=test_commands,
         )
 
@@ -60,6 +65,17 @@ class IssueGraph:
             base_model=base_model,
             kg=kg,
             git_repo=git_repo,
+            repository_id=repository_id,
+        )
+
+        # Subgraph node for handling feature request issues
+        issue_feature_subgraph_node = IssueFeatureSubgraphNode(
+            advanced_model=advanced_model,
+            base_model=base_model,
+            container=container,
+            kg=kg,
+            git_repo=git_repo,
+            repository_id=repository_id,
         )
 
         # Create the state graph for the issue handling workflow
@@ -69,6 +85,7 @@ class IssueGraph:
         workflow.add_node("issue_classification_subgraph_node", issue_classification_subgraph_node)
         workflow.add_node("issue_bug_subgraph_node", issue_bug_subgraph_node)
         workflow.add_node("issue_question_subgraph_node", issue_question_subgraph_node)
+        workflow.add_node("issue_feature_subgraph_node", issue_feature_subgraph_node)
         # Set the entry point for the workflow
         workflow.set_entry_point("issue_type_branch_node")
         # Define the edges and conditions for the workflow
@@ -79,7 +96,7 @@ class IssueGraph:
             {
                 IssueType.AUTO: "issue_classification_subgraph_node",
                 IssueType.BUG: "issue_bug_subgraph_node",
-                IssueType.FEATURE: END,
+                IssueType.FEATURE: "issue_feature_subgraph_node",
                 IssueType.DOCUMENTATION: END,
                 IssueType.QUESTION: "issue_question_subgraph_node",
             },
@@ -90,7 +107,7 @@ class IssueGraph:
             lambda state: state["issue_type"],
             {
                 IssueType.BUG: "issue_bug_subgraph_node",
-                IssueType.FEATURE: END,
+                IssueType.FEATURE: "issue_feature_subgraph_node",
                 IssueType.DOCUMENTATION: END,
                 IssueType.QUESTION: "issue_question_subgraph_node",
             },
@@ -98,6 +115,7 @@ class IssueGraph:
         # Add edges for ending the workflow
         workflow.add_edge("issue_bug_subgraph_node", END)
         workflow.add_edge("issue_question_subgraph_node", END)
+        workflow.add_edge("issue_feature_subgraph_node", END)
 
         self.graph = workflow.compile()
 

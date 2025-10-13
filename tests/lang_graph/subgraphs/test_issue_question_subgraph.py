@@ -42,6 +42,7 @@ def test_issue_question_subgraph_basic_initialization(mock_container, mock_kg, m
         base_model=fake_base_model,
         kg=mock_kg,
         git_repo=mock_git_repo,
+        repository_id=1,
     )
 
     # Verify the subgraph was created

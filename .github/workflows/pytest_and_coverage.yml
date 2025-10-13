@@ -58,6 +58,9 @@ jobs:
       # JWT settings
       PROMETHEUS_JWT_SECRET_KEY: your_jwt_secret_key
 
+      # Athena memory service settings
+      PROMETHEUS_ATHENA_BASE_URL: http://localhost:9003/v0.1.0
+
     steps:
       - name: Check out code
         uses: actions/checkout@v4

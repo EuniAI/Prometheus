@@ -40,6 +40,7 @@ class BugReproductionSubgraph:
         container: BaseContainer,
         kg: KnowledgeGraph,
         git_repo: GitRepository,
+        repository_id: int,
         test_commands: Optional[Sequence[str]] = None,
     ):
         """
@@ -51,6 +52,7 @@ class BugReproductionSubgraph:
             container: Docker-based sandbox for running code.
             kg: Codebase knowledge graph used for context retrieval.
             git_repo: Git repository interface for codebase manipulation.
+            repository_id: Repository ID for memory storage.
             test_commands: Optional list of test commands to verify reproduction success.
         """
         self.git_repo = git_repo
@@ -61,10 +63,12 @@ class BugReproductionSubgraph:
         # Step 2: Retrieve relevant code/documentation context from the knowledge graph
         context_retrieval_subgraph_node = ContextRetrievalSubgraphNode(
             base_model,
+            advanced_model,
             kg,
             git_repo.playground_path,
             "bug_reproducing_query",
             "bug_reproducing_context",
+            repository_id,
         )
 
         # Step 3: Write a patch to reproduce the bug

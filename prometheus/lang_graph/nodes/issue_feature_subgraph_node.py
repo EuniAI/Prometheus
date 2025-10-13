@@ -1,6 +1,5 @@
 import logging
 import threading
-from typing import Optional, Sequence
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.errors import GraphRecursionError
@@ -9,12 +8,13 @@ from prometheus.docker.base_container import BaseContainer
 from prometheus.git.git_repository import GitRepository
 from prometheus.graph.knowledge_graph import KnowledgeGraph
 from prometheus.lang_graph.graphs.issue_state import IssueState
-from prometheus.lang_graph.subgraphs.issue_bug_subgraph import IssueBugSubgraph
+from prometheus.lang_graph.subgraphs.issue_feature_subgraph import IssueFeatureSubgraph
 
 
-class IssueBugSubgraphNode:
+class IssueFeatureSubgraphNode:
     """
-    A LangGraph node that handles the issue bug subgraph, which is responsible for solving bugs in a GitHub issue.
+    A LangGraph node that handles the issue feature subgraph, which is responsible for implementing
+    feature requests in a GitHub issue.
     """
 
     def __init__(
@@ -25,19 +25,18 @@ class IssueBugSubgraphNode:
         kg: KnowledgeGraph,
         git_repo: GitRepository,
         repository_id: int,
-        test_commands: Optional[Sequence[str]] = None,
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.container = container
-        self.issue_bug_subgraph = IssueBugSubgraph(
+        self.issue_feature_subgraph = IssueFeatureSubgraph(
             advanced_model=advanced_model,
             base_model=base_model,
-            container=container,
             kg=kg,
             git_repo=git_repo,
+            container=container,
             repository_id=repository_id,
-            test_commands=test_commands,
         )
+        self.git_repo = git_repo
 
     def __call__(self, state: IssueState):
         # Ensure the container is built and started
@@ -48,39 +47,39 @@ class IssueBugSubgraphNode:
         if state["run_build"]:
             self.container.run_build()
 
-        self._logger.info("Enter IssueBugSubgraphNode")
+        self._logger.info("Enter IssueFeatureSubgraphNode")
 
         try:
-            output_state = self.issue_bug_subgraph.invoke(
+            output_state = self.issue_feature_subgraph.invoke(
                 issue_title=state["issue_title"],
                 issue_body=state["issue_body"],
                 issue_comments=state["issue_comments"],
-                run_existing_test=state["run_existing_test"],
-                run_regression_test=state["run_regression_test"],
-                run_reproduce_test=state["run_reproduce_test"],
                 number_of_candidate_patch=state["number_of_candidate_patch"],
+                run_regression_test=state["run_regression_test"],
+                selected_regression_tests=[],  # Can be enhanced to select tests based on modified files
             )
         except GraphRecursionError:
-            self._logger.critical("Please increase the recursion limit of IssueBugSubgraph")
+            self._logger.critical("Please increase the recursion limit of IssueFeatureSubgraph")
             return {
                 "edit_patch": None,
-                "passed_reproducing_test": False,
                 "passed_regression_test": False,
+                "passed_reproducing_test": False,
                 "passed_existing_test": False,
-                "issue_response": None,
+                "issue_response": "Failed to generate a feature implementation due to recursion limits.",
             }
         finally:
+            self.git_repo.reset_repository()
             self.container.cleanup()
 
-        self._logger.info(f"Generated patch:\n{output_state['edit_patch']}")
-        self._logger.info(f"passed_reproducing_test: {output_state['passed_reproducing_test']}")
-        self._logger.info(f"passed_regression_test: {output_state['passed_regression_test']}")
-        self._logger.info(f"passed_existing_test: {output_state['passed_existing_test']}")
-        self._logger.info(f"issue_response:\n{output_state['issue_response']}")
+        self._logger.info(f"Generated patch:\n{output_state['final_patch']}")
+        self._logger.info("Feature implementation completed")
+
+        # For feature requests, we don't have reproduction tests
+        # We return the final patch as edit_patch to maintain compatibility with IssueState
         return {
-            "edit_patch": output_state["edit_patch"],
-            "passed_reproducing_test": output_state["passed_reproducing_test"],
+            "edit_patch": output_state["final_patch"],
             "passed_regression_test": output_state["passed_regression_test"],
-            "passed_existing_test": output_state["passed_existing_test"],
+            "passed_reproducing_test": False,  # Not applicable for features
+            "passed_existing_test": False,  # Not applicable in this simplified workflow
             "issue_response": output_state["issue_response"],
         }

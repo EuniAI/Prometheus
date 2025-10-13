@@ -93,12 +93,40 @@ class BaseContainer(ABC):
 
         # Log the build process
         self._logger.info(f"Building docker image {self.tag_name}")
+        self._logger.info(f"Build context path: {self.project_path}")
+        self._logger.info(f"Dockerfile: {dockerfile_path.name}")
 
-        # Build the Docker image
+        # Build the Docker image with detailed logging
         try:
-            self.client.images.build(
-                path=str(self.project_path), dockerfile=dockerfile_path.name, tag=self.tag_name
+            build_logs = self.client.api.build(
+                path=str(self.project_path),
+                dockerfile=dockerfile_path.name,
+                tag=self.tag_name,
+                rm=True,
+                decode=True,
             )
+
+            # Process build logs line by line
+            for log_entry in build_logs:
+                if "stream" in log_entry:
+                    log_line = log_entry["stream"].strip()
+                    if log_line:
+                        self._logger.info(f"[BUILD] {log_line}")
+                elif "error" in log_entry:
+                    error_msg = log_entry["error"].strip()
+                    self._logger.error(f"[BUILD ERROR] {error_msg}")
+                    raise docker.errors.BuildError(error_msg, build_logs)
+                elif "status" in log_entry:
+                    status_msg = log_entry["status"].strip()
+                    if status_msg:
+                        self._logger.debug(f"[BUILD STATUS] {status_msg}")
+
+            self._logger.info(f"Successfully built docker image {self.tag_name}")
+
+        except docker.errors.BuildError as e:
+            self._logger.error(f"Docker build failed for image {self.tag_name}")
+            self._logger.error(f"Build error: {str(e)}")
+            raise
         finally:
             # Restore .dockerignore
             if backup_path and backup_path.exists():
