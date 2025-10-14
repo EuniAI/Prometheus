@@ -276,7 +276,7 @@ class IssueFeatureSubgraph:
                 - final_patch: The selected patch for the feature implementation
                 - issue_response: A human-readable response describing the implementation
         """
-        config = {"recursion_limit": number_of_candidate_patch * 60 + 60}
+        config = {"recursion_limit": number_of_candidate_patch * 75 + 75}
 
         input_state = {
             "issue_title": issue_title,
