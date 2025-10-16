@@ -35,6 +35,11 @@ async def get_github_issue(repo: str, issue_number: int, github_token: str) -> D
         if issue_response.status_code == 401:
             raise GithubException("Invalid GitHub token.")
 
+        if issue_response.status_code == 404 and github_token:
+            raise GithubException(
+                "The Github Token does not have access to this repository or the repository does not exist."
+            )
+
         if issue_response.status_code != 200:
             raise GithubException(
                 f"Failed to retrieve issue: {issue_response.status_code} - {issue_response.text}"
