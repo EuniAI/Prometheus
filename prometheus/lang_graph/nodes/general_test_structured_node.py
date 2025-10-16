@@ -195,7 +195,7 @@ Example 3: Project without Tests
 Input:
 Assistant internal thought: Checking for common test files and configurations
 Assistant executed command: {"command": "find . -type f -name '*test*' -o -name '*spec*'"}
-Command output: 
+Command output:
 Assistant internal thought: No test files found. Checking build configurations
 Assistant executed command: {"command": "cat package.json"}
 Command output: {
@@ -207,7 +207,7 @@ Command output: {
   }
 }
 Assistant executed command: {"command": "find . -name 'pytest.ini' -o -name 'jest.config.js'"}
-Command output: 
+Command output:
 
 Output:
 {

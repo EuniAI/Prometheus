@@ -115,7 +115,7 @@ class GraphTraversalTool:
         description="""Find all ASTNode in the graph that exactly contains this text in any source file with this basename.
         For reliable results, search for longer, distinct text sequences rather than short common words or fragments.
         The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is looking for exact matches.
-        For best results, use unique text segments of at least several words. The basename can be either a file (like 
+        For best results, use unique text segments of at least several words. The basename can be either a file (like
         'bar.py', 'baz.java').""",
         input_schema=FindASTNodeWithTextInFileWithBasenameInput,
     )
@@ -124,7 +124,7 @@ class GraphTraversalTool:
         description="""Find all ASTNode in the graph that exactly contains this text in any source file with this relative path.
         For reliable results, search for longer, distinct text sequences rather than short common words or fragments.
         The contains is same as python's check `'foo' in text`, ie. it is case sensitive and is looking for exact matches.
-        Therefore the search text should be exact as well. The relative path should be the path from the root of codebase 
+        Therefore the search text should be exact as well. The relative path should be the path from the root of codebase
         (like 'src/core/parser.py').""",
         input_schema=FindASTNodeWithTextInFileWithRelativePathInput,
     )
@@ -176,18 +176,18 @@ class GraphTraversalTool:
     )
 
     read_code_with_relative_path_spec = ToolSpec(
-        description="""Read a specific section of a source code file's content by specifying its relative path and line range. 
-        The relative path must be the full path from the root of codebase, like 'src/core/parser.py' or 
+        description="""Read a specific section of a source code file's content by specifying its relative path and line range.
+        The relative path must be the full path from the root of codebase, like 'src/core/parser.py' or
         'test/unit/test_parser.java'.
 
-        This tool ONLY works with source code files (not text files or documentation). It is designed 
-        to read large sections of code at once - you should request substantial chunks (hundreds of lines) 
+        This tool ONLY works with source code files (not text files or documentation). It is designed
+        to read large sections of code at once - you should request substantial chunks (hundreds of lines)
         rather than making multiple small requests of 10-20 lines each, which would be inefficient.
 
-        Line numbers are 1-indexed, where start_line is inclusive and end_line is exclusive. 
+        Line numbers are 1-indexed, where start_line is inclusive and end_line is exclusive.
 
-        This tool is useful for examining specific sections of source code files when you know 
-        the exact line range you want to analyze. The function will return an error message if 
+        This tool is useful for examining specific sections of source code files when you know
+        the exact line range you want to analyze. The function will return an error message if
         end_line is less than start_line.""",
         input_schema=ReadCodeWithRelativePathInput,
     )
@@ -565,7 +565,7 @@ class GraphTraversalTool:
         ][0]
         text = first_ast_node.node.text
         lines = text.split("\n")
-        selected_lines = lines[start_line - 1 : end_line]  # Convert to 0-indexed
+        selected_lines = lines[start_line - 1: end_line]  # Convert to 0-indexed
         selected_text = "\n".join(selected_lines)
         selected_text_with_line_numbers = pre_append_line_numbers(selected_text, start_line)
 

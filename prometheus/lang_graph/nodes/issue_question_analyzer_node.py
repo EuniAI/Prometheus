@@ -36,7 +36,7 @@ rather than implementation details.
 Issue title:
 Please tell me what this project about?
 
-Issue description: 
+Issue description:
 Please tell me what this project about?
 
 Issue comments:
@@ -47,7 +47,7 @@ Context:
 --- BEGIN EXAMPLE FINAL ANSWER ---
 - What the project is:
   - Astropy is the core Python library for astronomy and astrophysics. It provides standardized, high-quality building blocks......
-  
+
 - Key capabilities (non-exhaustive):
   - Units and physical/astronomical constants: astropy.units, astropy.constants (with configurable standards such as CODATA and IAU).
   - Coordinates and time: astropy.coordinates for celestial coordinates and frames; astropy.time for time scales, precision time handling.

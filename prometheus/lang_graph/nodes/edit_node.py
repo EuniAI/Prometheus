@@ -89,7 +89,7 @@ class StringUtils:
         result = ""
         result += s  # Bug: just copies string
         return result  # Doesn't reverse
-    
+
     def other_method():
 </file_before>
 

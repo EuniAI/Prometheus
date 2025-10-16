@@ -77,7 +77,8 @@ async def upload_github_repository(
         if len(user_repositories) >= settings.DEFAULT_USER_REPOSITORY_LIMIT:
             raise ServerException(
                 code=400,
-                message=f"You have reached the maximum number of repositories ({settings.DEFAULT_USER_REPOSITORY_LIMIT}). Please delete some repositories before uploading new ones.",
+                message=f"You have reached the maximum number of repositories ({
+                    settings.DEFAULT_USER_REPOSITORY_LIMIT}). Please delete some repositories before uploading new ones.",
             )
 
     # Get the GitHub token (may be None for public repositories)

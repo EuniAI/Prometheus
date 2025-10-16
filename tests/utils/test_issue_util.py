@@ -30,7 +30,7 @@ def test_format_issue_info():
 Issue title:
 Bug in login flow
 
-Issue description: 
+Issue description:
 Users can't login on mobile devices
 
 Issue comments:

@@ -12,19 +12,19 @@ def test_read_file_with_line_numbers():
     # Test reading specific lines
     result = read_file_with_line_numbers("foo/test.md", TEST_PROJECT_PATH, 1, 15)
     expected = """1. # A
-2. 
+2.
 3. Text under header A.
-4. 
+4.
 5. ## B
-6. 
+6.
 7. Text under header B.
-8. 
+8.
 9. ## C
-10. 
+10.
 11. Text under header C.
-12. 
+12.
 13. ### D
-14. 
+14.
 15. Text under header D."""
     assert result == expected
 

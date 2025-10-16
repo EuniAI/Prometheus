@@ -46,7 +46,7 @@ REQUIREMENTS:
 <examples>
 <example id="database-timeout">
 <bug>
-db.execute("SELECT * FROM users").fetchall() 
+db.execute("SELECT * FROM users").fetchall()
 raises ConnectionTimeout when load is high
 </bug>
 
@@ -67,7 +67,7 @@ class TestDatabaseTimeout:
             QueryResult(["user1", "user2"])  # Second try succeeds
         ]
         return conn
-        
+
     def test_handle_timeout_during_query(self, mock_db_connection):
         # Complete test showing timeout scenario
         # Including retry logic verification
@@ -77,7 +77,7 @@ class TestDatabaseTimeout:
 
 <example id="file-permission">
 <bug>
-FileProcessor('/root/data.txt').process() 
+FileProcessor('/root/data.txt').process()
 fails with PermissionError
 </bug>
 

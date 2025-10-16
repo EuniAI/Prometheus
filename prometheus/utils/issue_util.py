@@ -27,7 +27,7 @@ def format_issue_info(
 Issue title:
 {issue_title}
 
-Issue description: 
+Issue description:
 {issue_body}
 
 Issue comments:

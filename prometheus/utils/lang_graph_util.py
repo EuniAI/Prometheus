@@ -61,7 +61,7 @@ def extract_last_tool_messages(messages: Sequence[BaseMessage]) -> Sequence[Tool
     if last_human_index == -1:
         return []
 
-    for message in messages[last_human_index + 1 :]:
+    for message in messages[last_human_index + 1:]:
         if isinstance(message, ToolMessage):
             tool_messages.append(message)
     return tool_messages
