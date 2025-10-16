@@ -160,7 +160,7 @@ Example 3: Project without Build System
 Input:
 Assistant internal thought: Looking for common build system files
 Assistant executed command: {"command": "find . -maxdepth 1 -type f -name 'Makefile' -o -name 'CMakeLists.txt' -o -name 'package.json' -o -name 'build.gradle'"}
-Command output: 
+Command output:
 Assistant internal thought: No build files found. Checking source directory structure
 Assistant executed command: {"command": "tree ."}
 Command output: .
@@ -196,7 +196,7 @@ Assistant internal thought: Found TypeScript project with ESLint. Installing dep
 Assistant executed command: {"command": "npm install"}
 Command output: added 320 packages in 12s
 Assistant executed command: {"command": "npm run build"}
-Command output: 
+Command output:
 > ts-app@1.0.0 prebuild
 > npm run lint
 

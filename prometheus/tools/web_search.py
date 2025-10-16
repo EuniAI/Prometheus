@@ -61,13 +61,13 @@ class WebSearchTool:
 
     web_search_spec = ToolSpec(
         description="""\
-        Searches the web for technical information to aid in bug analysis and resolution. 
-        Use this when you need external context, such as: 
-        1. Looking up unfamiliar error messages, exceptions, or stack traces. 
-        2. Finding official documentation or usage examples for a specific library, framework, or API. 
-        3. Searching for known bugs, common pitfalls, or compatibility issues related to a software version. 
-        4. Learning the best practices or design patterns for fixing a class of vulnerability (e.g., SQL injection, XSS). 
-        
+        Searches the web for technical information to aid in bug analysis and resolution.
+        Use this when you need external context, such as:
+        1. Looking up unfamiliar error messages, exceptions, or stack traces.
+        2. Finding official documentation or usage examples for a specific library, framework, or API.
+        3. Searching for known bugs, common pitfalls, or compatibility issues related to a software version.
+        4. Learning the best practices or design patterns for fixing a class of vulnerability (e.g., SQL injection, XSS).
+
         Queries should be specific and include relevant keywords like library names, version numbers, and error codes.
         """,
         input_schema=WebSearchInput,

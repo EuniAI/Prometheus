@@ -96,7 +96,7 @@ index 79a1160..76e8197 100644
 -    printf("Hello world!");
 -    return 0;
 -}
-\ No newline at end of file
+\\ No newline at end of file
 +int main() { return 0; }
 """
     assert diff == expected_diff
@@ -133,9 +133,9 @@ diff --git a/test.c b/test.c
 -    printf("Hello world!");
 -    return 0;
 -}
-\ No newline at end of file
+\\ No newline at end of file
 +int main() { return 0; }
-\ No newline at end of file
+\\ No newline at end of file
 
 """
     git_repo.apply_patch(patch)

@@ -34,8 +34,8 @@ class ContextProviderNode:
     """
 
     SYS_PROMPT = """\
-You are a context gatherer that searches a Neo4j knowledge graph representation of a 
-codebase. Your role is to understand the logic of the project and efficiently find relevant code and documentation 
+You are a context gatherer that searches a Neo4j knowledge graph representation of a
+codebase. Your role is to understand the logic of the project and efficiently find relevant code and documentation
 context based on user queries.
 
 Knowledge Graph Structure:
@@ -75,7 +75,7 @@ Search Strategy Guidelines:
    - Do not repeat the same query!
 
 In your response, just provide a short summary with a few sentences (3-4 sentences) on what you have done.
-As your searched are automatically visible to the user, you do not need to repeat them. 
+As your searched are automatically visible to the user, you do not need to repeat them.
 
 The file tree of the codebase:
 {file_tree}

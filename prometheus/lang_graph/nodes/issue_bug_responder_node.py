@@ -10,7 +10,7 @@ from prometheus.utils.issue_util import format_issue_info
 
 class IssueBugResponderNode:
     SYS_PROMPT = """\
-You are the final agent in a multi-agent bug fixing system. Users report issues on GitHub/GitLab, and our system works to fix them. 
+You are the final agent in a multi-agent bug fixing system. Users report issues on GitHub/GitLab, and our system works to fix them.
 Your role is to compose the response that will be posted back to the issue thread.
 
 The information you receive is structured as follows:

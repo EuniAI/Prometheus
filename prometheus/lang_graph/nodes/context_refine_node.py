@@ -82,7 +82,7 @@ This is the codebase structure:
 --- BEGIN FILE TREE ---
 {file_tree}
 --- END FILE TREE ---
-    
+
 This is the original user query:
 --- BEGIN ORIGINAL QUERY ---
 {original_query}

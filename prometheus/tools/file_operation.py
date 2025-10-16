@@ -78,7 +78,7 @@ class FileOperationTool:
 
     create_file_spec = ToolSpec(
         description="""\
-        Create a new file at the specified path with the given content. 
+        Create a new file at the specified path with the given content.
         If the parent directories don't exist, they will be created automatically.
         Returns an error message if the file already exists.
         """,

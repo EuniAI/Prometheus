@@ -85,7 +85,7 @@ test_patch_util.py::test_get_updated_files_with_subfolders PASSED        [100%]
 ```
 
 Example 1 Output:
-{{  
+{{
     "passed_regression_tests": [
         "test_patch_util.py::test_get_updated_files_empty_diff",
         "test_patch_util.py::test_get_updated_files_modified_only",
@@ -118,7 +118,7 @@ Run Regression Tests Logs:
 {run_regression_tests_messages}
 --- END LOG ---
 
-Please analyze the logs and determine which regression tests passed!. You should return the exact test identifier 
+Please analyze the logs and determine which regression tests passed!. You should return the exact test identifier
 that we give to you.
 Don't forget to return the total number of tests run!
 """

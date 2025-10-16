@@ -19,7 +19,7 @@ You are a test result parser. Your only task is to determine if all the executed
 Your task is to:
 1. Analyze the test execution logs
 2. Look for test result indicators:
-   - Test summary showing "passed" or "PASSED" 
+   - Test summary showing "passed" or "PASSED"
    - Check for "FAILURES" or "FAILED" sections
    - Check for error messages or exceptions
    - Warning messages are acceptable and don't indicate failure

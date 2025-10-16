@@ -25,12 +25,12 @@ Here is a Github issue description:
 -- BEGIN ISSUE --
 {issue_info}
 -- END ISSUE --
-    
+
 Here is the relevant code context and documentation needed to understand and answer this issue:
 --- BEGIN CONTEXT --
 {question_context}
 --- END CONTEXT --
-    
+
 Based on the above information, please provide a detailed answer to the question.
 """
 
