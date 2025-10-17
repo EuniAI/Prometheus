@@ -18,12 +18,17 @@ Context Found:
 --- BEGIN CONTEXT ---
 {context}
 --- END CONTEXT ---
-These context should be enough to help you make the necessary code edits.
+These context should be enough to help you make the necessary code edits. Do NOT explore for more context in the codebase!
 
 Analyzer agent has analyzed the issue and provided instruction on the issue:
 --- BEGIN ANALYZER MESSAGE ---
 {analyzer_message}
 --- END ANALYZER MESSAGE ---
+
+IMPORTANT INSTRUCTION:
+- The context provided above should be sufficient for you to make the required code edits. Do NOT explore for more context in the codebase!
+- Do NOT FIND, WRITE or RUN any tests, your change will be tested automatically by reproduction tests and regression tests later!!!
+- Never write any tests yourself!!! (Very important!)
 
 Please implement these changes precisely, following the exact specifications from the analyzer.
 """
