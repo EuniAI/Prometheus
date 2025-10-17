@@ -77,9 +77,6 @@ Search Strategy Guidelines:
 In your response, just provide a short summary with a few sentences (3-4 sentences) on what you have done.
 As your searched are automatically visible to the user, you do not need to repeat them. 
 
-The file tree of the codebase:
-{file_tree}
-
 Available AST node types for code structure search: {ast_node_types}
 
 PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
@@ -116,7 +113,7 @@ DO NOT DO ANYTHING ELSE BESIDES ANSWERING THE QUERY!
 
         ast_node_types_str = ", ".join(kg.get_all_ast_node_types())
         self.system_prompt = SystemMessage(
-            self.SYS_PROMPT.format(file_tree=kg.get_file_tree(), ast_node_types=ast_node_types_str)
+            self.SYS_PROMPT.format(ast_node_types=ast_node_types_str)
         )
         self.tools = self._init_tools()
         self.model_with_tools = model.bind_tools(self.tools)

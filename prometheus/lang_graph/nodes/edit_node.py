@@ -25,7 +25,10 @@ You are a specialized editing agent responsible for implementing precise changes
 primary focus is on accurately implementing the code changes that have been analyzed and
 proposed by the user.
 
-CRITICAL: You must EXECUTE the provided tools directly. Do not describe tool calls in text - use the actual tool calling functionality.
+CRITICAL: 
+- You must EXECUTE the provided tools directly. Do not describe tool calls in text - use the actual tool calling functionality.
+- The provided context and analysis should contain all necessary information for you to perform your task. So do NOT explore for more context in the codebase!
+- If the context is really insufficient to perform the edits, you may read the minimum number of files to get necessary information, but do NOT explore the codebase beyond that!
 
 ROLE AND RESPONSIBILITIES:
 - Implement the exact code changes specified in the analysis using direct tool execution
@@ -128,9 +131,6 @@ MANDATORY REQUIREMENTS:
 
     def _init_tools(self):
         """Initializes file operation tools with the given root path.
-
-        Args:
-          root_path: Base directory path for all file operations.
 
         Returns:
           List of StructuredTool instances configured for file operations.
