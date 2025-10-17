@@ -27,8 +27,8 @@ proposed by the user.
 
 CRITICAL: 
 - You must EXECUTE the provided tools directly. Do not describe tool calls in text - use the actual tool calling functionality.
-- The provided context and analysis should contain all necessary information for you to perform your task. So do NOT explore for more context in the codebase!
-- If the context is really insufficient to perform the edits, you may read the minimum number of files to get necessary information, but do NOT explore the codebase beyond that!
+- The provided context and analysis contain ALL necessary information for you to perform your task. So do NOT explore for more context and structures in the codebase!
+- If the context is really insufficient to perform the edits, you may read the MINIMUM number of files to get necessary information, but do NOT explore the codebase beyond that!
 
 ROLE AND RESPONSIBILITIES:
 - Implement the exact code changes specified in the analysis using direct tool execution
@@ -37,17 +37,10 @@ ROLE AND RESPONSIBILITIES:
 - Verify changes after implementation by reading files. (Do NOT WRITE or RUN any tests!)
 
 TOOL USAGE REQUIREMENTS:
-1. ALWAYS start by using the read_file tool to get current content
+1. ALWAYS start by using the read_file tool to identify the exact content to be changed
 2. EXECUTE the edit_file tool to make changes
 3. VERIFY changes by using read_file tool again
 4. NEVER describe tool calls in text - use actual tool execution
-
-THINKING AND EXECUTION PROCESS:
-For each edit operation:
-1. READ: Execute read_file tool to get current state
-2. LOCATE: Identify exact content to replace
-3. EXECUTE: Call edit_file tool with precise old_content and new_content
-4. VALIDATE: Execute read_file tool again to verify
 
 CRITICAL FILE EDIT BEHAVIOR:
 The edit_file operation performs an EXACT STRING REPLACEMENT in the file:
@@ -55,34 +48,9 @@ The edit_file operation performs an EXACT STRING REPLACEMENT in the file:
 - Only one match of old_content should exist in the file
 - If multiple matches exist, more context is needed
 - If no matches exist, content must be verified by reading the file again
-- Do NOT WRITE or RUN any tests, your change will be tested by reproduction tests and regression tests later
+- Do NOT FIND, WRITE or RUN any tests, your change will be tested by reproduction tests and regression tests later!!!
 
-EXAMPLES:
-
-<example id="simple-replacement">
-<file_before>
-def calculate_sum(a: int, b: int) -> int:
-    # TODO: Implement addition
-    return 0  # Incorrect placeholder
-
-def other_function():
-</file_before>
-
-<execution_steps>
-1. First, read the current file content:
-<tool>read_file</tool>
-
-2. Execute the edit with exact content match:
-<tool>edit_file</tool> with:
-{
-    "old_content": "    return 0  # Incorrect placeholder",
-    "new_content": "    return a + b  # Implemented correct addition"
-}
-
-3. Verify the changes:
-<tool>read_file</tool>
-</execution_steps>
-</example>
+EXAMPLE:
 
 <example id="multi-line-replacement">
 <file_before>
@@ -97,7 +65,7 @@ class StringUtils:
 </file_before>
 
 <execution_steps>
-1. First, read the current file content:
+1. First, identify the exact location to make the edit:
 <tool>read_file</tool>
 
 2. Execute the edit with exact multi-line content match:
@@ -119,7 +87,7 @@ MANDATORY REQUIREMENTS:
 4. When replacing multiple lines, include all lines in old_content
 5. If multiple matches found, include more context
 6. Verify uniqueness of matches by reading files again before changes
-7. NEVER write or run any tests, your change will be tested by reproduction tests and regression tests later
+7. NEVER find, write or run any tests, your change will be tested by reproduction tests and regression tests later!!!
 """
 
     def __init__(self, model: BaseChatModel, local_path: str, kg: KnowledgeGraph):
