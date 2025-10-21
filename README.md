@@ -1,17 +1,69 @@
 <a name="readme-top"></a>
 
 <div align="center">
-  <img src="./docs/static/images/icon.jpg" alt="Prometheus Logo" width="200">
-  <h1 align="center">Prometheus</h1>
+  <img src="./docs/static/images/icon.jpg" alt="Prometheus Logo" width="160">
+  <h1 style="border-bottom: none;">
+    <b><a href="https://prometheus.euniai.com" target="_blank">Prometheus</a></b><br>
+    ⚡ Redefining Software Productivity Beyond Vibe Coding ⚡
+  </h1>
+
   <p align="center">
-    <strong>AI-Powered Codebase Intelligence Platform</strong>
+    <strong>AI-Powered Software 3.0 Platform — There’s More Beyond Lovable and Replit.</strong><br>
+    Moving beyond unreliable prototype generation, Prometheus turns your ideas into verifiable, affordable software through autonomous code agents.
   </p>
+
+  <!-- 🌍 Project Links -->
   <p align="center">
-    Automated issue resolution, intelligent code analysis, and multi-agent orchestration for modern software development
+    <a href="https://euni.ai/"><b>Website</b></a> •
+    <a href="https://x.com/Euni_AI"><b>X/Twitter</b></a> •
+    <a href="https://www.linkedin.com/company/euni-ai/"><b>LinkedIn</b></a> •
+    <a href="https://discord.gg/jDG4wqkKZj"><b>Discord</b></a> •
+    <a href="https://www.reddit.com/r/EuniAI"><b>GitHub</b></a> •
+    <a href="https://github.com/EuniAI/Prometheus"><b>GitHub</b></a>
   </p>
+
+  <!-- Badges -->
+  <p align="center">
+    <a href="https://github.com/EuniAI/Prometheus/stargazers">
+      <img src="https://img.shields.io/github/stars/EuniAI/Prometheus?style=for-the-badge&color=yellow" alt="Stars">
+    </a>
+    <a href="https://github.com/EuniAI/Prometheus/forks">
+      <img src="https://img.shields.io/github/forks/EuniAI/Prometheus?style=for-the-badge&color=blue" alt="Forks">
+    </a>
+    <a href="https://opensource.org/licenses/Apache-2.0">
+      <img src="https://img.shields.io/badge/license-Apache--2.0-green?style=for-the-badge" alt="License: Apache 2.0">
+    </a>
+    <a href="https://www.arxiv.org/abs/2507.19942">
+      <img src="https://img.shields.io/badge/Paper-arXiv-red?style=for-the-badge&logo=arxiv&logoColor=white" alt="arXiv Paper">
+    </a>
+    <a href="https://github.com/EuniAI/Prometheus/graphs/contributors">
+      <img src="https://img.shields.io/github/contributors/EuniAI/Prometheus?style=for-the-badge&color=orange" alt="Contributors">
+    </a>
+  </p>
+
+  <p align="center">
+    <a href="https://github.com/EuniAI/Prometheus" target="_blank">
+      <img src="https://img.shields.io/github/commit-activity/m/EuniAI/Prometheus?label=Commits&color=brightgreen&style=flat" alt="Commit Activity">
+    </a>
+    <a href="https://github.com/EuniAI/Prometheus/forks" target="_blank">
+      <img src="https://img.shields.io/github/forks/EuniAI/Prometheus.svg?style=flat&color=blue&label=Forks" alt="Forks">
+    </a>
+    <a href="https://github.com/EuniAI/Prometheus/issues" target="_blank">
+      <img alt="Issues Closed" src="https://img.shields.io/github/issues-search?query=repo%3AEuniAI%2FPrometheus%20is%3Aclosed&label=Issues%20Closed&labelColor=%237d89b0&color=%235d6b98&style=flat">
+    </a>
+    <a href="https://github.com/EuniAI/Prometheus/discussions" target="_blank">
+      <img alt="Discussion Posts" src="https://img.shields.io/github/discussions/EuniAI/Prometheus?label=Discussions&labelColor=%239b8afb&color=%237a5af8&style=flat">
+    </a>
+  </p>
+
+
+  <hr style="width:80%;border:1px solid #ddd;">
+
 </div>
 
-<div align="center">
+
+
+<!-- <div align="center">
   <a href="https://github.com/EuniAI/Prometheus/graphs/contributors"><img src="https://img.shields.io/github/contributors/EuniAI/Prometheus?style=for-the-badge&color=blue" alt="Contributors"></a>
   <a href="https://github.com/EuniAI/Prometheus/stargazers"><img src="https://img.shields.io/github/stars/EuniAI/Prometheus?style=for-the-badge&color=blue" alt="Stargazers"></a>
   <a href="https://www.arxiv.org/abs/2507.19942"><img src="https://img.shields.io/badge/Paper-arXiv-red?style=for-the-badge&logo=arxiv" alt="Paper"></a>
@@ -21,7 +73,7 @@
 
   <br/>
   <hr>
-</div>
+</div> -->
 
 <br/>
 
