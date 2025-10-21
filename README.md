@@ -4,12 +4,12 @@
   <img src="./docs/static/images/icon.jpg" alt="Prometheus Logo" width="160">
   <h1 style="border-bottom: none;">
     <b><a href="https://prometheus.euniai.com" target="_blank">Prometheus</a></b><br>
-    ⚡ Redefining Software Productivity Beyond Vibe Coding ⚡
+    ⚡ AI-Powered Software 3.0 Platform ⚡
   </h1>
 
   <p align="center">
-    <strong>AI-Powered Software 3.0 Platform — There’s More Beyond Lovable and Replit.</strong><br>
-    Moving beyond unreliable prototype generation, Prometheus turns your ideas into verifiable, affordable software through autonomous code agents.
+    <strong>Redefining Software Productivity Beyond Vibe Coding — There’s More Beyond Lovable and Replit.</strong><br>
+    <em>Moving beyond unreliable prototype generation, Prometheus turns your ideas into verifiable, affordable software through autonomous code agents.</em>
   </p>
 
   <!-- 🌍 Project Links -->
