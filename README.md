@@ -3,7 +3,7 @@
 <div align="center">
   <img src="./docs/static/images/icon.jpg" alt="Prometheus Logo" width="160">
   <h1 style="border-bottom: none;">
-    <b><a href="https://prometheus.euniai.com" target="_blank">Prometheus</a></b><br>
+    <b><a href="https://euni.ai/" target="_blank">Prometheus</a></b><br>
     ⚡ AI-Powered Software 3.0 Platform ⚡
   </h1>
 
@@ -18,7 +18,7 @@
     <a href="https://x.com/Euni_AI"><b>X/Twitter</b></a> •
     <a href="https://www.linkedin.com/company/euni-ai/"><b>LinkedIn</b></a> •
     <a href="https://discord.gg/jDG4wqkKZj"><b>Discord</b></a> •
-    <a href="https://www.reddit.com/r/EuniAI"><b>GitHub</b></a> •
+    <a href="https://www.reddit.com/r/EuniAI"><b>Reddit</b></a> •
     <a href="https://github.com/EuniAI/Prometheus"><b>GitHub</b></a>
   </p>
 
