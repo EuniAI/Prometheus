@@ -264,11 +264,13 @@ Prometheus is based on peer-reviewed research on unified knowledge graphs for mu
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [contributing guidelines](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our **[Contributing Guidelines](CONTRIBUTING.md)** for details on how to get started.
 
-- Report bugs via [GitHub Issues](https://github.com/EuniAI/Prometheus/issues)
-- Submit feature requests and improvements via Pull Requests
-- Join discussions on [Discord](https://discord.gg/jDG4wqkKZj)
+**Quick Links**:
+- 📖 Read the full [Contributing Guide](CONTRIBUTING.md)
+- 🐞 Report bugs via [GitHub Issues](https://github.com/EuniAI/Prometheus/issues)
+- ✨ Submit feature requests and improvements via Pull Requests
+- 💬 Join discussions on [Discord](https://discord.gg/jDG4wqkKZj)
 
 We're grateful to all our amazing contributors who have made this project what it is today!
 
