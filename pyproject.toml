@@ -7,8 +7,8 @@ name = "Prometheus"
 version = "1.3.0"
 dependencies = [
   "langchain==0.3.3",
-  "tree-sitter==0.21.3",
-  "tree-sitter-languages==1.10.2",
+  "tree-sitter==0.25.2",
+  "tree-sitter-language-pack==0.10.0",
   "neo4j==5.20.0",
   "fastapi[standard]>=0.115.2",
   "langchain-anthropic==0.3.0",

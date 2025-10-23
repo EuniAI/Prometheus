@@ -13,7 +13,7 @@ JavaScript, C++, Rust, Ruby, TypeScript and others.
 from pathlib import Path
 
 from tree_sitter._binding import Tree
-from tree_sitter_languages import get_parser
+from tree_sitter_language_pack import get_parser
 
 from prometheus.parser.file_types import FileType
 
@@ -33,6 +33,7 @@ FILE_TYPE_TO_LANG = {
     FileType.BASH: "bash",
     FileType.C: "c",
     FileType.CSHARP: "c_sharp",
+    FileType.CSS: "css",
     FileType.CPP: "cpp",
     FileType.GO: "go",
     FileType.JAVA: "java",
@@ -44,8 +45,10 @@ FILE_TYPE_TO_LANG = {
     FileType.RUST: "rust",
     FileType.RUBY: "ruby",
     FileType.TYPESCRIPT: "typescript",
+    FileType.HTML: "html",
     # Configuration files
     FileType.YAML: "yaml",
+    FileType.XML: "xml",
 }
 
 

@@ -10,6 +10,7 @@ class FileType(enum.StrEnum):
     C = "c"
     CSHARP = "csharp"
     CPP = "cpp"
+    CSS = "css"
     GO = "go"
     JAVA = "java"
     JAVASCRIPT = "javascript"
@@ -20,8 +21,10 @@ class FileType(enum.StrEnum):
     RUST = "rust"
     RUBY = "ruby"
     TYPESCRIPT = "typescript"
+    HTML = "html"
     # configuration files
     YAML = "yaml"
+    XML = "xml"
     # Unknown file type
     UNKNOWN = "UNKNOWN"
 
@@ -34,6 +37,8 @@ class FileType(enum.StrEnum):
                 return cls.C
             case ".cs":
                 return cls.CSHARP
+            case ".css":
+                return cls.CSS
             case ".cpp" | ".cc" | ".cxx":
                 return cls.CPP
             case ".go":
@@ -56,9 +61,13 @@ class FileType(enum.StrEnum):
                 return cls.RUBY
             case ".ts":
                 return cls.TYPESCRIPT
+            case ".html":
+                return cls.HTML
             # configuration files
             case ".yaml" | ".yml":
                 return cls.YAML
+            case ".xml":
+                return cls.XML
             # If the file type is not recognized, return UNKNOWN
             case _:
                 return cls.UNKNOWN
