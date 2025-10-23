@@ -2,10 +2,6 @@ networks:
   prometheus_network:
     driver: bridge
 
-volumes:
-  postgres_data:
-  neo4j_data:
-
 services:
   neo4j:
     image: neo4j
@@ -20,7 +16,7 @@ services:
       - NEO4J_dbms_memory_transaction_total_max=12G
       - NEO4J_db_transaction_timeout=600s
     volumes:
-      - neo4j_data:/data
+      - ./data_neo4j:/var/lib/neo4j/data
     healthcheck:
       test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "password", "--non-interactive", "RETURN 1;"]
       interval: 30s
@@ -28,7 +24,7 @@ services:
       retries: 3
 
   postgres:
-    image: postgres
+    image: postgres:16
     container_name: prometheus_postgres_container
     networks:
       - prometheus_network
@@ -37,7 +33,7 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data_postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d postgres -U postgres"]
       interval: 30s
