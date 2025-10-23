@@ -178,11 +178,7 @@ See **[Architecture Documentation](docs/Multi-Agent-Architecture.md)** for detai
 
 5. **Start services**
    ```bash
-   # Linux
    docker-compose up --build
-
-   # macOS/Windows (requires manual PostgreSQL setup)
-   docker-compose -f docker-compose.win_mac.yml up --build
    ```
 
 6. **Access the platform**
