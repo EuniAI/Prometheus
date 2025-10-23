@@ -76,7 +76,7 @@ def test_parse_unsupported_file_raises_error(mock_unsupported_file):
 
 def test_parse_all_supported_languages():
     """Test that we can get parsers for all supported languages."""
-    with patch("tree_sitter_languages.get_parser") as mock_get_parser:
+    with patch("tree_sitter_language_pack.get_parser") as mock_get_parser:
         mock_parser = MagicMock()
         mock_get_parser.return_value = mock_parser
 
