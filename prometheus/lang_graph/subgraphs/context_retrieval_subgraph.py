@@ -211,4 +211,4 @@ class ContextRetrievalSubgraph:
 
         output_state = self.subgraph.invoke(input_state, config)
 
-        return {"context": output_state["context"]}
+        return {"context": output_state.get("context", [])}
