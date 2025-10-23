@@ -49,6 +49,7 @@ FILE_TYPE_TO_LANG = {
     # Configuration files
     FileType.YAML: "yaml",
     FileType.XML: "xml",
+    FileType.PROPERTIES: "properties",
 }
 
 

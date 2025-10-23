@@ -25,6 +25,7 @@ class FileType(enum.StrEnum):
     # configuration files
     YAML = "yaml"
     XML = "xml"
+    PROPERTIES = "properties"
     # Unknown file type
     UNKNOWN = "UNKNOWN"
 
@@ -68,6 +69,8 @@ class FileType(enum.StrEnum):
                 return cls.YAML
             case ".xml":
                 return cls.XML
+            case ".properties":
+                return cls.PROPERTIES
             # If the file type is not recognized, return UNKNOWN
             case _:
                 return cls.UNKNOWN
