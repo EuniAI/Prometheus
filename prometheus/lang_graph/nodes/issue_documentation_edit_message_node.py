@@ -26,12 +26,12 @@ Please proceed to implement the documentation changes:
 2. Make precise edits that preserve existing formatting and style
 3. Create new files if specified in the plan
 4. Verify your changes by reading the files again after editing
+5. Follow the documentation style and conventions observed in the existing documentation
 
 Remember:
 - Follow the plan provided in the analysis
 - Maintain consistency with existing documentation style
 - Ensure all edits are precise and accurate
-- Do NOT write or run any tests - focus only on documentation updates
 """
 
     def __init__(self):
