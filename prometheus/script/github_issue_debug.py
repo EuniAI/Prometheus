@@ -10,7 +10,7 @@ Parameter Description:
     --github-token: GitHub Personal Access Token (required)
     --repo: GitHub repository (format: owner/repo) (required)
     --issue-number: Issue number (required)
-    --prometheus-url: Prometheus service address (default: http://localhost:9002/v1.2)
+    --prometheus-url: Prometheus service address (default: http://localhost:9002/v1.3)
     --output-file: Result output file (optional, default outputs to console)
     --run-build: Whether to run build validation (default: False)
     --run-test: Whether to run test validation (default: False)
@@ -35,7 +35,7 @@ CREATE_BRANCH_AND_PUSH_ENDPOINT = "/repository/create-branch-and-push/"
 
 
 class GitHubIssueDebugger:
-    def __init__(self, github_token: str, prometheus_url: str = "http://localhost:9002/v1.2"):
+    def __init__(self, github_token: str, prometheus_url: str = "http://localhost:9002/v1.3"):
         """
         Initialize GitHub Issue Debugger
 
@@ -253,8 +253,8 @@ def main():
 
     parser.add_argument(
         "--prometheus-url",
-        default="http://localhost:9002/v1.2",
-        help="Prometheus service address (default: http://localhost:9002/v1.2)",
+        default="http://localhost:9002/v1.3",
+        help="Prometheus service address (default: http://localhost:9002/v1.3)",
     )
 
     parser.add_argument(
