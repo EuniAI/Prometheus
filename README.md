@@ -94,6 +94,16 @@ Prometheus is a research-backed, production-ready platform that leverages **unif
 📖 **[Multi-Agent Architecture](docs/Multi-Agent-Architecture.md)** | 📄 **[Research Paper](https://arxiv.org/abs/2507.19942)**
 
 ---
+## 🤖 Why Prometheus?
+
+| System                                                  | Core Description                                                                 | Limitations                                                                                                                                     | Why **Prometheus** is Superior                                                                                                                                   |
+|---------------------------------------------------------|----------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **[SWE-Agent](https://github.com/SWE-agent/SWE-agent)** | Research baseline for automatic bug fixing using a single LLM-computer interface | – Static, single-turn reasoning<br>– No cross-file or cross-repo understanding<br>– Lacks full detect–reproduce–repair–verify (DRRV) automation | ✅ Prometheus performs **multi-agent collaborative reasoning** across files and commits, enabling full-cycle issue understanding and repair                       |
+| **[Lingxi](https://github.com/lingxi-agent/Lingxi)**    | Multi-agent system for automated bug fixing and code reasoning                   | – Limited context retrieval<br>– No persistent knowledge graph or long-term memory<br>– Requires human validation for many patches              | ✅ Prometheus integrates a **Unified Codebase Knowledge Graph** and **long-term memory (Athena)** for deeper semantic reasoning and repository-wide understanding |
+| **[TRAE](https://github.com/bytedance/trae-agent)**     | Multi-agent reasoning and tool execution framework                               | – Focused on task orchestration rather than reasoning depth<br>– No unified memory or structured code representation                            | ✅ Prometheus emphasizes **deep reasoning and knowledge unification**, allowing consistent understanding across large and complex repositories                    |
+| **[OpenHands](https://github.com/OpenHands/OpenHands)** | General-purpose open-source AI developer using sandbox execution                 | – Strong executor but weak contextual reasoning<br>– No repository-level semantic linking<br>– Task-by-task operation only                      | ✅ Prometheus combines **contextual understanding and code reasoning**, achieving coherent, reproducible debugging and intelligent code repair                    |
+
+---
 
 ## 🏗️ Architecture
 
