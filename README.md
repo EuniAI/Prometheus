@@ -94,6 +94,12 @@ Prometheus is a research-backed, production-ready platform that leverages **unif
 📖 **[Multi-Agent Architecture](docs/Multi-Agent-Architecture.md)** | 📄 **[Research Paper](https://arxiv.org/abs/2507.19942)**
 
 ---
+
+## 📣 News
+
+- **[2025-10]** We maintain a curated list of code agent projects and research: **[Awesome Code Agents](https://euniai.github.io/awesome-code-agents/)** - explore the cutting-edge developments in autonomous code generation, bug fixing, and software engineering automation.
+
+---
 ## 🤖 Why Prometheus?
 
 | System                                                  | Core Description                                                                 | Limitations                                                                                                                                     | Why **Prometheus** is Superior                                                                                                                                   |
