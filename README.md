@@ -97,7 +97,7 @@ Prometheus is a research-backed, production-ready platform that leverages **unif
 
 ## 📣 News
 
-- **[2025-10]** We maintain a curated list of code agent projects and research: **[Awesome Code Agents](https://euniai.github.io/awesome-code-agents/)** - explore the cutting-edge developments in autonomous code generation, bug fixing, and software engineering automation.
+- **[2025-10]** We maintain a curated list of code agent projects and research: **[Awesome Code Agents](https://github.com/EuniAI/awesome-code-agents)** - explore the cutting-edge developments in autonomous code generation, bug fixing, and software engineering automation.
 
 ---
 ## 🤖 Why Prometheus?
