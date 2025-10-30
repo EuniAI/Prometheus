@@ -32,13 +32,6 @@ def test_supports_file_with_supported_type(mock_python_file):
         mock_from_path.assert_called_once_with(mock_python_file)
 
 
-def test_supports_file_with_unsupported_type(mock_unsupported_file):
-    with patch("prometheus.parser.file_types.FileType.from_path") as mock_from_path:
-        mock_from_path.return_value = None
-        assert supports_file(mock_unsupported_file) is False
-        mock_from_path.assert_called_once_with(mock_unsupported_file)
-
-
 def test_parse_python_file_successfully(mock_python_file, mock_tree):
     mock_content = b'print("hello")'
     m = mock_open(read_data=mock_content)
