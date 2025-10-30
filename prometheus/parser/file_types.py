@@ -11,6 +11,7 @@ class FileType(enum.StrEnum):
     CSHARP = "csharp"
     CPP = "cpp"
     CSS = "css"
+    DOCKERFILE = "dockerfile"
     GO = "go"
     JAVA = "java"
     JAVASCRIPT = "javascript"
@@ -31,6 +32,11 @@ class FileType(enum.StrEnum):
 
     @classmethod
     def from_path(cls, path: Path):
+        # Determine the file type based on the file extension or name
+        if path.name.lower() == "dockerfile":
+            return cls.DOCKERFILE
+
+        # Use suffix matching for other file types
         match path.suffix:
             case ".sh" | ".bash":
                 return cls.BASH

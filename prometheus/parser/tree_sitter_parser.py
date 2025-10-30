@@ -24,6 +24,7 @@ FILE_TYPE_TO_LANG = {
     FileType.CSHARP: "c_sharp",
     FileType.CSS: "css",
     FileType.CPP: "cpp",
+    FileType.DOCKERFILE: "dockerfile",
     FileType.GO: "go",
     FileType.JAVA: "java",
     FileType.JAVASCRIPT: "javascript",
