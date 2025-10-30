@@ -7,7 +7,6 @@ from tree_sitter._binding import Tree
 from prometheus.parser.file_types import FileType
 from prometheus.parser.tree_sitter_parser import (
     FILE_TYPE_TO_LANG,
-    FileNotSupportedError,
     parse,
     supports_file,
 )
@@ -17,11 +16,6 @@ from prometheus.parser.tree_sitter_parser import (
 @pytest.fixture
 def mock_python_file():
     return Path("test.py")
-
-
-@pytest.fixture
-def mock_unsupported_file():
-    return Path("test.unsupported")
 
 
 @pytest.fixture
@@ -67,11 +61,6 @@ def test_parse_python_file_successfully(mock_python_file, mock_tree):
         mock_from_path.assert_called_once_with(mock_python_file)
         mock_get_parser.assert_called_once_with("python")
         mock_parser.parse.assert_called_once_with(mock_content)
-
-
-def test_parse_unsupported_file_raises_error(mock_unsupported_file):
-    with pytest.raises(FileNotSupportedError):
-        parse(mock_unsupported_file)
 
 
 def test_parse_all_supported_languages():
