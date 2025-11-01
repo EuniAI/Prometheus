@@ -132,7 +132,11 @@ def _analyze_context_relationship(context1: Context, context2: Context) -> str:
     - "separate": No containment relationship
     """
     # Check if content is completely identical
-    if context1.content == context2.content:
+    if (
+        context1.start_line_number == context2.start_line_number
+        and context1.end_line_number == context2.end_line_number
+        and context1.relative_path == context2.relative_path
+    ):
         return "duplicate"
 
     # Check content containment relationship
