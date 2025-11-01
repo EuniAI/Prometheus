@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 import requests
 
 from prometheus.configuration.config import settings
+from prometheus.exceptions.memory_exception import MemoryException
 from prometheus.models.context import Context
 from prometheus.models.query import Query
 
@@ -142,9 +143,10 @@ class AthenaMemoryClient:
 
 
 # Global instance with settings from config
-athena_client = AthenaMemoryClient(
-    base_url=settings.ATHENA_BASE_URL,
-)
+if settings.ATHENA_BASE_URL:
+    athena_client = AthenaMemoryClient(base_url=settings.ATHENA_BASE_URL)
+else:
+    athena_client = None
 
 
 def store_memory(
@@ -170,6 +172,9 @@ def store_memory(
     Raises:
         requests.RequestException: If the request fails
     """
+    if not athena_client:
+        raise MemoryException("Athena memory client is not configured.")
+
     return athena_client.store_memory(
         repository_id=repository_id,
         essential_query=essential_query,
@@ -196,6 +201,9 @@ def retrieve_memory(
     Raises:
         requests.RequestException: If the request fails
     """
+    if not athena_client:
+        raise MemoryException("Athena memory client is not configured.")
+
     return athena_client.retrieve_memory(repository_id=repository_id, query=query)
 
 
@@ -212,4 +220,7 @@ def delete_repository_memory(repository_id: int) -> dict[str, Any]:
     Raises:
         requests.RequestException: If the request fails
     """
+    if not athena_client:
+        raise MemoryException("Athena memory client is not configured.")
+
     return athena_client.delete_repository_memory(repository_id=repository_id)

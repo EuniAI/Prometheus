@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     TAVILY_API_KEY: str
 
     # Athena semantic memory service
-    ATHENA_BASE_URL: str
+    ATHENA_BASE_URL: Optional[str] = None
 
 
 settings = Settings()

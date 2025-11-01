@@ -1,6 +1,7 @@
 import logging
 import threading
 
+from prometheus.exceptions.memory_exception import MemoryException
 from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetrievalState
 from prometheus.models.context import Context
 from prometheus.utils.knowledge_graph_utils import deduplicate_contexts, sort_contexts
@@ -38,7 +39,7 @@ class MemoryRetrievalNode:
                 f"Retrieving contexts from memory for query: {refined_query.essential_query}"
             )
             results = retrieve_memory(repository_id=self.repository_id, query=refined_query)
-        except Exception as e:
+        except MemoryException as e:
             self._logger.error(f"Failed to retrieve from memory: {e}")
             # On error, return empty list to continue with normal flow
             return {"new_contexts": []}

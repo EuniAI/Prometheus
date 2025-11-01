@@ -14,8 +14,10 @@ from prometheus.app.services.knowledge_graph_service import KnowledgeGraphServic
 from prometheus.app.services.repository_service import RepositoryService
 from prometheus.app.services.user_service import UserService
 from prometheus.configuration.config import settings
+from prometheus.exceptions.memory_exception import MemoryException
 from prometheus.exceptions.server_exception import ServerException
 from prometheus.utils.github_utils import is_repository_public
+from prometheus.utils.memory_utils import delete_repository_memory
 
 router = APIRouter()
 
@@ -208,6 +210,12 @@ async def delete(
     # Clear the knowledge graph and repository data
     await knowledge_graph_service.clear_kg(repository.kg_root_node_id)
     repository_service.clean_repository(repository)
+
+    # Remove semantic memory associated with the repository
+    try:
+        delete_repository_memory(repository.id)
+    except MemoryException:
+        pass
 
     # Delete the repository from the database
     await repository_service.delete_repository(repository)

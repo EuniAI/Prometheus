@@ -1,6 +1,7 @@
 import logging
 import threading
 
+from prometheus.exceptions.memory_exception import MemoryException
 from prometheus.lang_graph.subgraphs.context_retrieval_state import ContextRetrievalState
 from prometheus.utils.memory_utils import store_memory
 
@@ -43,7 +44,7 @@ class MemoryStorageNode:
                 purpose=refined_query.purpose or "",
                 contexts=list(new_contexts),
             )
-        except Exception as e:
+        except MemoryException as e:
             self._logger.error(f"Failed to store to memory: {e}")
             # Don't fail the entire flow if memory storage fails
 
