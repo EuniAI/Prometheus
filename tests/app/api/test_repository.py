@@ -102,7 +102,11 @@ def test_create_branch_and_push(mock_service):
     assert response.status_code == 200
 
 
-def test_delete(mock_service):
+@mock.patch("prometheus.app.api.routes.repository.delete_repository_memory")
+def test_delete(mock_delete_memory, mock_service):
+    # Mock the delete_repository_memory to return success
+    mock_delete_memory.return_value = {"code": 200, "message": "success", "data": None}
+
     mock_service["repository_service"].get_repository_by_id = AsyncMock(
         return_value=Repository(
             id=1,
