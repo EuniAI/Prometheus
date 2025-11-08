@@ -189,11 +189,19 @@ Remember to provide structured output with two fields:
             if 0 <= response.patch_index < len(patches):
                 result[response.patch_index] += 1
 
-            # Early stopping if a patch has already secured majority
-            if max(result) > self.majority_voting_times // 2:
-                selected_patch_index = result.index(max(result))
+            # Early stopping if first place lead exceeds remaining votes
+            sorted_results = sorted(result, reverse=True)
+            first_place_votes = sorted_results[0]
+            second_place_votes = sorted_results[1]
+            remaining_votes = self.majority_voting_times - (turn + 1)
+            vote_lead = first_place_votes - second_place_votes
+
+            if vote_lead > remaining_votes:
+                selected_patch_index = result.index(first_place_votes)
                 self._logger.info(
-                    f"FinalPatchSelectionNode early stopping at turn {turn + 1} with result: {result},"
+                    f"FinalPatchSelectionNode early stopping at turn {turn + 1} with result: {result}, "
+                    f"first place: {first_place_votes}, second place: {second_place_votes}, "
+                    f"lead: {vote_lead}, remaining votes: {remaining_votes}, "
                     f"selected patch index: {selected_patch_index}"
                 )
                 return {self.final_patch_key: patches[selected_patch_index]}
