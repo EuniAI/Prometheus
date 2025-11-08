@@ -16,7 +16,8 @@ from prometheus.models.test_patch_result import TestedPatchResult
 class GetPassRegressionTestPatchSubgraphNode:
     def __init__(
         self,
-        model: BaseChatModel,
+        base_model: BaseChatModel,
+        advanced_model: BaseChatModel,
         container: BaseContainer,
         git_repo: GitRepository,
         testing_patch_key: str,
@@ -26,7 +27,8 @@ class GetPassRegressionTestPatchSubgraphNode:
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.subgraph = GetPassRegressionTestPatchSubgraph(
-            base_model=model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             container=container,
             git_repo=git_repo,
         )

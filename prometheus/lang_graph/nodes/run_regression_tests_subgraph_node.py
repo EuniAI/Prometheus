@@ -11,11 +11,16 @@ from prometheus.lang_graph.subgraphs.run_regression_tests_subgraph import RunReg
 
 class RunRegressionTestsSubgraphNode:
     def __init__(
-        self, model: BaseChatModel, container: BaseContainer, passed_regression_tests_key: str
+        self,
+        base_model: BaseChatModel,
+        advanced_model: BaseChatModel,
+        container: BaseContainer,
+        passed_regression_tests_key: str,
     ):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         self.subgraph = RunRegressionTestsSubgraph(
-            base_model=model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             container=container,
         )
         self.passed_regression_tests_key = passed_regression_tests_key

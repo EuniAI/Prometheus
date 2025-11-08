@@ -109,7 +109,8 @@ class IssueVerifiedBugSubgraph:
         # Phase 5: Run Regression Tests if available
         get_pass_regression_test_patch_branch_node = NoopNode()
         get_pass_regression_test_patch_subgraph_node = GetPassRegressionTestPatchSubgraphNode(
-            model=base_model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             container=container,
             git_repo=git_repo,
             testing_patch_key="edit_patch",

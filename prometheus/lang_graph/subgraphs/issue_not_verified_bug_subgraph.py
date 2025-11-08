@@ -74,7 +74,8 @@ class IssueNotVerifiedBugSubgraph:
 
         # Get pass regression test patch subgraph node
         get_pass_regression_test_patch_subgraph_node = GetPassRegressionTestPatchSubgraphNode(
-            model=base_model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             container=container,
             git_repo=git_repo,
             testing_patch_key="final_candidate_patches",

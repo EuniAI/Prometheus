@@ -68,7 +68,8 @@ class BugGetRegressionTestsSubgraph:
         )
         # Step 4: Run the selected regression tests before the fix and store results
         run_regression_tests_subgraph_node = RunRegressionTestsSubgraphNode(
-            model=base_model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             container=container,
             passed_regression_tests_key="selected_regression_tests",
         )

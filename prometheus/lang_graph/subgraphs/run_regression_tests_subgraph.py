@@ -22,6 +22,7 @@ class RunRegressionTestsSubgraph:
     def __init__(
         self,
         base_model: BaseChatModel,
+        advanced_model: BaseChatModel,
         container: BaseContainer,
     ):
         """
@@ -29,6 +30,7 @@ class RunRegressionTestsSubgraph:
 
         Args:
             base_model: Lighter LLM for simpler tasks (e.g., file selection).
+            advanced_model: More capable LLM for complex analysis tasks.
             container: Docker-based sandbox for running code.
         """
         # Run regression tests node
@@ -38,7 +40,9 @@ class RunRegressionTestsSubgraph:
             name="run_regression_tests_tools",
             messages_key="run_regression_tests_messages",
         )
-        run_regression_tests_structured_node = RunRegressionTestsStructuredNode(model=base_model)
+        run_regression_tests_structured_node = RunRegressionTestsStructuredNode(
+            model=advanced_model
+        )
         # Define the state machine
         workflow = StateGraph(RunRegressionTestsState)
         workflow.add_node("run_regression_tests_node", run_regression_tests_node)

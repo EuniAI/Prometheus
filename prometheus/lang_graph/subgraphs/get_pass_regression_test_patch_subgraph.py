@@ -31,6 +31,7 @@ class GetPassRegressionTestPatchSubgraph:
     def __init__(
         self,
         base_model: BaseChatModel,
+        advanced_model: BaseChatModel,
         container: BaseContainer,
         git_repo: GitRepository,
     ):
@@ -39,7 +40,9 @@ class GetPassRegressionTestPatchSubgraph:
 
         Args:
             base_model: Lighter LLM for simpler tasks (e.g., file selection).
+            advanced_model: More capable LLM for complex analysis tasks.
             container: Docker-based sandbox for running code.
+            git_repo: Git repository interface for codebase manipulation.
         """
         noop_nodes = NoopNode()
         # Step 1: Update the Git repository with the current testing patch
@@ -50,7 +53,8 @@ class GetPassRegressionTestPatchSubgraph:
         update_container_node = UpdateContainerNode(container=container, git_repo=git_repo)
         # Step 3: Run regression tests on the current testing patch
         run_regression_tests_subgraph_node = RunRegressionTestsSubgraphNode(
-            model=base_model,
+            base_model=base_model,
+            advanced_model=advanced_model,
             container=container,
             passed_regression_tests_key="current_passed_tests",
         )
