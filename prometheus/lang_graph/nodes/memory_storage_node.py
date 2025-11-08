@@ -36,6 +36,10 @@ class MemoryStorageNode:
             f"Storing {len(new_contexts)} contexts to memory for query: {refined_query.essential_query}"
         )
 
+        if not new_contexts:
+            self._logger.info("No new contexts to store")
+            return None
+
         try:
             store_memory(
                 repository_id=self.repository_id,
