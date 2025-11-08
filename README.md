@@ -92,6 +92,23 @@ Prometheus is a research-backed, production-ready platform that leverages **unif
 - **Question Answering**: Natural language queries with tool-augmented LLM agents
 
 📖 **[Multi-Agent Architecture](docs/Multi-Agent-Architecture.md)** | 📄 **[Research Paper](https://arxiv.org/abs/2507.19942)**
+---
+
+```bibtex
+@misc{chen2025prometheusKG,
+      title={Prometheus: Unified Knowledge Graphs for Issue Resolution in Multilingual Codebases}, 
+      author={Zimin Chen and Yue Pan and Siyu Lu and Jiayi Xu and Claire Le Goues and Martin Monperrus and He Ye},
+      year={2025},
+      eprint={2507.19942},
+      archivePrefix={arXiv},
+      primaryClass={cs.SE},
+      url={https://arxiv.org/abs/2507.19942}, 
+}
+```
+
+
+
+
 
 ---
 
