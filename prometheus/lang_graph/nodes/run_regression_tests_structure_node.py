@@ -56,7 +56,6 @@ tests/utils/test_patch_util.py:13 (test_get_updated_files_added_only)
 
 Expected:1
 Actual:0
-<点击以查看差异>
 
 def test_get_updated_files_added_only():
         diff = \"""
