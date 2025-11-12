@@ -21,7 +21,7 @@ FILE_TYPE_TO_LANG = {
     # Supported programming languages
     FileType.BASH: "bash",
     FileType.C: "c",
-    FileType.CSHARP: "c_sharp",
+    FileType.CSHARP: "csharp",
     FileType.CSS: "css",
     FileType.CPP: "cpp",
     FileType.DOCKERFILE: "dockerfile",
