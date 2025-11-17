@@ -80,7 +80,6 @@ As your searched are automatically visible to the user, you do not need to repea
 Available AST node types for code structure search: {ast_node_types}
 
 PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
-DO NOT DO ANYTHING ELSE BESIDES ANSWERING THE QUERY!
 """
 
     def __init__(
@@ -102,11 +101,9 @@ DO NOT DO ANYTHING ELSE BESIDES ANSWERING THE QUERY!
           kg: Knowledge graph instance containing the processed codebase structure.
             Used to obtain the file tree for system prompts.
         """
-        # self.neo4j_driver = neo4j_driver
         self.root_node_id = kg.root_node_id
         self.kg = kg
         self.root_path = local_path
-        # self.max_token_per_result = max_token_per_result
         # Initialize GraphTraversalTool with the driver and token limit
         self.graph_traversal_tool = GraphTraversalTool(kg)
         self.file_operation_tool = FileOperationTool(local_path, kg)
