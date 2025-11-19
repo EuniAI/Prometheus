@@ -77,6 +77,13 @@
 
 <br/>
 
+## 📣 News
+
+- **[2025-11]** Prometheus achieved TOP 6 and TOP 1 🏆 in the agents using gpt-5 in the **[swebench leaderboard](https://www.swebench.com/)** for automated software engineering using LLMs 🎉!
+- **[2025-10]** We maintain a curated list of code agent projects and research: **[Awesome Code Agents](https://github.com/EuniAI/awesome-code-agents)** - explore the cutting-edge developments in autonomous code generation, bug fixing, and software engineering automation.
+
+---
+
 ## 📖 Overview
 
 Prometheus is a research-backed, production-ready platform that leverages **unified knowledge graphs** and **multi-agent systems** to perform intelligent operations on multilingual codebases. Built on LangGraph state machines, it orchestrates specialized AI agents to automatically classify issues, reproduce bugs, retrieve relevant context, and generate validated patches.
@@ -105,16 +112,6 @@ Prometheus is a research-backed, production-ready platform that leverages **unif
       url={https://arxiv.org/abs/2507.19942}, 
 }
 ```
-
-
-
-
-
----
-
-## 📣 News
-
-- **[2025-10]** We maintain a curated list of code agent projects and research: **[Awesome Code Agents](https://github.com/EuniAI/awesome-code-agents)** - explore the cutting-edge developments in autonomous code generation, bug fixing, and software engineering automation.
 
 ---
 ## 🤖 Why Prometheus?
