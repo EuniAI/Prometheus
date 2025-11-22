@@ -44,6 +44,7 @@ DO NOT request additional context if:
 
 When generating new queries, please review the previous queries to AVOID asking for the SAME or very similar information.
 Try to explore DIFFERENT aspects of the codebase rather than repeating similar requests, as these queries have already been asked and satisfied.
+ONLY generate queries about the codebase! Execution traces, error logs, or non-code information are out of scope!
 
 Provide your analysis in a structured format matching the ContextRefineStructuredOutput model.
 
