@@ -54,7 +54,7 @@ class BaseContainer(ABC):
             project_path,
             temp_project_path,
             symlinks=True,  # Don't follow symlink，directly copy symlink itself
-            ignore_dangling_symlinks=True
+            ignore_dangling_symlinks=True,
         )
         self.project_path = temp_project_path.absolute()
         self._logger.info(f"Created temporary project directory: {self.project_path}")
