@@ -80,6 +80,7 @@ As your searched are automatically visible to the user, you do not need to repea
 Available AST node types for code structure search: {ast_node_types}
 
 PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
+YOU MUST USE THE TOOLS TO FIND THE CODE AND DOCUMENTATION CONTEXT GIVEN THE QUERY!
 """
 
     def __init__(
