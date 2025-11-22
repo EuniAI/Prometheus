@@ -50,7 +50,12 @@ class BaseContainer(ABC):
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
         temp_dir = Path(tempfile.mkdtemp())
         temp_project_path = temp_dir / project_path.name
-        shutil.copytree(project_path, temp_project_path)
+        shutil.copytree(
+            project_path,
+            temp_project_path,
+            symlinks=True,  # Don't follow symlink，directly copy symlink itself
+            ignore_dangling_symlinks=True
+        )
         self.project_path = temp_project_path.absolute()
         self._logger.info(f"Created temporary project directory: {self.project_path}")
         self.build_commands = build_commands
