@@ -79,7 +79,7 @@
 
 ## 📣 News
 
-- **[2025-11]** Prometheus achieved TOP 6 and TOP 1 🏆 in the agents using gpt-5 in the **[swebench leaderboard](https://www.swebench.com/)** for automated software engineering using LLMs 🎉!
+- **[2025-11]** Prometheus achieved TOP 5 and TOP 1 🏆 in the agents using gpt-5 in the **[swebench leaderboard](https://www.swebench.com/)** for automated software engineering using LLMs 🎉!
 - **[2025-10]** We maintain a curated list of code agent projects and research: **[Awesome Code Agents](https://github.com/EuniAI/awesome-code-agents)** - explore the cutting-edge developments in autonomous code generation, bug fixing, and software engineering automation.
 
 ---
