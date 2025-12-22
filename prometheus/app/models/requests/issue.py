@@ -54,7 +54,7 @@ class IssueRequest(BaseModel):
         examples=[False],
     )
     number_of_candidate_patch: Optional[int] = Field(
-        default=5,
+        default=3,
         description="When the patch is not verified (through build or test), "
         "number of candidate patches we generate to select the best one",
         examples=[5],
