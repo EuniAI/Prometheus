@@ -202,7 +202,7 @@ class ContextRetrievalSubgraph:
         """
         # Set the recursion limit based on the maximum number of refined query loops
         max_refined_query_loop = max_refined_query_loop + 1
-        config = {"recursion_limit": max_refined_query_loop * 40}
+        config = {"recursion_limit": max_refined_query_loop * 60}
 
         input_state = {
             "query": query,
