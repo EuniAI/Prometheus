@@ -293,7 +293,7 @@ class IssueVerifiedBugSubgraph:
 
         number_of_candidate_patch_for_verified = math.ceil(number_of_candidate_patch / 2)
 
-        config = {"recursion_limit": (number_of_candidate_patch_for_verified + 2) * 60}
+        config = {"recursion_limit": (number_of_candidate_patch_for_verified + 2) * 75}
 
         input_state = {
             "issue_title": issue_title,
