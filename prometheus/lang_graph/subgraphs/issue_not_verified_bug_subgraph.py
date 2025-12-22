@@ -184,7 +184,7 @@ class IssueNotVerifiedBugSubgraph:
             "issue_body": issue_body,
             "issue_comments": issue_comments,
             "number_of_candidate_patch": number_of_candidate_patch,
-            "max_refined_query_loop": 4,
+            "max_refined_query_loop": 3,
             "run_regression_test": run_regression_test,
             "selected_regression_tests": selected_regression_tests,
         }

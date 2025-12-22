@@ -35,8 +35,7 @@ class ContextProviderNode:
 
     SYS_PROMPT = """\
 You are a context gatherer that searches a Neo4j knowledge graph representation of a 
-codebase. Your role is to understand the logic of the project and efficiently find relevant code and documentation 
-context based on user queries.
+codebase. Your role is to efficiently find relevant code and documentation context based on user queries.
 
 Knowledge Graph Structure:
 1. Node Types:
@@ -81,6 +80,7 @@ Available AST node types for code structure search: {ast_node_types}
 
 PLEASE CALL THE MINIMUM NUMBER OF TOOLS NEEDED TO ANSWER THE QUERY!
 YOU MUST USE THE TOOLS TO FIND THE CODE AND DOCUMENTATION CONTEXT GIVEN THE QUERY!
+DO NOT DO ANYTHING ELSE BEYOND FOLLOW THE QUERY!
 """
 
     def __init__(

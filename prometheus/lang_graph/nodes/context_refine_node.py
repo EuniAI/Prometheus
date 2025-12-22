@@ -155,7 +155,7 @@ IMPORTANT:
         )
 
     def __call__(self, state: ContextRetrievalState):
-        if "max_refined_query_loop" in state and state["max_refined_query_loop"] == 0:
+        if state["max_refined_query_loop"] == 0:
             self._logger.info("Reached max_refined_query_loop, not asking for more context")
             return {"refined_query": None}
 
@@ -173,9 +173,8 @@ IMPORTANT:
             purpose=response.purpose,
         )
 
-        state_update = {"refined_query": refined_query}
-
-        if "max_refined_query_loop" in state:
-            state_update["max_refined_query_loop"] = state["max_refined_query_loop"] - 1
-
+        state_update = {
+            "refined_query": refined_query,
+            "max_refined_query_loop": state["max_refined_query_loop"] - 1,
+        }
         return state_update
