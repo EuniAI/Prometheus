@@ -29,6 +29,7 @@ Guidelines for command execution:
 - Do NOT modify the core logic or parameters of the commands
 - Do NOT attempt to fix bugs or modify test logic
 - DO NOT ASSUME ALL DEPENDENCIES ARE INSTALLED.
+- Once the executed reproduction test failed or passed (Successfully executed), return immediately!
 
 REMINDER:
 - Install dependencies if needed!
