@@ -47,7 +47,7 @@ Remember: Your primary goal is to summarize contexts that directly helps answer 
 
 Provide your analysis in a structured format matching the ContextExtractionStructuredOutput model.
 
-Example output:
+Example output 1:
 ```json
 {{
     "context": [{{
@@ -58,8 +58,15 @@ Example output:
     }} ......]
 }}
 ```
+Example output 2 (No relevant context):
+```json
+{{
+    "context": []
+}}
+```
 
 Your task is to summarize the relevant contexts to a given query and return it in the specified format.
+ALL fields are required!
 """
 
 HUMAN_MESSAGE = """\
@@ -79,7 +86,26 @@ The context or file content that you have seen so far (Some of the context may b
 {context}
 --- END CONTEXT ---
 
+Example output 1:
+```json
+{{
+    "context": [{{
+        "reasoning": "1. Query requirement analysis:\n   - Query specifically asks about password validation\n   - Context provides implementation details for password validation\n2. Extended relevance:\n   - This function is essential for understanding how passwords are validated in the system",
+        "relative_path": "pychemia/code/fireball/fireball.py",
+        "start_line": 270, # Must be greater than or equal to 1
+        "end_line": 293 # Must be greater than or equal to start_line
+    }} ......]
+}}
+```
+Example output 2 (No relevant context):
+```json
+{{
+    "context": []
+}}
+```
+
 REMEMBER: Your task is to summarize the relevant contexts to the given query and return it in the specified format!
+ALL fields are required!
 """
 
 
@@ -112,7 +138,7 @@ class ContextExtractionNode:
                 ("human", "{human_prompt}"),
             ]
         )
-        structured_llm = model.with_structured_output(ContextExtractionStructuredOutput)
+        structured_llm = model.with_structured_output(ContextExtractionStructuredOutput).with_retry(stop_after_attempt=5)
         self.model = prompt | structured_llm
         self.root_path = root_path
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")

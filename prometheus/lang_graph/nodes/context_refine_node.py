@@ -124,7 +124,7 @@ IMPORTANT:
                 ("human", "{human_prompt}"),
             ]
         )
-        structured_llm = model.with_structured_output(ContextRefineStructuredOutput)
+        structured_llm = model.with_structured_output(ContextRefineStructuredOutput).with_retry()
         self.model = prompt | structured_llm
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
