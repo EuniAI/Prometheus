@@ -107,6 +107,10 @@ You MUST select {number_of_selected_regression_tests} regression tests that are 
         )
 
     def __call__(self, state: BugGetRegressionTestsState):
+        # If no context gathered return empty tests
+        if not state["select_regression_context"]:
+            return {"selected_regression_tests": []}
+
         human_prompt = self.format_human_message(state)
         response = self.model.invoke({"human_prompt": human_prompt})
         self._logger.debug(f"Model response: {response}")

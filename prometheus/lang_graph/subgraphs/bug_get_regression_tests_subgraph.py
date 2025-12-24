@@ -96,8 +96,10 @@ class BugGetRegressionTestsSubgraph:
         workflow.add_edge(
             "context_retrieval_subgraph_node", "bug_get_regression_tests_selection_node"
         )
-        workflow.add_edge(
-            "bug_get_regression_tests_selection_node", "run_regression_tests_subgraph_node"
+        workflow.add_conditional_edges(
+            "bug_get_regression_tests_selection_node",
+            lambda state: len(state["selected_regression_tests"]) > 0,
+            {True: "run_regression_tests_subgraph_node", False: END},
         )
         workflow.add_edge("run_regression_tests_subgraph_node", END)
 
