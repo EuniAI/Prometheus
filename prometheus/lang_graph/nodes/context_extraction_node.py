@@ -138,7 +138,9 @@ class ContextExtractionNode:
                 ("human", "{human_prompt}"),
             ]
         )
-        structured_llm = model.with_structured_output(ContextExtractionStructuredOutput).with_retry(stop_after_attempt=5)
+        structured_llm = model.with_structured_output(ContextExtractionStructuredOutput).with_retry(
+            stop_after_attempt=5
+        )
         self.model = prompt | structured_llm
         self.root_path = root_path
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
