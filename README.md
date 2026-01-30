@@ -26,17 +26,11 @@
   </p>
 
   <p align="center">
-    <a href="https://github.com/EuniAI/Prometheus" target="_blank">
-      <img src="https://img.shields.io/github/commit-activity/m/EuniAI/Prometheus?label=Commits&color=brightgreen&style=flat" alt="Commit Activity">
-    </a>
     <a href="https://github.com/EuniAI/Prometheus/forks" target="_blank">
       <img src="https://img.shields.io/github/forks/EuniAI/Prometheus.svg?style=flat&color=blue&label=Forks" alt="Forks">
     </a>
     <a href="https://github.com/EuniAI/Prometheus/issues" target="_blank">
       <img alt="Issues Closed" src="https://img.shields.io/github/issues-search?query=repo%3AEuniAI%2FPrometheus%20is%3Aclosed&label=Issues%20Closed&labelColor=%237d89b0&color=%235d6b98&style=flat">
-    </a>
-    <a href="https://github.com/EuniAI/Prometheus/discussions" target="_blank">
-      <img alt="Discussion Posts" src="https://img.shields.io/github/discussions/EuniAI/Prometheus?label=Discussions&labelColor=%239b8afb&color=%237a5af8&style=flat">
     </a>
   </p>
 
@@ -62,7 +56,7 @@
 
 ## 📣 News
 
-- **[2025-11]** Prometheus achieved TOP 5 and TOP 1 🏆 in the agents using gpt-5 in the **[swebench leaderboard](https://www.swebench.com/)** for automated software engineering using LLMs 🎉!
+- **[2025-11]** Powered by GPT-5, Prometheus achieves state-of-the-art performance with 74.4% and 33.8% resolution rates on **[SWE-bench Verified leaderboard](https://www.swebench.com/)** and **[SWE-Polybench Verified leaderboard](https://amazon-science.github.io/SWE-PolyBench/#verified)**, ranking Top-6 and Top-1🏆 among open-source agent systems, respectively🎉!
 ---
 
 ## 📖 Overview
@@ -265,18 +259,3 @@ This project is dual-licensed:
 
 - **Documentation**: [Multi-Agent Architecture](docs/Multi-Agent-Architecture.md) | [GitHub Issue Debug Guide](docs/GitHub-Issue-Debug-Guide.md)
 - **Issues**: [GitHub Issues](https://github.com/EuniAI/Prometheus/issues)
-
----
-
-## 🌟 Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=EuniAI/Prometheus&type=Date)](https://www.star-history.com/#EuniAI/Prometheus&Date)
-
----
-
-## 🙏 Acknowledgments
-
-<div align="center">
-  <img src="./docs/static/images/delysium_logo.svg" alt="Delysium Logo" width="150">
-</div>
-
-We thank [Delysium](https://delysium.com) for their support in organizing LLM-related resources, architecture design, and optimization, which greatly strengthened our research infrastructure and capabilities.
