@@ -1,7 +1,7 @@
 <a name="readme-top"></a>
 
 <div align="center">
-  <img src="./docs/static/images/icon.jpg" alt="Prometheus Logo" width="160">
+  <img src="https://anonymous.4open.science/api/repo/Prometheus-E8B1/file/docs/static/images/icon.jpg?v=e7ad16e8" alt="Prometheus Logo" width="160">
   <h1 style="border-bottom: none;">
     <b>Prometheus</b><br>
     ⚡ AI-Powered Software 3.0 Platform ⚡
