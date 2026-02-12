@@ -270,24 +270,6 @@ Verify at [http://localhost:7474](http://localhost:7474)
 
 ---
 
-## 📚 Research & Citation
-
-Prometheus is based on peer-reviewed research on unified knowledge graphs for multilingual code analysis.
-
-```bibtex
-@misc{prometheus2025,
-  title={Prometheus: Unified Knowledge Graphs for Issue Resolution in Multilingual Codebases},
-  author={Zimin Chen and Yue Pan and Siyu Lu and Jiayi Xu and Claire Le Goues and Martin Monperrus and He Ye},
-  year={2025},
-  eprint={2507.19942},
-  archivePrefix={arXiv},
-  primaryClass={cs.SE},
-  url={https://arxiv.org/abs/2507.19942}
-}
-```
-
----
-
 ## 🤝 Contributing
 
 We welcome contributions! Please see our **[Contributing Guidelines](CONTRIBUTING.md)** for details on how to get started.
