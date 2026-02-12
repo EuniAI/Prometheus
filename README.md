@@ -102,9 +102,9 @@ Prometheus is a research-backed, production-ready platform that leverages **unif
 ---
 
 ```bibtex
-@misc{chen2025prometheusKG,
-      title={Prometheus: Unified Knowledge Graphs for Issue Resolution in Multilingual Codebases}, 
-      author={Zimin Chen and Yue Pan and Siyu Lu and Jiayi Xu and Claire Le Goues and Martin Monperrus and He Ye},
+@misc{pan2025prometheus,
+      title={Prometheus: Towards Long-Horizon Codebase Navigation for Repository-Level Problem Solving}, 
+      author={Yue Pan and Zimin Chen and Siyu Lu and Zhaoyang Chu and Xiang Li and Han Li and Yang Feng and Claire Le Goues and Federica Sarro and Martin Monperrus and He Ye},
       year={2025},
       eprint={2507.19942},
       archivePrefix={arXiv},
