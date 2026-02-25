@@ -68,5 +68,9 @@ class Settings(BaseSettings):
     # Athena semantic memory service
     ATHENA_BASE_URL: Optional[str] = None
 
+    # Evermind conversation memory service
+    EVERMIND_BASE_URL: Optional[str] = None
+    EVERMIND_API_KEY: Optional[str] = None
+
 
 settings = Settings()
