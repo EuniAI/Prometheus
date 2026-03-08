@@ -56,6 +56,7 @@
     </a>
   </p>
 
+   <img src="./docs/static/images/Prometheus.png" alt="Prometheus Architecture" width="700">
 
   <hr style="width:80%;border:1px solid #ddd;">
 
