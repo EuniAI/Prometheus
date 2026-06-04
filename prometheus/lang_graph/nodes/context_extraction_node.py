@@ -45,28 +45,24 @@ CRITICAL RULE:
 
 Remember: Your primary goal is to summarize contexts that directly helps answer the query requirements.
 
-Provide your analysis in a structured format matching the ContextExtractionStructuredOutput model.
+Record the relevant contexts by calling the structured-output tool with a list named context.
+Each entry has: reasoning (why the context is relevant to the query), relative_path (path to the
+file in the codebase), start_line (an integer >= 1), and end_line (an integer >= start_line; the
+content on the end line is included).
 
-Example output 1:
-```json
-{{
-    "context": [{{
-        "reasoning": "1. Query requirement analysis:\n   - Query specifically asks about password validation\n   - Context provides implementation details for password validation\n2. Extended relevance:\n   - This function is essential for understanding how passwords are validated in the system",
-        "relative_path": "pychemia/code/fireball/fireball.py",
-        "start_line": 270, # Must be greater than or equal to 1
-        "end_line": 293 # Must be greater than or equal to start_line
-    }} ......]
-}}
-```
-Example output 2 (No relevant context):
-```json
-{{
-    "context": []
-}}
-```
+Example: a relevant password-validation function would produce one context entry whose reasoning
+explains that the query asks about password validation and this function implements it, with
+relative_path "pychemia/code/fireball/fireball.py", start_line 270, and end_line 293.
 
-Your task is to summarize the relevant contexts to a given query and return it in the specified format.
+Example (no relevant context found): return an empty context list.
+
+Your task is to summarize the relevant contexts for the given query.
 ALL fields are required!
+
+HOW TO RESPOND:
+- You MUST answer by calling the `ContextExtractionStructuredOutput` tool with its `context` argument.
+- Calling the tool is your ONLY way to respond. Do NOT reply with a normal assistant message, an explanation, or raw JSON text.
+- Always emit exactly one tool call (use an empty context list when nothing is relevant).
 """
 
 HUMAN_MESSAGE = """\
@@ -86,26 +82,9 @@ The context or file content that you have seen so far (Some of the context may b
 {context}
 --- END CONTEXT ---
 
-Example output 1:
-```json
-{{
-    "context": [{{
-        "reasoning": "1. Query requirement analysis:\n   - Query specifically asks about password validation\n   - Context provides implementation details for password validation\n2. Extended relevance:\n   - This function is essential for understanding how passwords are validated in the system",
-        "relative_path": "pychemia/code/fireball/fireball.py",
-        "start_line": 270, # Must be greater than or equal to 1
-        "end_line": 293 # Must be greater than or equal to start_line
-    }} ......]
-}}
-```
-Example output 2 (No relevant context):
-```json
-{{
-    "context": []
-}}
-```
-
-REMEMBER: Your task is to summarize the relevant contexts to the given query and return it in the specified format!
-ALL fields are required!
+REMEMBER: Summarize ONLY the contexts relevant to the given query via the structured-output tool,
+each entry with reasoning, relative_path, start_line, and end_line. Return an empty context list if
+nothing is relevant. ALL fields are required!
 """
 
 

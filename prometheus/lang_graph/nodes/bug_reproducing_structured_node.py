@@ -63,12 +63,9 @@ def test_empty_array_pop():
 
 Result: Test failed with "Cannot read property 'length' of undefined"
 
-Output:
-{
-    "reproduced_bug": true,
-    "reproduced_bug_failure_log": "FAILED tests/test_array.py::test_empty_array_pop - Cannot read property 'length' of undefined",
-    "reproduced_bug_commands": ["pytest tests/test_array.py"]
-}
+Expected result: reproduced_bug is true; reproduced_bug_failure_log is the failing test output
+"FAILED tests/test_array.py::test_empty_array_pop - Cannot read property 'length' of undefined";
+reproduced_bug_commands is ["pytest tests/test_array.py"].
 ```
 
 Example 2 - Wrong Error:
@@ -86,12 +83,9 @@ def test_empty_array_pop():
 
 Result: Test failed with "IndexError: pop from empty list"
 
-Output:
-{
-    "reproduced_bug": false,
-    "reproduced_bug_failure_log": "FAILED tests/test_array.py::test_empty_array_pop - IndexError: pop from empty list\\n\\nTest fails with IndexError but issue describes 'Cannot read property length' error. Test needs to verify the specific error message reported in the bug.",
-    "reproduced_bug_commands": ["pytest tests/test_array.py"]
-}
+Expected result: reproduced_bug is false; reproduced_bug_failure_log is "FAILED tests/test_array.py::test_empty_array_pop -
+IndexError: pop from empty list\\n\\nTest fails with IndexError but issue describes 'Cannot read property length' error.
+Test needs to verify the specific error message reported in the bug."; reproduced_bug_commands is ["pytest tests/test_array.py"].
 ```
 
 Example 3 - Wrong Example:
@@ -109,13 +103,16 @@ def test_array_pop():
 
 Result: Test passed
 
-Output:
-{
-    "reproduced_bug": false,
-    "reproduced_bug_failure_log": "PASSED tests/test_array.py::test_array_pop\\n\\nTest passes but should fail since the bug is not fixed. Test should verify pop() behavior on an empty array as shown in the issue example. Current test uses [1,2,3] array which doesn't demonstrate the reported bug.",
-    "reproduced_bug_commands": ["pytest tests/test_array.py"]
-}
-""".replace("{", "{{").replace("}", "}}")
+Expected result: reproduced_bug is false; reproduced_bug_failure_log is "PASSED tests/test_array.py::test_array_pop\\n\\n
+Test passes but should fail since the bug is not fixed. Test should verify pop() behavior on an empty array as shown in
+the issue example. Current test uses [1,2,3] array which doesn't demonstrate the reported bug.";
+reproduced_bug_commands is ["pytest tests/test_array.py"].
+
+HOW TO RESPOND:
+- You MUST answer by calling the `BugReproducingStructuredOutput` tool with its arguments (reproduced_bug, reproduced_bug_failure_log, reproduced_bug_commands).
+- Calling the tool is your ONLY way to respond. Do NOT reply with a normal assistant message, an explanation, or raw JSON text.
+- Always emit exactly one tool call.
+"""
 
     HUMAN_PROMPT = """\
 ISSUE INFORMATION:

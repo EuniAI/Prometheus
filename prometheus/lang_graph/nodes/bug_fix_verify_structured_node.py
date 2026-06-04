@@ -44,10 +44,7 @@ tests/test_json_parser.py .                                              [100%]
 ============================== 1 passed in 0.16s =============================
 ```
 
-Example Output for Fixed Bug:
-{
-    "reproducing_test_fail_log": ""
-}
+Expected result for a fixed bug: leave reproducing_test_fail_log as an empty string.
 
 Example of Unfixed Bug (Test Still Fails):
 ```
@@ -73,17 +70,19 @@ FAILED tests/test_json_parser.py::test_empty_array_parsing - ValueError
 ============================== 1 failed in 0.16s =============================
 ```
 
-Example Output for Unfixed Bug:
-{
-    "reproducing_test_fail_log": "<complete test output above>"
-}
+Expected result for an unfixed bug: set reproducing_test_fail_log to the complete test output shown above.
 
 Important:
 - Only look at test pass/fail status
 - A single failing test means the bug isn't fixed
 - Include complete test output in failure log
 - Any error or failure means the bug isn't fixed yet
-""".replace("{", "{{").replace("}", "}}")
+
+HOW TO RESPOND:
+- You MUST answer by calling the `BugFixVerifyStructureOutput` tool with its `reproducing_test_fail_log` argument.
+- Calling the tool is your ONLY way to respond. Do NOT reply with a normal assistant message, an explanation, or raw JSON text.
+- Always emit exactly one tool call, even when the test passed (in that case pass an empty string).
+"""
 
     def __init__(self, model: BaseChatModel):
         prompt = ChatPromptTemplate.from_messages(

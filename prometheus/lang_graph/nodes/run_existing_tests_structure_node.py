@@ -3,13 +3,15 @@ import threading
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from prometheus.lang_graph.subgraphs.run_existing_tests_state import RunExistingTestsState
 
 
 class RunExistingTestsStructureOutput(BaseModel):
-    success: bool
+    success: bool = Field(
+        description="True only if ALL executed tests passed; False if any test failed or tests could not run"
+    )
 
 
 class RunExistingTestsStructuredNode:
@@ -34,6 +36,11 @@ Important rules:
 - Warnings alone don't constitute failure
 - Empty test runs or no tests found should return False
 - Look for clear pass/fail indicators in the test framework output
+
+HOW TO RESPOND:
+- You MUST answer by calling the `RunExistingTestsStructureOutput` tool with its `success` argument.
+- Calling the tool is your ONLY way to respond. Do NOT reply with a normal assistant message, an explanation, or raw JSON text.
+- Always emit exactly one tool call.
 """
 
     HUMAN_PROMPT = """\

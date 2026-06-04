@@ -44,35 +44,28 @@ Analysis Process:
 4. Provide detailed reasoning for your selection
 
 Output Requirements:
-- You MUST provide structured output in the following format:
-{{
-  "selected_tests": [
-    {{
-      "reasoning": "", # Your step-by-step reasoning why this test is selected
-      "test_identifier": "" # The test identifier that you select (e.g., class name and method name)
-    }}
-  ]
-}}
+- Provide your selection via the structured-output tool as a list named selected_tests.
+- Each entry has a reasoning field (your step-by-step reasoning why the test is selected) and a
+  test_identifier field (the test identifier you select, e.g., class name and method name).
 
 ALL fields are REQUIRED!
 
-EXAMPLE OUTPUT:
-```json
-{{
-  "selected_tests": [
-    {{
-      "reasoning": "1. Relevance to issue: The test directly exercises the functionality described in the issue, specifically handling edge cases that are likely to be affected by the bug fix.\n2. Impact likelihood: Given the test's focus on critical paths mentioned in the issue, it is highly probable that fixing the bug will influence this test's behavior.",
-      "test_identifier": "pvlib/tests/test_iam.py::test_ashrae"
-    }}
-  ]
-}}
-```
+Example: a single selected test might have reasoning explaining "1. Relevance to issue: the test
+directly exercises the functionality described in the issue, specifically the edge cases likely
+affected by the bug fix; 2. Impact likelihood: given its focus on the critical paths mentioned in
+the issue, fixing the bug will very probably change this test's behavior", with test_identifier
+"pvlib/tests/test_iam.py::test_ashrae".
 
 Remember:
 - Always analyze all available tests thoroughly
 - Provide clear, step-by-step reasoning for your selection
 - Select the tests that best balances the prioritized criteria
 - Do NOT select any test cases that may be skipped during normal test runs!
+
+HOW TO RESPOND:
+- You MUST answer by calling the `RegressionTestsStructuredOutPut` tool with its `selected_tests` argument.
+- Calling the tool is your ONLY way to respond. Do NOT reply with a normal assistant message, an explanation, or raw JSON text.
+- Always emit exactly one tool call (use an empty selected_tests list if nothing qualifies).
 """
 
     HUMAN_PROMPT = """\

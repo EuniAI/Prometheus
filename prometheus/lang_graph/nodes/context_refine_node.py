@@ -46,36 +46,29 @@ When generating new queries, please review the previous queries to AVOID asking 
 Try to explore DIFFERENT aspects of the codebase rather than repeating similar requests, as these queries have already been asked and satisfied.
 ONLY generate queries about the codebase! Execution traces, error logs, or non-code information are out of scope!
 
-Provide your analysis in a structured format matching the ContextRefineStructuredOutput model.
+Record your decision by calling the structured-output tool with these fields:
+  - reasoning: Your step-by-step reasoning about whether more context is needed and why.
+  - query: The main request for additional context (one sentence). Set to an empty string "" if no additional context is needed.
+  - extra_requirements (optional): Fallback instructions if the primary request cannot be fully satisfied.
+  - purpose (optional): Brief explanation of why this context is needed and how it will help complete the task.
 
-Output Structure:
-  - **reasoning**: Your step-by-step reasoning about whether more context is needed and why.
-  - **query**: The main request for additional context (one sentence). Set to empty string "" if no additional context is needed.
-  - **extra_requirements** (optional): Fallback instructions if the primary request cannot be fully satisfied.
-  - **purpose** (optional): Brief explanation of why this context is needed and how it will help complete the task. Use when it helps clarify the intent.
+Example: when the test file content and shared test-data definitions are missing, set query to
+"Please provide the full content of sklearn/feature_extraction/tests/test_text.py"; set extra_requirements to
+ask for at least the import statements and the ALL_FOOD_DOCS / JUNK_FOOD_DOCS definitions with their line
+numbers if the file is too large; set purpose to explain you need to extract the relevant test cases with their
+exact line numbers.
 
-Example output1:
-```json
-{{
-    "reasoning": "The current context lacks the test file content and shared test data definitions needed to extract the 8 relevant test cases.",
-    "query": "Please provide the full content of sklearn/feature_extraction/tests/test_text.py",
-    "extra_requirements": "If sending the full file is too large, please include at minimum: (a) the import statements at the top of the file, and (b) the definitions of ALL_FOOD_DOCS and JUNK_FOOD_DOCS, along with their line numbers.",
-    "purpose": "I need to extract the 8 relevant test cases with their exact line numbers and include all necessary imports and shared test data."
-}}
-```
-
-Example output2:
-```json
-{{
-    "reasoning": "1. The current context includes the main function implementation but lacks details on helper functions it calls.\n2. The query requires understanding of how data is processed, which is not fully covered in the provided context.\n3. The documentation for the main function is missing, which could provide insights into its intended behavior.\n4. Therefore, additional context is needed to fully understand and address the user's query.",
-    "query":  "Please provide the implementation details of the helper functions called within the main function, as well as any relevant documentation that explains the overall data processing workflow.",
-    "extra_requirements": "",
-    "purpose": ""
-}}
-```
+Example: when only helper-function implementations and data-processing documentation are missing, set query to
+"Please provide the implementation details of the helper functions called within the main function, as well as
+any relevant documentation that explains the overall data processing workflow", and leave extra_requirements
+and purpose empty.
 
 IMPORTANT: Keep all fields (query, extra_requirements, purpose) CONCISE and SHORT - ideally ONE sentence each.
-PLEASE DO NOT INCLUDE ``` IN YOUR OUTPUT!
+
+HOW TO RESPOND:
+- You MUST answer by calling the `ContextRefineStructuredOutput` tool with its arguments (reasoning, query, extra_requirements, purpose).
+- Calling the tool is your ONLY way to respond. Do NOT reply with a normal assistant message, an explanation, or raw JSON text.
+- Always emit exactly one tool call (set query to "" when no more context is needed).
 """
 
     REFINE_PROMPT = """\

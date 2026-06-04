@@ -136,12 +136,9 @@ E       ConnectionRefusedError: [Errno 111] Connection refused
 tests/integration/test_api.py:23: ConnectionRefusedError
 ======================= 2 failed, 3 passed in 1.25s ===========================
 
-Output:
-{
-    "exist_test": true,
-    "command_summary": "Project uses pytest framework with coverage reporting. Required steps:\n1. Install dependencies: pip install -r requirements.txt\n2. Run tests: python -m pytest\nTests include unit tests in ./tests and integration tests in ./tests/integration, configured via pytest.ini for coverage reporting.",
-    "fail_log": "============================= test session starts ==============================\nplatform linux -- Python 3.8.10, pytest-7.3.1, pluggy-1.0.0\ncollected 5 tests\n\nFAILED tests/test_authentication.py::test_account_lockout\n    def test_account_lockout():\n        for _ in range(5):\n            auth.attempt_login(\"user\", \"wrong\")\n>       assert auth.is_account_locked(\"user\") == True\nE       AssertionError: assert False == True\nE       +  where False = <function is_account_locked at 0x7f9b8c2e4f70>('user')\n\ntests/test_authentication.py:45: AssertionError\n\nFAILED tests/integration/test_api.py::test_api_auth\n    def test_api_auth():\n>       response = client.post(\"/api/login\", json={\"username\": \"test\", \"password\": \"test123\"})\nE       requests.exceptions.ConnectionError: HTTPConnectionError(Connection refused)\nE       During handling of the above exception, another exception occurred:\nE       ConnectionRefusedError: [Errno 111] Connection refused\n\ntests/integration/test_api.py:23: ConnectionRefusedError\n======================= 2 failed, 3 passed in 1.25s ==========================="
-}
+Expected result: exist_test is true; command_summary describes the pytest-with-coverage setup
+and the "pip install -r requirements.txt" then "python -m pytest" steps; fail_log contains the
+complete output of the two failing tests (test_account_lockout and test_api_auth) shown above.
 
 Example 2: JavaScript Project with Passing Tests
 Input:
@@ -184,12 +181,8 @@ Snapshots:   0 total
 Time:        2.145s
 Coverage: 94.32%
 
-Output:
-{
-    "exist_test": true,
-    "command_summary": "Project uses Jest framework with React Testing Library. Required steps:\n1. Install dependencies: npm install\n2. Run tests with coverage: npm test\nTests cover both utility functions and React components with a coverage threshold of 94.32%.",
-    "fail_log": ""
-}
+Expected result: exist_test is true; command_summary describes the Jest + React Testing Library
+setup and the "npm install" then "npm test" steps; fail_log is an empty string.
 
 Example 3: Project without Tests
 Input:
@@ -209,12 +202,8 @@ Command output: {
 Assistant executed command: {"command": "find . -name 'pytest.ini' -o -name 'jest.config.js'"}
 Command output: 
 
-Output:
-{
-    "exist_test": false,
-    "command_summary": "No test framework detected. Project is a basic Node.js application with Express and utility dependencies, but lacks any test files, test frameworks, or test-related configuration.",
-    "fail_log": ""
-}
+Expected result: exist_test is false; command_summary notes that no test framework was detected
+(a basic Node.js/Express app with no test files or config); fail_log is an empty string.
 
 Example 4: Python Project with Pylint Integration
 Input:
@@ -263,12 +252,14 @@ Required test coverage of 80% reached. Total coverage: 82.45%
 
 ======================= 1 failed, 7 passed, 3 pylint warnings in 2.34s ===============
 
-Output:
-{
-    "exist_test": true,
-    "command_summary": "Project uses pytest framework with pylint integration and coverage reporting. Required steps:\n1. Install dependencies: pip install -r requirements.txt\n2. Run tests with linting and coverage: python -m pytest\nTests include unit tests with pylint checks configured via pytest.ini and .pylintrc. Coverage threshold set to 80%.",
-    "fail_log": "============================= test session starts ==============================\nplatform linux -- Python 3.8.10, pytest-7.3.1, pluggy-1.0.0\n\nsrc/models/user.py:23: [C0111(missing-docstring)] Missing module docstring\nsrc/models/user.py:45: [C0116(missing-function-docstring)] Missing function or method docstring\nsrc/models/user.py:67: [W0612(unused-variable)] Unused variable 'result'\n\nFAILED tests/test_user.py::test_user_permissions\n    def test_user_permissions():\n>       assert user.has_permission('write') == True\nE       AssertionError: assert False == True\nE       +  where False = <bound method User.has_permission of <User id=1>>('write')\n\ntests/test_user.py:89: AssertionError\n\n=========================== pylint summary ====================================\nYour code has been rated at 7.52/10 (previous run: 7.52/10, +0.00)\n\n======================= 1 failed, 7 passed, 3 pylint warnings in 2.34s ==============="
-}
+Expected result: exist_test is true; command_summary describes the pytest + pylint + coverage
+setup and the "pip install -r requirements.txt" then "python -m pytest" steps; fail_log contains
+the pylint violations and the failing test_user_permissions output shown above.
+
+HOW TO RESPOND:
+- You MUST answer by calling the `TestStructuredOutput` tool with its arguments (exist_test, command_summary, fail_log).
+- Calling the tool is your ONLY way to respond. Do NOT reply with a normal assistant message, an explanation, or raw JSON text.
+- Always emit exactly one tool call.
 """.replace("{", "{{").replace("}", "}}")
 
     def __init__(self, model: BaseChatModel):

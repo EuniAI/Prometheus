@@ -83,18 +83,14 @@ test_patch_util.py::test_get_updated_files_with_subfolders PASSED        [100%]
 ========================= 1 failed, 5 passed in 0.03s ==========================
 ```
 
-Example 1 Output:
-{{  
-    "passed_regression_tests": [
-        "test_patch_util.py::test_get_updated_files_empty_diff",
-        "test_patch_util.py::test_get_updated_files_modified_only",
-        "test_patch_util.py::test_get_updated_files_removed_only",
-        "test_patch_util.py::test_get_updated_files_multiple_changes",
-        "test_patch_util.py::test_get_updated_files_with_subfolders"
-    ],
-    "regression_test_fail_log": "test_patch_util.py::test_get_updated_files_added_only FAILED             [ 33%] tests/utils/test_patch_util.py:13 (test_get_updated_files_added_only) 0 != 1 Expected:1 Actual:0 <点击以查看差异> def test_get_updated_files_added_only():         diff = \\\"\"\"     diff --git a/new_file.txt b/new_file.txt     new file mode 100644     index 0000000..1234567     --- /dev/null     +++ b/new_file.txt     @@ -0,0 +1 @@     +New content     \\\"\"\"         added, modified, removed = get_updated_files(diff)         assert len(added) == 1 >       assert len(modified) == 1 E       assert 0 == 1 E        +  where 0 = len([]) test_patch_util.py:26: AssertionError",
-    "total_tests_run": 6
-}}
+Example 1 expected result: passed_regression_tests lists the five passing identifiers
+(test_patch_util.py::test_get_updated_files_empty_diff,
+test_patch_util.py::test_get_updated_files_modified_only,
+test_patch_util.py::test_get_updated_files_removed_only,
+test_patch_util.py::test_get_updated_files_multiple_changes,
+test_patch_util.py::test_get_updated_files_with_subfolders);
+regression_test_fail_log contains the complete failure output of
+test_patch_util.py::test_get_updated_files_added_only shown above; total_tests_run is 6.
 </example>
 
 Important:
@@ -104,6 +100,11 @@ Important:
 - Do Not output any log when where is no test executed. ONLY output the log exact and complete test FAILURE log when test failure!
 - Only include tests that actually executed (Both Passed and Failed). If tests couldn't run due to setup errors, don't count them.
 - If you can't find any test run, return 0 for total number of tests run!
+
+HOW TO RESPOND:
+- You MUST answer by calling the `RunRegressionTestsStructureOutput` tool with its arguments (passed_regression_tests, regression_test_fail_log, total_tests_run).
+- Calling the tool is your ONLY way to respond. Do NOT reply with a normal assistant message, an explanation, or raw JSON text.
+- Always emit exactly one tool call.
 """
     HUMAN_PROMPT = """
 We have run the selected regression tests on the codebase.

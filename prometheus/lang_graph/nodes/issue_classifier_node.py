@@ -50,10 +50,7 @@ CODEBASE CONTEXT:
 Current file processing implementation uses in-memory buffering without streaming support.
 ```
 
-OUTPUT 1:
-{
-  "issue_type": "bug"
-}
+OUTPUT 1: bug
 
 INPUT 2:
 ```
@@ -68,10 +65,7 @@ CODEBASE CONTEXT:
 UI currently only supports light theme, using hard-coded color values.
 ```
 
-OUTPUT 2:
-{
-  "issue_type": "feature"
-}
+OUTPUT 2: feature
 
 INPUT 3:
 ```
@@ -86,10 +80,7 @@ CODEBASE CONTEXT:
 README.md focuses on Linux/Mac installation processes.
 ```
 
-OUTPUT 3:
-{
-  "issue_type": "documentation"
-}
+OUTPUT 3: documentation
 
 INPUT 4:
 ```
@@ -104,13 +95,16 @@ CODEBASE CONTEXT:
 Authentication system supports custom providers through AuthProvider interface.
 ```
 
-OUTPUT 4:
-{
-  "issue_type": "question"
-}
+OUTPUT 4: question
 
-Analyze the provided issue and respond with a JSON object containing only the issue_type field with one of the four allowed values: "bug", "feature", "documentation", or "question".
-""".replace("{", "{{").replace("}", "}}")
+Analyze the provided issue and report your classification via the structured-output tool,
+choosing exactly one of the four allowed values: "bug", "feature", "documentation", or "question".
+
+HOW TO RESPOND:
+- You MUST answer by calling the `IssueClassifierOutput` tool with its `issue_type` argument.
+- Calling the tool is your ONLY way to respond. Do NOT reply with a normal assistant message, an explanation, or raw JSON text.
+- Always emit exactly one tool call.
+"""
 
     ISSUE_CLASSIFICATION_CONTEXT = """\
 {issue_info}

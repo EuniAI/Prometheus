@@ -94,11 +94,10 @@ index 1234567..89abcde 100644
      }
 ```
 
-Assistant Response:
-{
-  "reasoning": "1. EFFECTIVENESS:\n- Both patches address the null pointer exception\n- Patch 1 adds additional input validation\n\n2. PRESERVATION:\n- Both patches maintain the core functionality\n- Both correctly throw appropriate exceptions\n\n3. MINIMALITY:\n- Patch 0 is more minimal, only adding the necessary null check for the user object\n- Patch 1 adds extra validation for userId that wasn't part of the reported issue\n\n4. STYLE COHERENCE:\n- Both patches maintain consistent indentation and spacing\n- Both follow Java exception handling conventions\n- Both use appropriate exception types\n\nCONCLUSION:\nPatch 0 is selected because it:\n- Directly fixes the specific issue (NPE on null user)\n- Maintains existing behavior\n- Provides the most minimal solution\n- Follows consistent style with fewer changes to the code",
-  "patch_index": 0
-}
+Expected result: reasoning walks through EFFECTIVENESS, PRESERVATION, MINIMALITY, and STYLE
+COHERENCE for both patches and concludes that patch 0 is preferred because it is the most minimal
+correct fix (adds only the necessary null check, while patch 1 adds extra userId validation not
+required by the issue); patch_index is 0.
 </example>
 
 Remember:
@@ -108,6 +107,11 @@ Remember:
 - Ensure the selected patch_index is valid within the given range
 - Default to patch index 0 only if you cannot make a valid selection after careful analysis
 - Pay attention to the git diff format, including file paths, chunk headers, and line numbers
+
+HOW TO RESPOND:
+- You MUST answer by calling the `FinalPatchSelectionStructuredOutput` tool with its arguments (reasoning, patch_index).
+- Calling the tool is your ONLY way to respond. Do NOT reply with a normal assistant message, an explanation, or raw JSON text.
+- Always emit exactly one tool call.
 """.replace("{", "{{").replace("}", "}}")
 
     HUMAN_PROMPT = """\

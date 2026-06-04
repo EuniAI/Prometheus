@@ -111,12 +111,9 @@ Module not found: Error: Can't resolve './config' in '/project/src'
 
 webpack 5.75.0 compiled with 1 error
 
-Output:
-{
-    "exist_build": true,
-    "command_summary": "Project uses webpack for building Node.js application. Required steps:\n1. Install dependencies: npm install\n2. Build project: npm run build",
-    "fail_log": "ERROR in ./src/app.js\nModule not found: Error: Can't resolve './config' in '/project/src'\n @ ./src/app.js 3:15-33"
-}
+Expected result: exist_build is true; command_summary describes the webpack build with the
+"npm install" then "npm run build" steps; fail_log contains the webpack "Module not found:
+Can't resolve './config'" error shown above.
 
 Example 2: Java Project with Maven (Successful Build)
 Input:
@@ -149,12 +146,8 @@ Command output: [INFO] Scanning for projects...
 [INFO] --- maven-install-plugin:2.5.2:install (default-install) @ my-app ---
 [INFO] BUILD SUCCESS
 
-Output:
-{
-    "exist_build": true,
-    "command_summary": "Project uses Maven build system with Spring Boot dependency. Required steps:\n1. Clean and build project: mvn clean install\nPOM file indicates it's a Spring Boot web application.",
-    "fail_log": ""
-}
+Expected result: exist_build is true; command_summary describes the Maven Spring Boot build
+with the "mvn clean install" step; fail_log is an empty string.
 
 Example 3: Project without Build System
 Input:
@@ -167,12 +160,8 @@ Command output: .
 └── src
     └── script.py
 
-Output:
-{
-    "exist_build": false,
-    "command_summary": "No build system detected. Project contains only Python scripts without any build configuration.",
-    "fail_log": ""
-}
+Expected result: exist_build is false; command_summary notes that no build system was detected
+(only Python scripts); fail_log is an empty string.
 
 Example 4: TypeScript Project with ESLint Errors
 Input:
@@ -214,12 +203,14 @@ Found 2 errors and 1 warning
 npm ERR! Exit code 1
 npm ERR! Failed at prebuild script
 
-Output:
-{
-    "exist_build": true,
-    "command_summary": "Project uses TypeScript with ESLint for linting. Required steps:\n1. Install dependencies: npm install\n2. Lint code: npm run lint\n3. Build project: npm run build (includes automatic linting)",
-    "fail_log": "src/components/User.ts:15:3 error: Unexpected any. Specify a different type (@typescript-eslint/no-explicit-any)\n  15:   data: any;\n        ^^^^\nsrc/services/api.ts:8:5 error: Promise-returning function should be async (typescript-promise-function-async)\n  8:     getUser(): Promise<User> {\n        ^^^^^^^\nFound 2 errors"
-}
+Expected result: exist_build is true; command_summary describes the TypeScript + ESLint build
+with the "npm install", "npm run lint", and "npm run build" steps; fail_log contains the two
+ESLint errors shown above.
+
+HOW TO RESPOND:
+- You MUST answer by calling the `BuildStructuredOutput` tool with its arguments (exist_build, command_summary, fail_log).
+- Calling the tool is your ONLY way to respond. Do NOT reply with a normal assistant message, an explanation, or raw JSON text.
+- Always emit exactly one tool call.
 """.replace("{", "{{").replace("}", "}}")
 
     def __init__(self, model: BaseChatModel):
