@@ -313,7 +313,7 @@ This project is dual-licensed:
 ---
 
 ## 🌟 Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=EuniAI/Prometheus&type=Date)](https://www.star-history.com/#EuniAI/Prometheus&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=EuniAI/Prometheus&type=Date)](https://star-history.dera.page/#EuniAI/Prometheus&Date)
 
 ---
 
