@@ -333,3 +333,59 @@ We thank [Delysium](https://delysium.com) for their support in organizing LLM-re
     <a href="#readme-top">Back to top ↑</a>
   </p>
 </div>
+
+
+
+## FAQ
+
+### What is Prometheus?
+
+Prometheus is a **research-backed, production-ready AI-Powered Software 3.0 Platform** that leverages **unified knowledge graphs** and **multi-agent systems** to perform intelligent operations on multilingual codebases. Built on LangGraph state machines, it orchestrates specialized AI agents to automatically classify issues, reproduce bugs, retrieve relevant context, and generate validated patches.
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Automated Issue Resolution** | End-to-end bug fixing with reproduction, patch generation, and multi-level validation |
+| **Feature Implementation Pipeline** | Context-aware feature request analysis, implementation planning, and code generation |
+| **Intelligent Context Retrieval** | Graph-based semantic search over codebase structure, AST, and documentation |
+| **Multi-Agent Orchestration** | Coordinated workflow between classification, reproduction, and resolution agents |
+| **Knowledge Graph Integration** | Neo4j-powered unified representation of code structure and semantics |
+| **Containerized Execution** | Docker-isolated testing and validation environment |
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/EuniAI/Prometheus.git
+cd Prometheus
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure Neo4j and LLM providers
+# See documentation for detailed setup
+```
+
+### Requirements
+
+- **Python 3.10+**
+- **Neo4j Database** for knowledge graph storage
+- **LLM API Keys** (OpenAI, Anthropic, or other supported providers)
+- **Docker** for containerized execution environment
+
+### Awards
+
+🏆 **TOP 5 and TOP 1 in the swebench leaderboard** for agents using gpt-5 in automated software engineering using LLMs.
+
+### License
+
+Apache 2.0 License — Open source and free to use.
+
+### Help Resources
+
+- 📖 [Website](https://euni.ai/)
+- 📄 [arXiv Paper](https://www.arxiv.org/abs/2507.19942)
+- 🐛 [GitHub Issues](https://github.com/EuniAI/Prometheus/issues)
+- 💬 [Discord](https://discord.gg/jDG4wqkKZj)
+- 🐦 [X/Twitter](https://x.com/Euni_AI)
