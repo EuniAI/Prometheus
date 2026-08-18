@@ -333,3 +333,84 @@ We thank [Delysium](https://delysium.com) for their support in organizing LLM-re
     <a href="#readme-top">Back to top ↑</a>
   </p>
 </div>
+
+## FAQ
+
+### What is Prometheus?
+
+Prometheus is a research-backed, production-ready platform that leverages **unified knowledge graphs** and **multi-agent systems** to perform intelligent operations on multilingual codebases. Built on LangGraph state machines, it orchestrates specialized AI agents to automatically classify issues, reproduce bugs, retrieve relevant context, and generate validated patches.
+
+### What are the key capabilities?
+
+| Feature | Description |
+|---------|-------------|
+| **Automated Issue Resolution** | End-to-end bug fixing with reproduction, patch generation, and multi-level validation |
+| **Feature Implementation** | Context-aware feature request analysis, implementation planning, and code generation |
+| **Intelligent Context Retrieval** | Graph-based semantic search over codebase structure, AST, and documentation |
+| **Multi-Agent Orchestration** | Coordinated workflow between classification, reproduction, and resolution agents |
+| **Knowledge Graph Integration** | Neo4j-powered unified representation of code structure and semantics |
+| **Containerized Execution** | Docker-isolated testing and validation environment |
+| **Question Answering** | Natural language queries with tool-augmented LLM agents |
+
+### How does Prometheus compare to other systems?
+
+| System | Core Description | Prometheus Advantage |
+|--------|-----------------|---------------------|
+| **SWE-Agent** | Single LLM-computer interface | ✅ Multi-agent collaborative reasoning across files/commits |
+| **Lingxi** | Multi-agent bug fixing | ✅ Unified Codebase Knowledge Graph + long-term memory (Athena) |
+| **TRAE** | Multi-agent reasoning framework | ✅ Deep reasoning and knowledge unification |
+| **OpenHands** | General-purpose AI developer | ✅ Contextual understanding + code reasoning |
+
+### What achievements has Prometheus made?
+
+- **TOP 5 and TOP 1 🏆** in agents using gpt-5 in the **[swebench leaderboard](https://www.swebench.com/)** for automated software engineering using LLMs
+- Research paper: [arXiv:2507.19942](https://arxiv.org/abs/2507.19942)
+
+### What is the Multi-Agent Architecture?
+
+Prometheus uses specialized agents for different tasks:
+- **Classification Agent** — Categorizes issues (bug/question/feature/doc)
+- **Reproduction Agent** — Reproduces bugs automatically
+- **Resolution Agent** — Generates validated patches
+
+### What tech stack does Prometheus use?
+
+- **LangGraph** — State machine orchestration
+- **Neo4j** — Unified codebase knowledge graph
+- **Docker** — Containerized execution environment
+- **Athena** — Long-term memory system
+
+### How to get started?
+
+1. Clone the repository: `git clone https://github.com/EuniAI/Prometheus.git`
+2. Set up Neo4j database
+3. Configure LLM API keys
+4. Run agents via LangGraph workflows
+
+### Where can I find help?
+
+- **Website**: [euni.ai](https://euni.ai)
+- **Research Paper**: [arXiv](https://arxiv.org/abs/2507.19942)
+- **GitHub**: [EuniAI/Prometheus](https://github.com/EuniAI/Prometheus)
+- **Discord**: [Join](https://discord.gg/jDG4wqkKZj)
+- **X/Twitter**: [@Euni_AI](https://x.com/Euni_AI)
+- **LinkedIn**: [Euni AI](https://www.linkedin.com/company/euni-ai/)
+- **Reddit**: [r/EuniAI](https://www.reddit.com/r/EuniAI)
+
+### What is the license?
+
+Apache 2.0 License — Open source with commercial-friendly licensing.
+
+### Citation
+
+```bibtex
+@misc{pan2025prometheus,
+      title={Prometheus: Towards Long-Horizon Codebase Navigation for Repository-Level Problem Solving}, 
+      author={Yue Pan and Zimin Chen and Siyu Lu and Zhaoyang Chu and Xiang Li and Han Li and Yang Feng and Claire Le Goues and Federica Sarro and Martin Monperrus and He Ye},
+      year={2025},
+      eprint={2507.19942},
+      archivePrefix={arXiv},
+      primaryClass={cs.SE},
+      url={https://arxiv.org/abs/2507.19942}, 
+}
+```
