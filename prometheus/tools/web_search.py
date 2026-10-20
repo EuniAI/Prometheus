@@ -181,7 +181,7 @@ class WebSearchTool:
             raise WebSearchToolException("Parallel search timed out") from None
         except WebSearchToolException:
             raise
-        except Exception:
+        except Exception:  # noqa: BLE001 - sanitize SDK exceptions before model consumption.
             # SDK transport errors can contain request details. Keep the public error concise.
             raise WebSearchToolException("Parallel Search MCP request failed") from None
 
@@ -189,18 +189,20 @@ class WebSearchTool:
         # Each call owns and closes its transport. Do not attach a process/client-wide
         # conversation ID: analyzer instances are reused across independent issue runs.
         headers = {"User-Agent": "Prometheus/1.3 (+https://github.com/EuniAI/Prometheus)"}
-        async with streamablehttp_client("https://search.parallel.ai/mcp", headers=headers) as (
-            read,
-            write,
-            _,
-        ):
-            async with ClientSession(
+        async with (
+            streamablehttp_client("https://search.parallel.ai/mcp", headers=headers) as (
+                read,
+                write,
+                _,
+            ),
+            ClientSession(
                 read, write, client_info=Implementation(name="Prometheus", version="1.3")
-            ) as session:
-                await session.initialize()
-                result = await session.call_tool(
-                    "web_search", {"objective": query, "search_queries": [query]}
-                )
+            ) as session,
+        ):
+            await session.initialize()
+            result = await session.call_tool(
+                "web_search", {"objective": query, "search_queries": [query]}
+            )
         text = "\n".join(block.text for block in result.content if block.type == "text")
         if result.isError:
             raise WebSearchToolException(f"Parallel Search MCP returned an error: {text}")
