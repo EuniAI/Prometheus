@@ -1,8 +1,12 @@
+import asyncio
 import logging
 import threading
 from dataclasses import dataclass
 from typing import Annotated
 
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
+from mcp.types import Implementation
 from pydantic import BaseModel, Field
 from tavily import InvalidAPIKeyError, TavilyClient, UsageLimitExceededError
 
@@ -17,7 +21,7 @@ class ToolSpec:
 
 
 class WebSearchInput(BaseModel):
-    """Base parameters for Tavily search."""
+    """Parameters shared by the web search providers."""
 
     query: Annotated[str, Field(description="Search query")]
 
@@ -79,8 +83,12 @@ class WebSearchTool:
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
         tavily_api_key = settings.TAVILY_API_KEY
-        if tavily_api_key is None:
-            self._logger.warning("Tavily API key is not set")
+        provider = settings.WEB_SEARCH_PROVIDER
+        self.provider = (
+            ("tavily" if tavily_api_key else "parallel") if provider == "auto" else provider
+        )
+        self.timeout = settings.WEB_SEARCH_TIMEOUT
+        if self.provider != "tavily" or not tavily_api_key:
             tavily_client = None
         else:
             tavily_client = TavilyClient(api_key=tavily_api_key)
@@ -89,21 +97,30 @@ class WebSearchTool:
     def web_search(
         self,
         query: str,
-        max_results: int = 5,
+        max_results: int | None = None,
         include_domains=None,
-        exclude_domains: list[str] = None,
+        exclude_domains: list[str] | None = None,
     ) -> str:
         """Search the web for technical information to aid in bug analysis and resolution.
 
         Args:
             query: Search query string.
-            max_results: Maximum number of results to return (default: 5).
-            include_domains: List of domains to include in search.
-            exclude_domains: List of domains to exclude from search.
+            max_results: Tavily result limit (default: 5); Parallel uses server settings.
+            include_domains: Tavily domains to include; unsupported on Parallel.
+            exclude_domains: Tavily domains to exclude; unsupported on Parallel.
 
         Returns:
             Formatted search results as a string.
         """
+        if self.provider == "parallel":
+            return asyncio.run(
+                self.aweb_search(query, max_results, include_domains, exclude_domains)
+            )
+        if self.provider == "disabled":
+            raise WebSearchToolException("Web search is disabled")
+        if self.tavily_client is None:
+            raise WebSearchToolException("Tavily requires PROMETHEUS_TAVILY_API_KEY")
+
         # Set default include domains if not provided
         if include_domains is None:
             include_domains = [
@@ -123,7 +140,7 @@ class WebSearchTool:
         try:
             response = self.tavily_client.search(
                 query=query,
-                max_results=max_results,
+                max_results=5 if max_results is None else max_results,
                 search_depth="advanced",
                 include_answer=True,
                 include_domains=include_domains or [],  # Convert None to an empty list
@@ -140,3 +157,53 @@ class WebSearchTool:
         format_response = format_results(response)
         self._logger.info(f"web_search format_response: {format_response}")
         return format_response
+
+    async def aweb_search(
+        self,
+        query: str,
+        max_results: int | None = None,
+        include_domains=None,
+        exclude_domains: list[str] | None = None,
+    ) -> str:
+        """Search asynchronously, allowing Parallel requests to be cancelled."""
+        if self.provider != "parallel":
+            return await asyncio.to_thread(
+                self.web_search, query, max_results, include_domains, exclude_domains
+            )
+        if max_results is not None or include_domains or exclude_domains:
+            raise WebSearchToolException(
+                "Parallel uses server-managed search settings. Select the tavily provider "
+                "to use domain filters or custom result limits."
+            )
+        try:
+            return await asyncio.wait_for(self._parallel_search(query), timeout=self.timeout)
+        except TimeoutError:
+            raise WebSearchToolException("Parallel search timed out") from None
+        except WebSearchToolException:
+            raise
+        except Exception:
+            # SDK transport errors can contain request details. Keep the public error concise.
+            raise WebSearchToolException("Parallel Search MCP request failed") from None
+
+    async def _parallel_search(self, query: str) -> str:
+        # Each call owns and closes its transport. Do not attach a process/client-wide
+        # conversation ID: analyzer instances are reused across independent issue runs.
+        headers = {"User-Agent": "Prometheus/1.3 (+https://github.com/EuniAI/Prometheus)"}
+        async with streamablehttp_client("https://search.parallel.ai/mcp", headers=headers) as (
+            read,
+            write,
+            _,
+        ):
+            async with ClientSession(
+                read, write, client_info=Implementation(name="Prometheus", version="1.3")
+            ) as session:
+                await session.initialize()
+                result = await session.call_tool(
+                    "web_search", {"objective": query, "search_queries": [query]}
+                )
+        text = "\n".join(block.text for block in result.content if block.type == "text")
+        if result.isError:
+            raise WebSearchToolException(f"Parallel Search MCP returned an error: {text}")
+        if not text.strip():
+            raise WebSearchToolException("Parallel Search MCP returned no text results")
+        return text

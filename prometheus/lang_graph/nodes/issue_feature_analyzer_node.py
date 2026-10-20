@@ -50,12 +50,7 @@ RECOMMENDED TOOL USAGE:
 
 Tools available:
 - web_search: Searches the web for technical information to aid in feature design and implementation.
-When using the web_search tool, it's recommended to include these parameters:
-    - include_domains: ['stackoverflow.com', 'github.com', 'developer.mozilla.org', 'learn.microsoft.com', 'fastapi.tiangolo.com'
-            'docs.python.org', 'pydantic.dev', 'pypi.org', 'readthedocs.org', 'docs.djangoproject.com','flask.palletsprojects.com']
-    - search_depth: "advanced"
-
-    Make sure to explicitly pass these parameters in your tool call.
+Pass a specific technical query to web_search.
 
 Important:
 - Do NOT provide actual code snippets or diffs
@@ -74,16 +69,19 @@ rather than implementation details.
         self.model = model
         self.system_prompt = SystemMessage(self.SYS_PROMPT)
         self.tools = self._init_tools()
-        self.model_with_tools = model.bind_tools(self.tools)
+        self.model_with_tools = model.bind_tools(self.tools) if self.tools else model
         self._logger = logging.getLogger(f"thread-{threading.get_ident()}.{__name__}")
 
     def _init_tools(self):
         """Initializes tools for the node."""
         tools = []
+        if self.web_search_tool.provider == "disabled":
+            return tools
 
         web_search_fn = functools.partial(self.web_search_tool.web_search)
         web_search_tool = StructuredTool.from_function(
             func=web_search_fn,
+            coroutine=self.web_search_tool.aweb_search,
             name=self.web_search_tool.web_search.__name__,
             description=self.web_search_tool.web_search_spec.description,
             args_schema=self.web_search_tool.web_search_spec.input_schema,

@@ -1,5 +1,6 @@
 from typing import List, Literal, Optional
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -62,8 +63,10 @@ class Settings(BaseSettings):
     # Default normal user repository number
     DEFAULT_USER_REPOSITORY_LIMIT: int = 5
 
-    # tool for Websearch
-    TAVILY_API_KEY: str
+    # Web search: retain configured Tavily access; otherwise use keyless Parallel.
+    WEB_SEARCH_PROVIDER: Literal["auto", "parallel", "tavily", "disabled"] = "auto"
+    WEB_SEARCH_TIMEOUT: float = Field(default=30.0, gt=0, le=300)
+    TAVILY_API_KEY: Optional[str] = None
 
     # Athena semantic memory service
     ATHENA_BASE_URL: Optional[str] = None
