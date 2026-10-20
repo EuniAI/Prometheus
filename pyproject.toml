@@ -27,7 +27,9 @@ dependencies = [
   "sqlmodel==0.0.24",
   "asyncpg",
   "pyjwt==2.6.0",
-  "mcp>=1.4.1",
+  "mcp>=1.10.1,<2",
+  # MCP versions compatible with the pinned PyJWT require Pydantic <2.12.
+  "pydantic>=2.7,<2.12",
   "tavily-python>=0.5.1",
   "langchain-mcp-adapters>=0.1.9",
   "httpx==0.28.1",

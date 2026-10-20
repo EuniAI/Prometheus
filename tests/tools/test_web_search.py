@@ -208,6 +208,8 @@ class TestWebSearchTool:
     def test_init_with_api_key(self, mock_tavily_client, mock_settings):
         """Test WebSearchTool initialization with API key."""
         mock_settings.TAVILY_API_KEY = "test_api_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         tool = WebSearchTool()
 
@@ -219,6 +221,8 @@ class TestWebSearchTool:
     def test_init_without_api_key(self, mock_tavily_client, mock_settings):
         """Test WebSearchTool initialization without API key."""
         mock_settings.TAVILY_API_KEY = None
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         tool = WebSearchTool()
 
@@ -230,6 +234,8 @@ class TestWebSearchTool:
     def test_web_search_success(self, mock_tavily_client, mock_settings):
         """Test successful web search."""
         mock_settings.TAVILY_API_KEY = "test_api_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         # Setup mock client
         mock_client_instance = MagicMock()
@@ -270,6 +276,8 @@ class TestWebSearchTool:
     def test_web_search_with_custom_params(self, mock_tavily_client, mock_settings):
         """Test web search with custom parameters."""
         mock_settings.TAVILY_API_KEY = "test_api_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         mock_client_instance = MagicMock()
         mock_tavily_client.return_value = mock_client_instance
@@ -304,6 +312,8 @@ class TestWebSearchTool:
     def test_web_search_default_domains(self, mock_tavily_client, mock_settings):
         """Test web search uses default domains when not specified."""
         mock_settings.TAVILY_API_KEY = "test_api_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         mock_client_instance = MagicMock()
         mock_tavily_client.return_value = mock_client_instance
@@ -332,6 +342,8 @@ class TestWebSearchTool:
     def test_web_search_invalid_api_key(self, mock_tavily_client, mock_settings):
         """Test web search with invalid API key."""
         mock_settings.TAVILY_API_KEY = "invalid_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         mock_client_instance = MagicMock()
         mock_tavily_client.return_value = mock_client_instance
@@ -349,6 +361,8 @@ class TestWebSearchTool:
     def test_web_search_usage_limit_exceeded(self, mock_tavily_client, mock_settings):
         """Test web search when usage limit is exceeded."""
         mock_settings.TAVILY_API_KEY = "test_api_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         mock_client_instance = MagicMock()
         mock_tavily_client.return_value = mock_client_instance
@@ -366,6 +380,8 @@ class TestWebSearchTool:
     def test_web_search_generic_exception(self, mock_tavily_client, mock_settings):
         """Test web search with generic exception."""
         mock_settings.TAVILY_API_KEY = "test_api_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         mock_client_instance = MagicMock()
         mock_tavily_client.return_value = mock_client_instance
@@ -383,6 +399,8 @@ class TestWebSearchTool:
     def test_web_search_empty_query(self, mock_tavily_client, mock_settings):
         """Test web search with empty query."""
         mock_settings.TAVILY_API_KEY = "test_api_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         mock_client_instance = MagicMock()
         mock_tavily_client.return_value = mock_client_instance
@@ -402,6 +420,8 @@ class TestWebSearchTool:
     def test_web_search_with_none_exclude_domains(self, mock_tavily_client, mock_settings):
         """Test web search with None exclude_domains."""
         mock_settings.TAVILY_API_KEY = "test_api_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         mock_client_instance = MagicMock()
         mock_tavily_client.return_value = mock_client_instance
@@ -421,6 +441,8 @@ class TestWebSearchTool:
     def test_web_search_complex_query(self, mock_tavily_client, mock_settings):
         """Test web search with complex query containing special characters."""
         mock_settings.TAVILY_API_KEY = "test_api_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         mock_client_instance = MagicMock()
         mock_tavily_client.return_value = mock_client_instance
@@ -476,6 +498,8 @@ class TestEdgeCases:
     def test_web_search_max_results_boundary(self, mock_tavily_client, mock_settings):
         """Test web search with boundary values for max_results."""
         mock_settings.TAVILY_API_KEY = "test_api_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         mock_client_instance = MagicMock()
         mock_tavily_client.return_value = mock_client_instance
@@ -518,6 +542,8 @@ class TestEdgeCases:
     def test_web_search_with_empty_domains_lists(self, mock_tavily_client, mock_settings):
         """Test web search with empty domain lists."""
         mock_settings.TAVILY_API_KEY = "test_api_key"
+        mock_settings.WEB_SEARCH_PROVIDER = "auto"
+        mock_settings.WEB_SEARCH_TIMEOUT = 30.0
 
         mock_client_instance = MagicMock()
         mock_tavily_client.return_value = mock_client_instance

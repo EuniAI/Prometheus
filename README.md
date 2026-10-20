@@ -271,6 +271,25 @@ Verify at [http://localhost:7474](http://localhost:7474)
 
 ---
 
+### Web search
+
+Issue-analysis agents use [Parallel Search MCP](https://docs.parallel.ai/integrations/mcp/search-mcp)
+when no Tavily key is configured. Search runs in Fast mode without an account or API key.
+The anonymous service has usage limits; requests can return quota errors.
+
+`PROMETHEUS_WEB_SEARCH_PROVIDER` defaults to `auto`: an existing
+`PROMETHEUS_TAVILY_API_KEY` keeps Tavily selected. Set the provider to `parallel`
+or `tavily` to choose explicitly, or `disabled` to remove web search from the agents.
+An explicitly selected Tavily provider requires a Tavily key. Provider failures
+are reported without switching providers. `PROMETHEUS_WEB_SEARCH_TIMEOUT` bounds
+Parallel requests, including connection setup (30 seconds by default).
+
+Parallel uses server-managed result counts and source selection. Custom result
+limits and domain filters remain available through Tavily; requesting them with
+Parallel raises an error. The agent-facing tool accepts a `query` with either provider.
+Queries are sent to the selected external service; use `disabled` when external
+web search is not permitted.
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our **[Contributing Guidelines](CONTRIBUTING.md)** for details on how to get started.
